@@ -1,0 +1,44 @@
+{
+  "dataset": {
+    "classes": ["brain_glioma", "brain_menin", "brain_tumor"],
+    "imagesPerClass": {"brain_glioma": 2004, "brain_menin": 2004, "brain_tumor": 2048},
+    "totalImages": 6056,
+    "imageSize": "512x512"
+  },
+  "pca": {
+    "components": 1000,
+    "explainedVarianceRatio": 0.90313874
+  },
+  "supervisedModels": [
+    { "name": "Logistic Regression", "accuracy": 0.5954757152361942, "f1Weighted": 0.5961911816358432 },
+    { "name": "KNN (k=3)", "accuracy": 0.6912840984697272, "f1Weighted": 0.6609796741160536 },
+    { "name": "Random Forest (900 trees)", "accuracy": 0.7272122421823021, "f1Weighted": 0.729354687339949 }
+  ],
+  "logisticRegressionConfusionMatrix": {
+    "labels": ["Glioma", "Menin", "Tumor"],
+    "matrix": [
+      [351, 128, 55],
+      [128, 232, 113],
+      [57, 127, 312]
+    ]
+  },
+  "kmeans": {
+    "featureExtractor": "ResNet50 (ImageNet weights, avg pooling)",
+    "featureDim": 2048,
+    "groupedImageCount": 603,
+    "k": 3,
+    "clusterSizes": [201, 201, 201],
+    "adjustedRandIndex": 1.0,
+    "clusterPurity": 1.0,
+    "note": "Formally evaluated after fixing a variable-collision bug that had silently destroyed the ground-truth labels needed for evaluation in the original notebook."
+  },
+  "anomalyDetection": {
+    "status": "complete",
+    "trainTestSplit": "80/20 on glioma (1604 train / 400 held-out test)",
+    "evalSetSize": 4452,
+    "accuracy": 0.50,
+    "latentPcaExplainedVariance": 0.946,
+    "thresholdValue": 12.10,
+    "note": "Original script evaluated on the same images used for training (leakage). With a proper held-out split, real accuracy is close to chance (50%) -- a legitimate, honestly-reported result."
+  }
+}
