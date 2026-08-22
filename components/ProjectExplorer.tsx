@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Project, ProjectCategory } from "@/lib/types";
+import { ProjectCategory, ProjectSummary } from "@/lib/types";
 import ProjectCard from "@/components/ProjectCard";
 
 const ALL = "All" as const;
 
-export default function ProjectExplorer({ projects }: { projects: Project[] }) {
+export default function ProjectExplorer({ projects }: { projects: ProjectSummary[] }) {
   const categories = useMemo(() => {
     const set = new Set<ProjectCategory>();
     projects.forEach((p) => p.category.forEach((c) => set.add(c)));
@@ -19,6 +19,9 @@ export default function ProjectExplorer({ projects }: { projects: Project[] }) {
     if (active === ALL) return projects;
     return projects.filter((p) => p.category.includes(active as ProjectCategory));
   }, [projects, active]);
+
+  const prominent = filtered.filter((project) => project.prominent);
+  const standard = filtered.filter((project) => !project.prominent);
 
   return (
     <div>
@@ -45,10 +48,28 @@ export default function ProjectExplorer({ projects }: { projects: Project[] }) {
           No projects in this category yet.
         </p>
       ) : (
-        <div className={filtered.length === 1 ? "grid grid-cols-1 gap-6" : "grid grid-cols-1 gap-6 md:grid-cols-2"}>
-          {filtered.map((project) => (
-            <ProjectCard key={project.slug} project={project} wide={filtered.length === 1} />
+        <div className="space-y-6">
+          {prominent.map((project) => (
+            <ProjectCard key={project.slug} project={project} wide />
           ))}
+
+          {standard.length > 0 && (
+            <div
+              className={
+                standard.length === 1
+                  ? "grid grid-cols-1 gap-6"
+                  : "grid grid-cols-1 gap-6 md:grid-cols-2"
+              }
+            >
+              {standard.map((project) => (
+                <ProjectCard
+                  key={project.slug}
+                  project={project}
+                  wide={standard.length === 1}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

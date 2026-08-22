@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { projects } from "@/data/projects";
+import { detailedProjects } from "@/data/projects";
 import TechPill from "@/components/TechPill";
 import ApproachTabs from "@/components/ApproachTabs";
 
 export function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
+  return detailedProjects.map((p) => ({ slug: p.slug }));
 }
 
 export function generateMetadata({
@@ -14,16 +14,28 @@ export function generateMetadata({
 }: {
   params: { slug: string };
 }): Metadata {
-  const project = projects.find((p) => p.slug === params.slug);
+  const project = detailedProjects.find((p) => p.slug === params.slug);
   if (!project) return {};
   return {
     title: `${project.title} | Sameer Jain`,
     description: project.oneLiner,
+    openGraph: {
+      title: `${project.title} | Sameer Jain`,
+      description: project.oneLiner,
+      type: "article",
+      images: [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.title} | Sameer Jain`,
+      description: project.oneLiner,
+      images: [],
+    },
   };
 }
 
 export default function ProjectPage({ params }: { params: { slug: string } }) {
-  const project = projects.find((p) => p.slug === params.slug);
+  const project = detailedProjects.find((p) => p.slug === params.slug);
   if (!project) notFound();
 
   return (

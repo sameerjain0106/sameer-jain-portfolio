@@ -6,6 +6,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageBackground from "@/components/PageBackground";
 
+const vercelHost =
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+const metadataBase = new URL(
+  vercelHost ? `https://${vercelHost}` : "http://localhost:3000",
+);
+
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
@@ -28,17 +34,27 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase,
   title: site.seo.title,
   description: site.seo.description,
   openGraph: {
     title: site.seo.title,
     description: site.seo.description,
     type: "website",
+    images: [
+      {
+        url: "/og.png",
+        width: 1731,
+        height: 909,
+        alt: "Sameer Jain — Machine Learning, Data Science, and Quantitative Research",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: site.seo.title,
     description: site.seo.description,
+    images: ["/og.png"],
   },
   icons: {
     icon: "/favicon.svg",

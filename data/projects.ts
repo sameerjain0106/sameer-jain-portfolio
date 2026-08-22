@@ -1,4 +1,5 @@
-import { Project } from "@/lib/types";
+import { Project, ProjectSummary } from "@/lib/types";
+import { etfResearch } from "@/data/etfResearch";
 
 // ============================================================
 // PROJECT DATA
@@ -15,7 +16,7 @@ import { Project } from "@/lib/types";
 // marked as pending rather than filled in.
 // ============================================================
 
-export const projects: Project[] = [
+export const detailedProjects: Project[] = [
   {
     slug: "brain-tumor-mri-classification",
     title: "Brain Tumor MRI Classification",
@@ -229,6 +230,24 @@ export const projects: Project[] = [
       caption: "Random Forest confusion matrix — best-performing model (72.7% accuracy)",
     },
   },
+];
+
+const etfResearchProject: ProjectSummary = {
+  slug: etfResearch.slug,
+  title: etfResearch.title,
+  oneLiner: etfResearch.oneLiner,
+  category: ["Quantitative Research", "Machine Learning"],
+  technologies: [...etfResearch.technologies],
+  featured: true,
+  githubUrl: etfResearch.githubUrl,
+  cardVariant: "etf-research",
+  headlineStats: [...etfResearch.headlineStats],
+  prominent: true,
+};
+
+export const projects: ProjectSummary[] = [
+  etfResearchProject,
+  ...detailedProjects,
 ];
 
 export const featuredProjects = projects.filter((p) => p.featured);

@@ -19,7 +19,9 @@ export default function Home() {
             />
             <div className="hidden items-center gap-3 pb-1 md:flex">
               <span className="h-px w-14 bg-base-border" />
-              <span className="mono-label text-[9px] text-ink-faint">01 featured case study</span>
+              <span className="mono-label text-[9px] text-ink-faint">
+                {String(projects.length).padStart(2, "0")} featured case studies
+              </span>
             </div>
           </div>
 

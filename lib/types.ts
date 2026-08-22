@@ -25,6 +25,25 @@ export interface ProjectImage {
   caption: string;
 }
 
+export interface ProjectHeadlineStat {
+  value: string;
+  label: string;
+}
+
+export interface ProjectSummary {
+  slug: string;
+  title: string;
+  oneLiner: string;
+  category: ProjectCategory[];
+  technologies: string[];
+  featured: boolean;
+  githubUrl: string | null;
+  cardImage?: ProjectImage;
+  cardVariant?: "image" | "etf-research";
+  headlineStats?: ProjectHeadlineStat[];
+  prominent?: boolean;
+}
+
 export interface ProjectApproach {
   id: string;
   label: string;
@@ -37,14 +56,8 @@ export interface ProjectApproach {
   notes?: string[];
 }
 
-export interface Project {
-  slug: string;
-  title: string;
-  oneLiner: string;
-  category: ProjectCategory[];
-  technologies: string[];
-  featured: boolean;
-  githubUrl: string | null;
+export interface Project extends ProjectSummary {
+  cardImage: ProjectImage;
   collaborators?: string[];
   problem: string;
   data: {
@@ -57,5 +70,4 @@ export interface Project {
   approaches: ProjectApproach[];
   limitations: string[];
   futureWork: string[];
-  cardImage: ProjectImage;
 }
