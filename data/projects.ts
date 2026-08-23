@@ -240,9 +240,13 @@ const etfResearchProject: ProjectSummary = {
   technologies: [...etfResearch.technologies],
   featured: true,
   githubUrl: etfResearch.githubUrl,
-  cardVariant: "etf-research",
+  cardImage: {
+    src: "/projects/systematic-etf-research/ic-residualization.svg",
+    alt: "Chart comparing original and beta-residualized monthly information coefficients",
+    caption:
+      "Monthly out-of-sample information coefficient before and after point-in-time beta residualization",
+  },
   headlineStats: [...etfResearch.headlineStats],
-  prominent: true,
 };
 
 export const projects: ProjectSummary[] = [

@@ -39,9 +39,7 @@ export interface ProjectSummary {
   featured: boolean;
   githubUrl: string | null;
   cardImage?: ProjectImage;
-  cardVariant?: "image" | "etf-research";
   headlineStats?: ProjectHeadlineStat[];
-  prominent?: boolean;
 }
 
 export interface ProjectApproach {

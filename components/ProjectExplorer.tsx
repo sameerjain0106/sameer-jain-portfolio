@@ -20,9 +20,6 @@ export default function ProjectExplorer({ projects }: { projects: ProjectSummary
     return projects.filter((p) => p.category.includes(active as ProjectCategory));
   }, [projects, active]);
 
-  const prominent = filtered.filter((project) => project.prominent);
-  const standard = filtered.filter((project) => !project.prominent);
-
   return (
     <div>
       {categories.length > 2 && (
@@ -48,28 +45,10 @@ export default function ProjectExplorer({ projects }: { projects: ProjectSummary
           No projects in this category yet.
         </p>
       ) : (
-        <div className="space-y-6">
-          {prominent.map((project) => (
-            <ProjectCard key={project.slug} project={project} wide />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {filtered.map((project) => (
+            <ProjectCard key={project.slug} project={project} />
           ))}
-
-          {standard.length > 0 && (
-            <div
-              className={
-                standard.length === 1
-                  ? "grid grid-cols-1 gap-6"
-                  : "grid grid-cols-1 gap-6 md:grid-cols-2"
-              }
-            >
-              {standard.map((project) => (
-                <ProjectCard
-                  key={project.slug}
-                  project={project}
-                  wide={standard.length === 1}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>
