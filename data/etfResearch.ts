@@ -14,7 +14,7 @@ export const etfResearch = {
     "Can machine learning identify persistent cross-sectional structure in ETF returns?",
   githubUrl: "https://github.com/sameerjain0106/systematic-etf-research",
   releaseUrl:
-    "https://github.com/sameerjain0106/systematic-etf-research/releases/tag/phase7-confirmed-v1",
+    "https://github.com/sameerjain0106/systematic-etf-research/tree/phase7-confirmed-v1",
   summaryUrl:
     "/projects/systematic-etf-research/data/phase7_public_summary.json",
   signalUrl: "/projects/systematic-etf-research/data/latest_signal.json",
