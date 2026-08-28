@@ -1,0 +1,158 @@
+{
+  "artifact": "phase7_public_summary",
+  "canonical_identity": {
+    "local_scientific_tag": "phase7-confirmed-v1",
+    "phase6c_report_sha256": "82e347c1793cce1453c709fbbe1eea40cbf6ac2ad8fde12b793ef6caf5ed725e",
+    "phase7_plan_freeze_commit": "1ec094366a25ff0ef323229d3fa0276ba2e83ece",
+    "phase7_plan_sha256": "dd6a0b7639fe09fbc0e8859a07a6ce893a785c0c90e6b4c2b0bc600ef6387114",
+    "phase7_report_sha256": "c8d1975166ad6d1ea0086280a1075367953206de61e661a5c6c730b4206a57f1"
+  },
+  "central_research_statement": "A pre-2024-selected Elastic Net model combining ETF momentum, volatility, drawdown, and trend characteristics significantly predicted next-21-session cross-sectional ETF return ranks during a sealed 2024-2026 confirmation period (mean Spearman IC 0.1305; HAC one-sided p=0.0094).",
+  "classification": "CONFIRMED",
+  "complexity_challenge_development_mean_ic": {
+    "elastic_net": 0.10918476554449555,
+    "elastic_nonlinear_ensemble": 0.097257668143187,
+    "shallow_mlp": 0.04413396131656566,
+    "xgboost_pairwise_ranker": 0.07657304178778597,
+    "xgboost_regression": 0.06253069477720544
+  },
+  "disclaimer": "Historical research; not investment advice.",
+  "economic_evaluation_10bps": {
+    "cstar": {
+      "annualized_turnover": 6.147899498664098,
+      "annualized_volatility": 0.2065370010009365,
+      "average_holdings": 19.0,
+      "cagr": 0.18706380602966632,
+      "cumulative_return": 0.5248595307010377,
+      "maximum_drawdown": -0.25136978813632693,
+      "sharpe_ratio": 0.7172829700720338
+    },
+    "equal_weight_eligible": {
+      "annualized_turnover": 0.7122083164054878,
+      "annualized_volatility": 0.11623048059263737,
+      "average_holdings": 94.0,
+      "cagr": 0.16636046055986542,
+      "cumulative_return": 0.4602589508268311,
+      "maximum_drawdown": -0.128392518327886,
+      "sharpe_ratio": 0.9983144487537743
+    },
+    "momentum_12_1": {
+      "annualized_turnover": 5.167324501207851,
+      "annualized_volatility": 0.18784086844522685,
+      "average_holdings": 19.0,
+      "cagr": 0.21977207818348754,
+      "cumulative_return": 0.630320395997851,
+      "maximum_drawdown": -0.1794244636947009,
+      "sharpe_ratio": 0.914339488466219
+    }
+  },
+  "feature_names": [
+    "mom_21d",
+    "mom_63d",
+    "mom_126d",
+    "mom_252d",
+    "mom_252_21d",
+    "vol_21d",
+    "vol_63d",
+    "vol_126d",
+    "vol_252d",
+    "current_drawdown",
+    "max_drawdown_63d",
+    "max_drawdown_252d",
+    "distance_from_252d_high",
+    "price_sma20_ratio",
+    "price_sma50_ratio",
+    "price_sma200_ratio",
+    "sma20_sma50_ratio",
+    "sma50_sma200_ratio"
+  ],
+  "limitations": [
+    "The ETF universe is fixed-current and therefore subject to survivorship and selection bias.",
+    "Market data and adjusted-price histories remain provider-dependent.",
+    "The model's positive IC advantage over momentum was not statistically confirmed.",
+    "Secondary historical portfolio behavior is not proof of alpha or future profitability.",
+    "The confirmation is sealed but is not a fully independent replication.",
+    "Individual linear coefficients are predictive associations, not causal effects."
+  ],
+  "model": {
+    "candidate": "C0_m0_raw_elastic",
+    "configuration": {
+      "alpha": 0.0001,
+      "imputation": "training_median",
+      "l1_ratio": 0.5,
+      "max_iter": 10000,
+      "model_family": "elastic_net",
+      "scaling": "training_standard_scaler",
+      "selection": "cyclic"
+    },
+    "features": [
+      "mom_21d",
+      "mom_63d",
+      "mom_126d",
+      "mom_252d",
+      "mom_252_21d",
+      "vol_21d",
+      "vol_63d",
+      "vol_126d",
+      "vol_252d",
+      "current_drawdown",
+      "max_drawdown_63d",
+      "max_drawdown_252d",
+      "distance_from_252d_high",
+      "price_sma20_ratio",
+      "price_sma50_ratio",
+      "price_sma200_ratio",
+      "sma20_sma50_ratio",
+      "sma50_sma200_ratio"
+    ],
+    "target": "next_21_spy_session_adjusted_total_return_cross_sectional_rank",
+    "tuning_in_confirmation": false
+  },
+  "momentum_comparison": {
+    "cstar_minus_momentum_ic": 0.044581648279554714,
+    "frozen_momentum_confirmation_ic": 0.0859120993577838,
+    "incremental_advantage_statistically_confirmed": false,
+    "interpretation": "The multivariate technical model significantly predicted future ETF return ranks. Its incremental advantage over the frozen conventional momentum baseline was positive but not statistically established.",
+    "paired_hac_95_ci": [
+      -0.03892677814317683,
+      0.12809007470228626
+    ],
+    "paired_hac_one_sided_p": 0.14770143920733045
+  },
+  "research_design": {
+    "confirmation_period": "2024-01-05 through 2026-07-17",
+    "decision_frequency": "weekly",
+    "development_period": "2019-2023",
+    "historical_model_development_closed": true,
+    "maximum_labeled_target_end": "2026-08-17",
+    "target": "next-21-SPY-session ETF adjusted-total-return cross-sectional rank",
+    "target_horizon_spy_sessions": 21
+  },
+  "statistical_result": {
+    "annual_confirmation_ic": {
+      "2024": 0.10185372383392187,
+      "2025": 0.17069895307850433,
+      "partial_2026": 0.10975618056275374
+    },
+    "confirmation_mean_spearman_ic": 0.13049374763733845,
+    "confirmation_median_weekly_ic": 0.15477947794779476,
+    "development_mean_spearman_ic": 0.10918476554449555,
+    "hac_95_ci": [
+      0.021546974983934652,
+      0.23944052029074225
+    ],
+    "hac_lag": 4,
+    "hac_one_sided_p": 0.009447492827628225,
+    "hac_standard_error": 0.05558610949627752,
+    "hac_two_sided_p": 0.01889498565525645,
+    "holm_adjusted_primary_one_sided_p": 0.01889498565525645,
+    "moving_block_bootstrap_95_ci": [
+      0.00988771858500782,
+      0.23487134849872648
+    ],
+    "moving_block_bootstrap_positive_tail_p": 0.016998300169983,
+    "positive_week_fraction": 0.6766917293233082,
+    "prediction_rows": 13254,
+    "weekly_decisions": 133
+  }
+}

@@ -49,6 +49,8 @@ needs to change.
 
 - `public/resume.pdf` — the supplied resume, wired to every Resume link
 - Brain Tumor MRI project charts and result images
+- Systematic ETF Research Engine Phase 7 case study, six publication figures,
+  the compact canonical result export, and the first pending paper signal
 - Animated ML feature-flow visualization in the homepage hero
 
 **Project-results update:** the K-Means clustering and anomaly detection results are no

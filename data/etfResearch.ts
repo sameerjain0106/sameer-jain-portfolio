@@ -1,177 +1,134 @@
+import latestSignal from "@/public/projects/systematic-etf-research/data/latest_signal.json";
+import phase7Summary from "@/public/projects/systematic-etf-research/data/phase7_public_summary.json";
+
+const statistics = phase7Summary.statistical_result;
+const economics = phase7Summary.economic_evaluation_10bps;
+
 export const etfResearch = {
   slug: "systematic-etf-research",
   title: "Systematic ETF Research Engine",
-  subtitle:
-    "Point-in-Time Quantitative Research, Walk-Forward ML, and Alpha-vs-Beta Decomposition",
+  subtitle: "Machine Learning for Cross-Sectional Return Prediction",
   oneLiner:
-    "Point-in-time quantitative ETF research platform combining walk-forward machine learning, historical macro vintages, execution-aware portfolio simulation, statistical robustness testing, and alpha-vs-beta decomposition.",
+    "Built a leakage-controlled ML research engine over ~100 ETFs and 291K+ market observations; a frozen 18-feature Elastic Net achieved 0.130 mean Spearman IC in a sealed 2024–26 confirmation period (HAC p=0.009).",
   researchQuestion:
-    "Can market, technical, and historically available macroeconomic information predict medium-horizon cross-sectional ETF performance?",
+    "Can machine learning identify persistent cross-sectional structure in ETF returns?",
   githubUrl: "https://github.com/sameerjain0106/systematic-etf-research",
   releaseUrl:
-    "https://github.com/sameerjain0106/systematic-etf-research/releases/tag/phase3c-research-v1",
-  version: "ETF Research v1 — Phase 3C Complete",
+    "https://github.com/sameerjain0106/systematic-etf-research/releases/tag/phase7-confirmed-v1",
+  summaryUrl:
+    "/projects/systematic-etf-research/data/phase7_public_summary.json",
+  signalUrl: "/projects/systematic-etf-research/data/latest_signal.json",
+  version: "Phase 7 confirmed · frozen historical model · forward paper test active",
   technologies: [
     "Python",
-    "Machine Learning",
-    "Quantitative Finance",
-    "DuckDB",
     "scikit-learn",
-    "FRED / ALFRED",
-    "Statistical Inference",
+    "Quantitative Research",
+    "DuckDB",
+    "Parquet",
+    "HAC Inference",
+    "Walk-Forward ML",
   ],
   headlineStats: [
-    { value: "100", label: "ETFs" },
-    { value: "291K+", label: "Market observations" },
-    { value: "160", label: "Passing tests" },
-    { value: "6", label: "Walk-forward OOS folds" },
+    { value: statistics.confirmation_mean_spearman_ic.toFixed(3), label: "Confirmed OOS IC" },
+    { value: statistics.hac_one_sided_p.toFixed(3), label: "HAC p-value" },
+    { value: "2024–26", label: "Sealed confirmation" },
+    { value: "3 / 3", label: "Positive subperiods" },
   ],
-  atAGlance: [
+  heroMetrics: [
     {
-      value: "100",
-      label: "ETFs",
-      detail: "Fixed, versioned research universe",
+      value: statistics.confirmation_mean_spearman_ic.toFixed(3),
+      label: "Confirmed OOS IC",
+      detail: "Mean weekly cross-sectional Spearman IC",
+    },
+    {
+      value: statistics.hac_one_sided_p.toFixed(3),
+      label: "HAC p-value",
+      detail: "One-sided, lag 4",
+    },
+    {
+      value: "2024–2026",
+      label: "Confirmation period",
+      detail: "Sealed before outcome review",
+    },
+    {
+      value: "3 / 3",
+      label: "Positive subperiods",
+      detail: "2024, 2025, and partial 2026",
+    },
+    {
+      value: "~100",
+      label: "ETF universe",
+      detail: "Fixed-current research universe",
     },
     {
       value: "291K+",
       label: "Market observations",
-      detail: "291,287 validated observations",
-    },
-    {
-      value: "2015–2026",
-      label: "Research history",
-      detail: "Market and point-in-time macro history",
-    },
-    {
-      value: "45",
-      label: "Predictor allow-list",
-      detail: "Explicitly controlled model inputs",
-    },
-    {
-      value: "6",
-      label: "Expanding OOS folds",
-      detail: "Chronological walk-forward evaluation",
-    },
-    {
-      value: "160",
-      label: "Passing tests",
-      detail: "Frozen publication baseline",
+      detail: "Versioned analytical history",
     },
   ],
-  architecture: [
-    { title: "Yahoo + FRED / ALFRED", detail: "Market history and official macro vintages" },
-    { title: "Raw ingestion & validation", detail: "Schema, provenance, and source-quality checks" },
-    { title: "DuckDB + Parquet", detail: "Versioned catalog and compressed analytical mirror" },
-    { title: "Point-in-time dataset", detail: "Historically eligible rows at each decision date" },
-    { title: "Feature engineering", detail: "Market, technical, relationship, and macro predictors" },
-    { title: "Walk-forward modeling", detail: "Elastic Net and quantitative baselines" },
-    { title: "Robust inference", detail: "Newey–West and moving-block bootstrap" },
-    { title: "Portfolio simulation", detail: "Next-session execution and cost sensitivity" },
-    { title: "Alpha-vs-beta diagnostics", detail: "Residual targets, realized alpha, and risk controls" },
+  pipeline: [
+    "Market data",
+    "PIT feature engineering",
+    "Walk-forward research",
+    "Signal discovery",
+    "Complexity challenge",
+    "Sealed confirmation",
+    "Forward paper testing",
   ],
-  phases: [
-    {
-      id: "3A",
-      title: "Apparent predictability",
-      summary:
-        "Elastic Net initially produced statistically positive cross-sectional predictability.",
-      metrics: [{ label: "Monthly OOS IC", value: "0.1951" }],
-    },
-    {
-      id: "3B",
-      title: "Robustness & attribution",
-      summary:
-        "The apparent signal remained positive after serial-dependence-aware robustness testing, while attribution exposed strong market-risk loading.",
-      metrics: [
-        { label: "Newey–West 95% CI", value: "[0.0645, 0.3258]" },
-        { label: "Block-bootstrap 95% CI", value: "[0.0502, 0.3104]" },
-      ],
-    },
-    {
-      id: "3C",
-      title: "Alpha-vs-beta test",
-      summary:
-        "Point-in-time, risk-free-adjusted beta residualization removed almost all apparent predictability.",
-      metrics: [
-        { label: "Residual monthly IC", value: "0.0055" },
-        { label: "Residual HAC 95% CI", value: "[-0.0753, 0.0863]" },
-      ],
-    },
+  featureGroups: [
+    { name: "Momentum", features: ["21d", "63d", "126d", "252d", "12–1"] },
+    { name: "Volatility", features: ["21d", "63d", "126d", "252d"] },
+    { name: "Drawdown", features: ["Current", "63d max", "252d max", "Distance from high"] },
+    { name: "Trend", features: ["Price / SMA 20", "Price / SMA 50", "Price / SMA 200", "SMA geometry"] },
   ],
-  riskCaseStudy: [
+  complexity: [
+    { name: "Elastic Net", ic: phase7Summary.complexity_challenge_development_mean_ic.elastic_net },
+    { name: "Elastic + XGBoost ensemble", ic: phase7Summary.complexity_challenge_development_mean_ic.elastic_nonlinear_ensemble },
+    { name: "XGBoost pairwise ranker", ic: phase7Summary.complexity_challenge_development_mean_ic.xgboost_pairwise_ranker },
+    { name: "XGBoost regression", ic: phase7Summary.complexity_challenge_development_mean_ic.xgboost_regression },
+    { name: "Shallow MLP", ic: phase7Summary.complexity_challenge_development_mean_ic.shallow_mlp },
+  ],
+  economicResults: [
     {
-      title: "Unconstrained Elastic Net",
-      tone: "caution",
-      metrics: [
-        { label: "Return", value: "−29.83%" },
-        { label: "Max drawdown", value: "−34.36%" },
-        { label: "Average beta", value: "1.337" },
-      ],
+      name: "Frozen ML portfolio",
+      cagr: economics.cstar.cagr,
+      sharpe: economics.cstar.sharpe_ratio,
+      drawdown: economics.cstar.maximum_drawdown,
     },
     {
-      title: "Beta ≤ 1.10",
-      tone: "highlight",
-      metrics: [
-        { label: "Return", value: "−12.64%" },
-        { label: "Max drawdown", value: "−21.62%" },
-        { label: "Average beta", value: "0.971" },
-      ],
+      name: "12–1 momentum",
+      cagr: economics.momentum_12_1.cagr,
+      sharpe: economics.momentum_12_1.sharpe_ratio,
+      drawdown: economics.momentum_12_1.maximum_drawdown,
     },
     {
-      title: "12−1 Momentum",
-      tone: "neutral",
-      metrics: [
-        { label: "Return", value: "−7.37%" },
-        { label: "Max drawdown", value: "−17.17%" },
-        { label: "Average beta", value: "0.599" },
-      ],
+      name: "Equal weight",
+      cagr: economics.equal_weight_eligible.cagr,
+      sharpe: economics.equal_weight_eligible.sharpe_ratio,
+      drawdown: economics.equal_weight_eligible.maximum_drawdown,
     },
   ],
-  modeling: [
-    "Interpretable Elastic Net regression with L1/L2 regularization",
+  leakageControls: [
+    "Chronological expanding folds; no random train/test split",
+    "Target-end purging before every fit",
     "Training-only median imputation and standardization",
-    "Alpha selected using validation folds only",
-    "Explicit 45-predictor allow-list",
-    "No random train/test split or shuffled cross-validation",
-    "Long-horizon SPY beta and correlation were the most stable original predictors",
+    "Point-in-time feature and macro-data availability",
+    "Model and hyperparameters selected before confirmation",
+    "Sealed 2024–2026 confirmation period",
+    "No post-confirmation historical model search",
+    "Append-only forward predictions with deterministic hashes",
   ],
-  deferredModels: [
-    "XGBoost was not implemented.",
-    "Neural networks were not implemented.",
-    "More complex ML was intentionally deferred after robust residual alpha was not established.",
-  ],
-  safeguards: [
-    "No random train/test split",
-    "Chronological expanding folds",
-    "No shuffled cross-validation",
-    "Validation-only hyperparameter selection",
-    "Point-in-time ALFRED vintages",
-    "Same-day macro releases excluded",
-    "No target leakage",
-    "Next-session execution",
-    "Transaction-cost sensitivity",
-    "Newey–West inference",
-    "Moving-block bootstrap",
-    "Deterministic fingerprints and integrity checks",
-  ],
-  conclusion:
-    "A leakage-safe Elastic Net model initially exhibited statistically robust cross-sectional predictability. Subsequent exposure attribution and point-in-time beta residualization showed that most of the apparent signal was explained by systematic market-risk exposure rather than persistent ETF-selection alpha.",
-  conclusionDetail:
-    "The project demonstrates the complete research process: form a hypothesis, obtain an apparent result, stress-test it, identify confounding exposures, and reject an overstated alpha conclusion when the evidence does not support it.",
-  limitations: [
-    "A fixed-current ETF universe creates survivorship and selection bias.",
-    "Static taxonomy is not historical point-in-time classification.",
-    "Yahoo-based execution and distribution data have known limitations.",
-    "The simulation does not model bid/ask spreads or market impact.",
-    "The research does not establish future profitability.",
-  ],
-  futureWork: [
-    "Dynamic risk allocation",
-    "Factor-neutral ETF research",
-    "Historically reconstructed ETF universes",
-    "Crypto extension",
-    "Futures extension",
-    "Cross-asset regime research",
-  ],
+  limitations: phase7Summary.limitations,
+  target: phase7Summary.research_design.target,
+  featureNames: phase7Summary.feature_names,
+  figures: {
+    timeline: "/projects/systematic-etf-research/figures/research-timeline.png",
+    confirmation: "/projects/systematic-etf-research/figures/development-vs-confirmation.png",
+    weeklyIc: "/projects/systematic-etf-research/figures/weekly-confirmation-ic.png",
+    complexity: "/projects/systematic-etf-research/figures/model-complexity.png",
+    coefficients: "/projects/systematic-etf-research/figures/coefficient-stability.png",
+    economics: "/projects/systematic-etf-research/figures/economic-comparison.png",
+  },
 } as const;
 
+export { latestSignal, phase7Summary };

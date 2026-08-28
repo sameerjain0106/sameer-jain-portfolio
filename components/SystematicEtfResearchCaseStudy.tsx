@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import TechPill from "@/components/TechPill";
-import { etfResearch } from "@/data/etfResearch";
+import { etfResearch, latestSignal, phase7Summary } from "@/data/etfResearch";
 
 function SectionHeader({
   index,
@@ -14,23 +16,54 @@ function SectionHeader({
   description?: string;
 }) {
   return (
-    <div className="grid gap-4 border-b border-base-border pb-6 md:grid-cols-[120px_1fr] md:gap-8">
-      <div className="flex items-center gap-3 md:block">
-        <span className="font-mono text-xs text-ink-faint">{index}</span>
-        <span className="hidden h-px w-10 bg-base-border md:mt-3 md:block" />
-      </div>
-      <div className="max-w-3xl">
+    <div className="grid gap-4 border-b border-base-border pb-6 md:grid-cols-[96px_1fr] md:gap-8">
+      <span className="font-mono text-xs text-ink-faint">{index}</span>
+      <div className="max-w-4xl">
         <p className="mono-label text-[10px] text-signal">{eyebrow}</p>
         <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
           {title}
         </h2>
         {description && (
-          <p className="mt-3 text-sm leading-6 text-ink-muted sm:text-base sm:leading-7">
+          <p className="mt-3 text-sm leading-7 text-ink-muted sm:text-base">
             {description}
           </p>
         )}
       </div>
     </div>
+  );
+}
+
+function CaseSection({ children }: { children: ReactNode }) {
+  return (
+    <section className="border-b border-base-border py-12 sm:py-16">
+      <div className="site-shell">{children}</div>
+    </section>
+  );
+}
+
+function ResearchFigure({
+  src,
+  alt,
+  caption,
+}: {
+  src: string;
+  alt: string;
+  caption: string;
+}) {
+  return (
+    <figure className="overflow-hidden rounded-xl border border-base-border bg-[#f8fafc] shadow-[0_24px_70px_-46px_rgba(77,216,196,0.45)]">
+      <Image
+        src={src}
+        alt={alt}
+        width={1600}
+        height={900}
+        className="h-auto w-full object-contain"
+        sizes="(max-width: 1024px) 100vw, 72vw"
+      />
+      <figcaption className="border-t border-slate-200 bg-white px-4 py-3 font-mono text-[10px] leading-5 text-slate-600">
+        {caption}
+      </figcaption>
+    </figure>
   );
 }
 
@@ -40,7 +73,7 @@ function ResearchLink({
   primary = false,
 }: {
   href: string;
-  children: React.ReactNode;
+  children: ReactNode;
   primary?: boolean;
 }) {
   return (
@@ -51,7 +84,7 @@ function ResearchLink({
       className={
         primary
           ? "rounded-md bg-signal px-4 py-2.5 text-sm font-medium text-base transition-colors hover:bg-signal-glow"
-          : "rounded-md border border-base-border bg-base/40 px-4 py-2.5 text-sm text-ink-muted transition-colors hover:border-signal/50 hover:text-signal"
+          : "rounded-md border border-base-border bg-base/50 px-4 py-2.5 text-sm text-ink-muted transition-colors hover:border-signal/50 hover:text-signal"
       }
     >
       {children} ↗
@@ -59,13 +92,18 @@ function ResearchLink({
   );
 }
 
-const riskToneClasses = {
-  caution: "border-amber/30 bg-amber/5",
-  highlight: "border-signal/40 bg-signal/5 shadow-[0_18px_50px_-36px_rgba(77,216,196,0.6)]",
-  neutral: "border-base-border bg-base-panel/85",
-} as const;
+function formatPercent(value: number) {
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+function formatFeature(value: string) {
+  return value.replaceAll("_", " ");
+}
 
 export default function SystematicEtfResearchCaseStudy() {
+  const confirmation = phase7Summary.statistical_result;
+  const maturity = latestSignal.target_maturity_date ?? "Pending — 21st future SPY session";
+
   return (
     <article>
       <header className="relative overflow-hidden border-b border-base-border bg-grid">
@@ -73,10 +111,9 @@ export default function SystematicEtfResearchCaseStudy() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 60% 80% at 75% 30%, rgba(77,216,196,0.10), transparent 58%), linear-gradient(to bottom, rgba(10,12,16,0.12), #0A0C10 94%)",
+              "radial-gradient(ellipse 60% 75% at 72% 20%, rgba(77,216,196,0.11), transparent 60%), linear-gradient(to bottom, rgba(10,12,16,0.16), #0A0C10 96%)",
           }}
         />
-
         <div className="site-shell relative py-12 sm:py-16 lg:py-20">
           <Link
             href="/#work"
@@ -85,392 +122,360 @@ export default function SystematicEtfResearchCaseStudy() {
             ← Back to selected work
           </Link>
 
-          <div className="mt-8 grid items-end gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(430px,0.72fr)] lg:gap-16">
+          <div className="mt-8 grid items-end gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(470px,0.95fr)] xl:gap-14">
             <div className="animate-fade-up opacity-0">
               <div className="flex flex-wrap items-center gap-2">
                 <TechPill>Quantitative Research</TechPill>
                 <TechPill>Machine Learning</TechPill>
-                <span className="mono-label rounded border border-signal/30 bg-signal/10 px-2 py-1 text-[10px] text-signal">
-                  Phase 3C complete
+                <span className="mono-label rounded border border-signal/30 bg-signal/10 px-2 py-1 text-[9px] text-signal">
+                  Phase 7 · confirmed
                 </span>
               </div>
-
-              <h1 className="mt-6 max-w-4xl font-display text-4xl font-semibold tracking-[-0.035em] text-ink sm:text-5xl lg:text-6xl xl:text-7xl">
+              <p className="mono-label mt-8 text-[10px] text-signal">01 · Research result</p>
+              <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold tracking-[-0.035em] text-ink sm:text-5xl lg:text-6xl xl:text-7xl">
                 {etfResearch.title}
               </h1>
               <p className="mt-5 max-w-3xl font-display text-lg leading-7 text-ink-muted sm:text-xl">
                 {etfResearch.subtitle}
               </p>
-
-              <div className="mt-7 max-w-3xl border-l border-signal/50 pl-5">
-                <p className="mono-label text-[9px] text-signal">Research question</p>
-                <p className="mt-2 text-base leading-7 text-ink sm:text-lg">
-                  {etfResearch.researchQuestion}
-                </p>
-              </div>
-
+              <p className="mt-6 max-w-3xl border-l border-signal/50 pl-5 text-base leading-7 text-ink">
+                Statistically confirmed cross-sectional return predictability: a frozen Elastic Net reached a mean confirmation Spearman IC of {confirmation.confirmation_mean_spearman_ic.toFixed(3)}.
+              </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <ResearchLink href={etfResearch.githubUrl} primary>
-                  GitHub
-                </ResearchLink>
-                <ResearchLink href={etfResearch.releaseUrl}>Frozen Research v1</ResearchLink>
+                <ResearchLink href={etfResearch.githubUrl} primary>Research repository</ResearchLink>
+                <ResearchLink href={etfResearch.summaryUrl}>Public result export</ResearchLink>
               </div>
             </div>
 
-            <div className="animate-fade-up rounded-xl border border-base-border bg-base-panel/90 p-5 opacity-0 shadow-[0_30px_80px_-44px_rgba(77,216,196,0.3)] [animation-delay:140ms] sm:p-6">
+            <div className="animate-fade-up rounded-xl border border-base-border bg-base-panel/95 p-5 opacity-0 shadow-[0_30px_90px_-48px_rgba(77,216,196,0.38)] [animation-delay:140ms] sm:p-6">
               <div className="flex items-center justify-between gap-4 border-b border-base-border pb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-signal shadow-[0_0_12px_rgba(77,216,196,0.8)]" />
-                  <span className="mono-label text-[9px] text-ink-muted">Primary finding</span>
-                </div>
-                <span className="font-mono text-[9px] text-ink-faint">OOS / MONTHLY</span>
+                <span className="mono-label text-[9px] text-signal">Sealed out-of-sample finding</span>
+                <span className="font-mono text-[9px] text-ink-faint">2024–2026</span>
               </div>
-
-              <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                <div>
-                  <p className="font-mono text-4xl font-medium text-ink sm:text-5xl">0.195</p>
-                  <p className="mono-label mt-2 text-[8px] leading-4 text-ink-faint">Original IC</p>
-                </div>
-                <span aria-hidden="true" className="font-mono text-2xl text-signal">
-                  →
-                </span>
-                <div className="text-right">
-                  <p className="font-mono text-4xl font-medium text-amber sm:text-5xl">0.006</p>
-                  <p className="mono-label mt-2 text-[8px] leading-4 text-ink-faint">Residual IC</p>
-                </div>
-              </div>
-
-              <div className="mt-7 h-1.5 overflow-hidden rounded-full bg-base-border">
-                <div className="h-full w-[2.8%] min-w-[6px] bg-amber" />
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-3 font-mono text-[9px] text-ink-faint">
-                <span>Beta residualization</span>
-                <span>2.8% IC retained</span>
-              </div>
-
-              <p className="mt-6 border-t border-base-border pt-5 text-sm leading-6 text-ink-muted">
-                The project challenged its own apparent alpha and found that most predictive power reflected systematic market-risk exposure.
+              <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-base-border bg-base-border">
+                {etfResearch.heroMetrics.map((metric) => (
+                  <div key={metric.label} className="bg-base px-4 py-4">
+                    <dt className="mono-label text-[8px] leading-4 text-ink-faint">{metric.label}</dt>
+                    <dd className="mt-1 font-mono text-xl text-ink sm:text-2xl">{metric.value}</dd>
+                    <p className="mt-2 text-[10px] leading-4 text-ink-muted">{metric.detail}</p>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-5 text-xs leading-5 text-ink-muted">
+                Statistical prediction is the primary result. Historical portfolio behavior is secondary and is not proof of alpha or future profitability.
               </p>
             </div>
           </div>
 
           <div className="mt-10 flex flex-wrap gap-2 border-t border-base-border pt-6">
             {etfResearch.technologies.map((technology) => (
-              <TechPill key={technology} variant="accent">
-                {technology}
-              </TechPill>
+              <TechPill key={technology} variant="accent">{technology}</TechPill>
             ))}
           </div>
         </div>
       </header>
 
-      <section className="border-b border-base-border py-12 sm:py-16">
-        <div className="site-shell">
-          <SectionHeader
-            index="01"
-            eyebrow="Research at a glance"
-            title="A reproducible, point-in-time research system"
-            description="The project connects raw data contracts, leakage-controlled modeling, robust inference, and portfolio diagnostics in one versioned workflow."
-          />
+      <CaseSection>
+        <SectionHeader
+          index="02"
+          eyebrow="The question"
+          title={etfResearch.researchQuestion}
+          description="The target is each ETF’s next-21-SPY-session adjusted-total-return cross-sectional rank. Weekly decisions make the prediction problem explicit while keeping the research cadence operationally realistic."
+        />
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          {[
+            ["Prediction unit", "ETF × weekly decision date"],
+            ["Frozen target", "Next-21-SPY-session ETF adjusted-total-return cross-sectional rank"],
+            ["Primary score", "Cross-sectional Spearman information coefficient"],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-base-border bg-base-panel/85 p-5">
+              <p className="mono-label text-[8px] text-signal">{label}</p>
+              <p className="mt-3 text-sm leading-6 text-ink-muted">{value}</p>
+            </div>
+          ))}
+        </div>
+      </CaseSection>
 
-          <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {etfResearch.atAGlance.map((metric, index) => (
-              <div
-                key={metric.label}
-                className="animate-fade-up rounded-lg border border-base-border bg-base-panel/85 p-5 opacity-0"
-                style={{ animationDelay: `${index * 55}ms` }}
-              >
-                <dt className="mono-label text-[9px] text-ink-faint">{metric.label}</dt>
-                <dd className="mt-2 font-mono text-2xl font-medium text-ink sm:text-3xl">
-                  {metric.value}
-                </dd>
-                <p className="mt-3 text-xs leading-5 text-ink-muted">{metric.detail}</p>
+      <CaseSection>
+        <SectionHeader
+          index="03"
+          eyebrow="Research pipeline"
+          title="From point-in-time inputs to genuine forward evidence"
+          description="Every stage has an explicit information boundary and a versioned output, so the confirmation result can be audited without rerunning model search."
+        />
+        <ol className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-7">
+          {etfResearch.pipeline.map((stage, index) => (
+            <li key={stage} className="relative rounded-lg border border-base-border bg-base-panel/85 p-4 xl:min-h-[142px]">
+              <span className="font-mono text-[10px] text-signal">{String(index + 1).padStart(2, "0")}</span>
+              <p className="mt-6 text-sm leading-5 text-ink">{stage}</p>
+              {index < etfResearch.pipeline.length - 1 && (
+                <span className="absolute -right-2.5 top-1/2 z-10 hidden -translate-y-1/2 font-mono text-xs text-ink-faint xl:block">→</span>
+              )}
+            </li>
+          ))}
+        </ol>
+        <div className="mt-7">
+          <ResearchFigure
+            src={etfResearch.figures.timeline}
+            alt="Research timeline showing development, sealed confirmation, and forward testing"
+            caption="The model was selected in pre-2024 development, evaluated once on the sealed confirmation period, then frozen for prospective paper predictions."
+          />
+        </div>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="04"
+          eyebrow="Model discovery"
+          title="Eighteen technical predictors, grouped by market behavior"
+          description="The final input contract combines momentum, volatility, drawdown, and moving-average geometry. Preprocessing is fit on training data only."
+        />
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {etfResearch.featureGroups.map((group) => (
+            <div key={group.name} className="rounded-xl border border-base-border bg-base-panel/85 p-6">
+              <p className="mono-label text-[9px] text-signal">{group.name}</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {group.features.map((feature) => (
+                  <span key={feature} className="rounded-full border border-base-border bg-base/60 px-3 py-1.5 font-mono text-[10px] text-ink-muted">
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 text-xs leading-6 text-ink-faint">
+          Frozen configuration: Elastic Net α=0.0001, l1_ratio=0.5, cyclic selection, training-median imputation, and training-only StandardScaler.
+        </p>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="05"
+          eyebrow="Model complexity challenge"
+          title="Complexity was tested—not assumed to be better"
+          description="Elastic Net, XGBoost regression, pairwise learning-to-rank, a shallow MLP, and an ensemble were compared only in pre-confirmation development. The regularized linear model generalized best there."
+        />
+        <div className="mt-8 grid gap-6 xl:grid-cols-[0.72fr_1.28fr]">
+          <div className="rounded-xl border border-base-border bg-base-panel/85 p-6">
+            <p className="mono-label text-[9px] text-signal">Development mean IC</p>
+            <dl className="mt-4 divide-y divide-base-border">
+              {etfResearch.complexity.map((model) => (
+                <div key={model.name} className="flex items-center justify-between gap-4 py-3">
+                  <dt className="text-xs leading-5 text-ink-muted">{model.name}</dt>
+                  <dd className="font-mono text-sm text-ink">{model.ic.toFixed(3)}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-4 border-t border-base-border pt-4 text-xs leading-5 text-ink-faint">
+              This does not imply nonlinear ML never works in markets; it reports the outcome of this frozen development comparison.
+            </p>
+          </div>
+          <ResearchFigure
+            src={etfResearch.figures.complexity}
+            alt="Pre-confirmation comparison of Elastic Net, XGBoost, pairwise ranking, MLP, and ensemble models"
+            caption="None of the nonlinear candidates passed the predeclared complexity-advancement gate."
+          />
+        </div>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="06"
+          eyebrow="Sealed confirmation"
+          title="The centerpiece: one frozen model, one untouched period"
+          description="The candidate and inference plan were fixed before the 2024–2026 outcomes were read. The model then produced positive mean IC in every confirmation subperiod."
+        />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Development IC", confirmation.development_mean_spearman_ic.toFixed(3)],
+            ["Confirmation IC", confirmation.confirmation_mean_spearman_ic.toFixed(3)],
+            ["HAC one-sided p", confirmation.hac_one_sided_p.toFixed(3)],
+            ["Positive weeks", formatPercent(confirmation.positive_week_fraction)],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-base-border bg-base-panel/85 p-5">
+              <p className="mono-label text-[8px] text-ink-faint">{label}</p>
+              <p className="mt-2 font-mono text-2xl text-ink">{value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 grid gap-6 xl:grid-cols-2">
+          <ResearchFigure
+            src={etfResearch.figures.confirmation}
+            alt="Development and sealed confirmation mean information coefficients"
+            caption={`Development mean IC ${confirmation.development_mean_spearman_ic.toFixed(3)}; sealed confirmation mean IC ${confirmation.confirmation_mean_spearman_ic.toFixed(3)}.`}
+          />
+          <ResearchFigure
+            src={etfResearch.figures.weeklyIc}
+            alt="Weekly information coefficient during the sealed confirmation period"
+            caption="133 weekly confirmation decisions and 13,254 ETF/date predictions; dependence-aware inference is reported alongside the series."
+          />
+        </div>
+        <div className="mt-6 rounded-lg border border-amber/30 bg-amber/5 p-5 text-sm leading-7 text-ink-muted">
+          The multivariate model significantly predicted future ETF return ranks. Its IC advantage over the frozen momentum baseline was positive (+{phase7Summary.momentum_comparison.cstar_minus_momentum_ic.toFixed(3)}) but not statistically established (paired one-sided p={phase7Summary.momentum_comparison.paired_hac_one_sided_p.toFixed(3)}).
+        </div>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="07"
+          eyebrow="Interpretability"
+          title="Stable predictive associations, not causal stories"
+          description="Coefficient-stability analysis showed recurring contributions from moving-average geometry, long-horizon volatility, momentum, and drawdown. Signs and magnitudes describe the fitted score, not economic causality."
+        />
+        <div className="mt-8 grid items-start gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+          <ResearchFigure
+            src={etfResearch.figures.coefficients}
+            alt="Coefficient stability for the frozen 18-feature Elastic Net"
+            caption="Fold-level standardized coefficients reveal which associations persisted across chronological training windows."
+          />
+          <div className="rounded-xl border border-base-border bg-base-panel/85 p-6">
+            <p className="mono-label text-[9px] text-signal">Current score anatomy</p>
+            <p className="mt-3 text-xs leading-5 text-ink-muted">
+              For the latest top-ranked ETF ({latestSignal.top_model_ranked[0].ticker}), the largest positive standardized contribution was {formatFeature(latestSignal.top_model_ranked[0].major_positive_contributors[0].feature)}; the largest negative contribution was {formatFeature(latestSignal.top_model_ranked[0].major_negative_contributors[0].feature)}.
+            </p>
+            <p className="mt-5 border-t border-base-border pt-5 text-xs leading-5 text-ink-faint">
+              These are mechanical score contributions from an immutable paper run. They are not feature importance in a causal sense and are not trading recommendations.
+            </p>
+          </div>
+        </div>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="08"
+          eyebrow="Economic evaluation · secondary"
+          title="Positive historical behavior, with benchmark trade-offs"
+          description="The portfolio simulation uses weekly decisions and 10 bps transaction costs. This section is deliberately secondary to the statistical finding."
+        />
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          {etfResearch.economicResults.map((result) => (
+            <div key={result.name} className="rounded-xl border border-base-border bg-base-panel/85 p-6">
+              <h3 className="font-display text-lg font-semibold text-ink">{result.name}</h3>
+              <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-base-border pt-5">
+                <div><dt className="mono-label text-[7px] text-ink-faint">CAGR</dt><dd className="mt-2 font-mono text-sm text-ink">{formatPercent(result.cagr)}</dd></div>
+                <div><dt className="mono-label text-[7px] text-ink-faint">Sharpe</dt><dd className="mt-2 font-mono text-sm text-ink">{result.sharpe.toFixed(3)}</dd></div>
+                <div><dt className="mono-label text-[7px] text-ink-faint">Max DD</dt><dd className="mt-2 font-mono text-sm text-ink">{formatPercent(result.drawdown)}</dd></div>
+              </dl>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6">
+          <ResearchFigure
+            src={etfResearch.figures.economics}
+            alt="Historical economic comparison of the frozen ML portfolio, momentum, and equal weight"
+            caption="The ML portfolio did not dominate momentum on CAGR or equal weight on Sharpe. Historical returns are not proof of alpha."
+          />
+        </div>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="09"
+          eyebrow="Current forward paper test"
+          title="A prediction recorded before its outcome exists"
+          description="The first genuine prospective run was created at the latest mechanically valid date and then rerun to verify the same immutable record rather than create a duplicate."
+        />
+        <div className="mt-8 overflow-hidden rounded-xl border border-signal/35 bg-signal/5">
+          <div className="flex flex-col gap-3 border-b border-signal/20 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="mono-label text-[10px] text-signal">Live paper prediction</p>
+              <p className="mono-label mt-2 text-[9px] text-ink-muted">Outcome not yet observed</p>
+            </div>
+            <span className="mono-label w-fit rounded-full border border-amber/40 bg-amber/10 px-3 py-1.5 text-[9px] text-amber">
+              {latestSignal.status}
+            </span>
+          </div>
+          <dl className="grid gap-px bg-base-border sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["As-of date", latestSignal.as_of_date],
+              ["Target maturity", maturity],
+              ["Universe", `${latestSignal.eligible_universe_size} ETFs`],
+              ["Horizon", `${latestSignal.target_horizon_spy_sessions} SPY sessions`],
+            ].map(([label, value]) => (
+              <div key={label} className="bg-base-panel px-5 py-4">
+                <dt className="mono-label text-[8px] text-ink-faint">{label}</dt>
+                <dd className="mt-2 font-mono text-xs leading-5 text-ink">{value}</dd>
               </div>
             ))}
           </dl>
-        </div>
-      </section>
-
-      <section className="border-b border-base-border py-12 sm:py-16">
-        <div className="site-shell">
-          <SectionHeader
-            index="02"
-            eyebrow="System architecture"
-            title="From raw history to falsifiable evidence"
-            description="Each layer preserves a clear information boundary so later diagnostics can challenge earlier results without rewriting them."
-          />
-
-          <ol className="mt-8 grid gap-3 md:grid-cols-3 lg:grid-cols-9">
-            {etfResearch.architecture.map((stage, index) => (
-              <li
-                key={stage.title}
-                className="relative rounded-lg border border-base-border bg-base-panel/85 p-4 lg:min-h-[190px]"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-[10px] text-signal">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  {index < etfResearch.architecture.length - 1 && (
-                    <span aria-hidden="true" className="font-mono text-xs text-ink-faint lg:absolute lg:-right-2.5 lg:top-1/2 lg:z-10 lg:-translate-y-1/2">
-                      →
-                    </span>
-                  )}
-                </div>
-                <h3 className="mt-5 font-display text-sm font-semibold leading-5 text-ink">
-                  {stage.title}
-                </h3>
-                <p className="mt-3 text-[11px] leading-5 text-ink-muted">{stage.detail}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="border-b border-base-border py-12 sm:py-16">
-        <div className="site-shell">
-          <SectionHeader
-            index="03"
-            eyebrow="Research progression"
-            title="The result became more useful when it got smaller"
-            description="The scientific story is not a favorable backtest. It is a sequence of increasingly strict tests that separated apparent predictability from persistent selection alpha."
-          />
-
-          <div className="mt-8 grid gap-4 lg:grid-cols-3">
-            {etfResearch.phases.map((phase, index) => (
-              <article
-                key={phase.id}
-                className={
-                  index === 2
-                    ? "rounded-xl border border-signal/40 bg-signal/5 p-6"
-                    : "rounded-xl border border-base-border bg-base-panel/85 p-6"
-                }
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <span className="mono-label text-[10px] text-signal">Phase {phase.id}</span>
-                  <span className="font-mono text-[10px] text-ink-faint">0{index + 1} / 03</span>
-                </div>
-                <h3 className="mt-5 font-display text-xl font-semibold text-ink">{phase.title}</h3>
-                <p className="mt-3 min-h-[72px] text-sm leading-6 text-ink-muted">{phase.summary}</p>
-
-                <dl className="mt-6 space-y-4 border-t border-base-border pt-5">
-                  {phase.metrics.map((metric) => (
-                    <div key={metric.label}>
-                      <dt className="mono-label text-[8px] text-ink-faint">{metric.label}</dt>
-                      <dd className={index === 2 ? "mt-1 font-mono text-xl text-signal" : "mt-1 font-mono text-xl text-ink"}>
-                        {metric.value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-6 grid items-center gap-8 rounded-xl border border-base-border bg-base-panel/90 p-6 sm:p-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(420px,1.2fr)]">
-            <div>
-              <p className="mono-label text-[9px] text-signal">Central finding</p>
-              <div className="mt-4 flex items-center gap-4 sm:gap-6">
-                <span className="font-mono text-4xl text-ink sm:text-6xl">0.195</span>
-                <span aria-hidden="true" className="font-mono text-2xl text-signal sm:text-3xl">→</span>
-                <span className="font-mono text-4xl text-amber sm:text-6xl">0.006</span>
-              </div>
-              <p className="mono-label mt-3 text-[8px] text-ink-faint">Monthly OOS information coefficient</p>
-            </div>
-            <div className="border-t border-base-border pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-              <p className="text-base leading-7 text-ink">
-                Point-in-time beta residualization removed almost all of the original ranking signal.
-              </p>
-              <p className="mt-3 text-sm leading-6 text-ink-muted">
-                This was the intended stress test: identify whether the model selected ETFs for idiosyncratic return or mainly favored systematic market exposure. The evidence supported the latter, so the research rejected an overstated alpha claim.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-base-border py-12 sm:py-16">
-        <div className="site-shell">
-          <SectionHeader
-            index="04"
-            eyebrow="2022 risk-control case study"
-            title="Exposure attribution translated into a concrete control"
-            description="The untouched 2022 test exposed concentrated high-beta and growth risk. A simple, predeclared beta ceiling materially reduced downside; it was not optimized using 2022."
-          />
-
-          <div className="mt-8 grid gap-4 lg:grid-cols-3">
-            {etfResearch.riskCaseStudy.map((strategy) => (
-              <article
-                key={strategy.title}
-                className={`rounded-xl border p-6 ${riskToneClasses[strategy.tone]}`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="font-display text-lg font-semibold text-ink">{strategy.title}</h3>
-                  {strategy.tone === "highlight" && (
-                    <span className="mono-label rounded-full border border-signal/30 bg-signal/10 px-2 py-1 text-[8px] text-signal">
-                      risk control
-                    </span>
-                  )}
-                </div>
-                <dl className="mt-6 grid grid-cols-3 divide-x divide-base-border border-y border-base-border py-4">
-                  {strategy.metrics.map((metric) => (
-                    <div key={metric.label} className="px-3 first:pl-0 last:pr-0">
-                      <dt className="mono-label text-[7px] leading-4 text-ink-faint">{metric.label}</dt>
-                      <dd className="mt-2 font-mono text-base text-ink sm:text-lg">{metric.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-5 rounded-lg border border-signal/25 bg-signal/5 p-5 sm:flex sm:items-center sm:justify-between sm:gap-8">
-            <div>
-              <p className="mono-label text-[9px] text-signal">Observed downside reduction</p>
-              <p className="mt-2 text-sm leading-6 text-ink-muted">
-                The beta ≤ 1.10 control reduced 2022 max drawdown by 12.74 percentage points, or 37.1%.
-              </p>
-            </div>
-            <p className="mt-4 shrink-0 font-mono text-2xl text-signal sm:mt-0">−34.36% → −21.62%</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-base-border py-12 sm:py-16">
-        <div className="site-shell">
-          <SectionHeader
-            index="05"
-            eyebrow="ML & modeling"
-            title="Complexity was earned, not assumed"
-            description="Elastic Net was selected as an interpretable regularized baseline. The design prioritized temporal validity, fold-local preprocessing, and auditable feature selection over model novelty."
-          />
-
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">
-            <div className="rounded-xl border border-base-border bg-base-panel/85 p-6 sm:p-7">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-base-border pb-5">
-                <div>
-                  <p className="mono-label text-[9px] text-signal">Primary model</p>
-                  <h3 className="mt-2 font-display text-2xl font-semibold text-ink">Elastic Net regression</h3>
-                </div>
-                <span className="font-mono text-sm text-ink-faint">L1 + L2</span>
-              </div>
-              <ul className="mt-3 divide-y divide-base-border">
-                {etfResearch.modeling.map((item, index) => (
-                  <li key={item} className="flex gap-4 py-4 text-sm leading-6 text-ink-muted">
-                    <span className="font-mono text-[10px] text-signal">{String(index + 1).padStart(2, "0")}</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <aside className="rounded-xl border border-amber/30 bg-amber/5 p-6 sm:p-7">
-              <p className="mono-label text-[9px] text-amber">Intentionally deferred</p>
-              <h3 className="mt-3 font-display text-xl font-semibold text-ink">No complexity without residual signal</h3>
-              <div className="mt-6 space-y-4">
-                {etfResearch.deferredModels.map((item) => (
-                  <p key={item} className="border-l border-amber/40 pl-4 text-sm leading-6 text-ink-muted">
-                    {item}
-                  </p>
-                ))}
-              </div>
-              <p className="mt-7 border-t border-amber/20 pt-5 text-xs leading-5 text-amber">
-                Deferral was a methodological decision: nonlinear ML would add flexibility before the study had established a robust beta-neutral target worth fitting.
-              </p>
-            </aside>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-base-border py-12 sm:py-16">
-        <div className="site-shell">
-          <SectionHeader
-            index="06"
-            eyebrow="Methodology safeguards"
-            title="The result had to survive the research process"
-            description="Safeguards were built around the information actually available at each decision date and the dependence structure of overlapping forward returns."
-          />
-
-          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {etfResearch.safeguards.map((safeguard) => (
-              <li
-                key={safeguard}
-                className="flex min-h-[84px] items-start gap-3 rounded-lg border border-base-border bg-base-panel/80 p-4"
-              >
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-signal/40 bg-signal/10 font-mono text-[10px] text-signal">
-                  ✓
-                </span>
-                <span className="text-sm leading-6 text-ink-muted">{safeguard}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="border-b border-base-border py-12 sm:py-16">
-        <div className="site-shell">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-            <div className="rounded-xl border border-signal/35 bg-signal/5 p-7 sm:p-9">
-              <p className="mono-label text-[10px] text-signal">Research conclusion</p>
-              <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-                Evidence over narrative.
-              </h2>
-              <p className="mt-5 text-base leading-8 text-ink">{etfResearch.conclusion}</p>
-              <p className="mt-5 border-t border-signal/20 pt-5 text-sm leading-7 text-ink-muted">
-                {etfResearch.conclusionDetail}
-              </p>
-              <p className="mono-label mt-6 text-[9px] text-ink-faint">
-                No market-beating or expected-profitability claim is made.
-              </p>
-            </div>
-
-            <div className="grid gap-4">
-              <div className="rounded-xl border border-base-border bg-base-panel/85 p-6">
-                <p className="mono-label text-[9px] text-amber">Limitations</p>
-                <ul className="mt-4 space-y-3">
-                  {etfResearch.limitations.map((limitation) => (
-                    <li key={limitation} className="flex gap-3 text-xs leading-5 text-ink-muted">
-                      <span aria-hidden="true" className="text-amber">—</span>
-                      <span>{limitation}</span>
+          <div className="grid gap-px bg-base-border lg:grid-cols-2">
+            {[
+              ["Top model-ranked", latestSignal.top_model_ranked.slice(0, 5)],
+              ["Bottom model-ranked", latestSignal.bottom_model_ranked.slice(0, 5)],
+            ].map(([label, rows]) => (
+              <div key={label as string} className="bg-base p-5 sm:p-6">
+                <p className="mono-label text-[9px] text-signal">{label as string}</p>
+                <ol className="mt-4 divide-y divide-base-border">
+                  {(rows as typeof latestSignal.top_model_ranked).map((row) => (
+                    <li key={row.ticker} className="flex items-center justify-between gap-4 py-3">
+                      <span className="font-mono text-sm text-ink">{row.ticker}</span>
+                      <span className="font-mono text-xs text-ink-muted">percentile {Math.round(row.model_score_percentile * 100)}</span>
                     </li>
                   ))}
-                </ul>
+                </ol>
               </div>
-
-              <div className="rounded-xl border border-base-border bg-base-panel/85 p-6">
-                <p className="mono-label text-[9px] text-signal">Future work · not yet implemented</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {etfResearch.futureWork.map((item) => (
-                    <span key={item} className="rounded-full border border-base-border bg-base/60 px-3 py-1.5 text-[11px] text-ink-muted">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+            ))}
+          </div>
+          <div className="border-t border-base-border bg-base-panel p-5 text-xs leading-5 text-ink-faint">
+            Run {latestSignal.run_id}. Paper model signal for research only; not investment advice. No immature outcome has been evaluated.
           </div>
         </div>
-      </section>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="10"
+          eyebrow="Methodology & leakage controls"
+          title="Information boundaries are part of the model"
+          description="The research contract governs what can enter each fit, when labels become available, and when a result can be called confirmation rather than development."
+        />
+        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {etfResearch.leakageControls.map((control) => (
+            <li key={control} className="flex min-h-[96px] gap-3 rounded-lg border border-base-border bg-base-panel/85 p-4">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-signal/40 bg-signal/10 font-mono text-[10px] text-signal">✓</span>
+              <span className="text-xs leading-5 text-ink-muted">{control}</span>
+            </li>
+          ))}
+        </ul>
+      </CaseSection>
+
+      <CaseSection>
+        <SectionHeader
+          index="11"
+          eyebrow="Limitations"
+          title="What this result does—and does not—establish"
+          description="The finding is statistically confirmed within the frozen design. It is not independent replication, guaranteed profitability, or proof that the model beats momentum."
+        />
+        <ul className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {etfResearch.limitations.map((limitation) => (
+            <li key={limitation} className="rounded-lg border border-amber/25 bg-amber/5 p-5 text-sm leading-6 text-ink-muted">
+              <span className="mr-2 text-amber">—</span>{limitation}
+            </li>
+          ))}
+          <li className="rounded-lg border border-amber/25 bg-amber/5 p-5 text-sm leading-6 text-ink-muted"><span className="mr-2 text-amber">—</span>Weekly 21-session targets overlap, so inference must account for serial dependence.</li>
+          <li className="rounded-lg border border-amber/25 bg-amber/5 p-5 text-sm leading-6 text-ink-muted"><span className="mr-2 text-amber">—</span>Genuine forward evidence has only begun accumulating; the first outcome remains pending.</li>
+        </ul>
+      </CaseSection>
 
       <section className="py-12 sm:py-16">
         <div className="site-shell">
-          <div className="flex flex-col justify-between gap-6 rounded-xl border border-base-border bg-base-panel/85 p-7 sm:p-9 md:flex-row md:items-center">
-            <div>
-              <p className="mono-label text-[9px] text-signal">Inspect the frozen work</p>
-              <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
-                Code, methodology, and versioned results are public.
-              </h2>
-              <p className="mt-2 text-sm text-ink-muted">{etfResearch.version}</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <ResearchLink href={etfResearch.githubUrl} primary>
-                GitHub
-              </ResearchLink>
-              <ResearchLink href={etfResearch.releaseUrl}>Frozen Research v1</ResearchLink>
-            </div>
+          <SectionHeader
+            index="12"
+            eyebrow="Links & reproducibility"
+            title="Inspect the code, frozen evidence, and current paper record"
+            description="The public repository contains source, protocols, tests, compact result exports, and publication figures. Local market stores and append-only forward artifacts are intentionally excluded."
+          />
+          <div className="mt-8 flex flex-wrap gap-3 rounded-xl border border-base-border bg-base-panel/85 p-6 sm:p-8">
+            <ResearchLink href={etfResearch.githubUrl} primary>GitHub research repository</ResearchLink>
+            <ResearchLink href={etfResearch.releaseUrl}>Phase 7 scientific tag</ResearchLink>
+            <ResearchLink href={etfResearch.summaryUrl}>Research summary JSON</ResearchLink>
+            <ResearchLink href={etfResearch.signalUrl}>Current paper-signal JSON</ResearchLink>
+            <ResearchLink href="/resume.pdf">Resume</ResearchLink>
           </div>
+          <p className="mono-label mt-5 text-[9px] text-ink-faint">{etfResearch.version}</p>
         </div>
       </section>
     </article>
   );
 }
-

@@ -241,10 +241,10 @@ const etfResearchProject: ProjectSummary = {
   featured: true,
   githubUrl: etfResearch.githubUrl,
   cardImage: {
-    src: "/projects/systematic-etf-research/ic-residualization.svg",
-    alt: "Chart comparing original and beta-residualized monthly information coefficients",
+    src: etfResearch.figures.confirmation,
+    alt: "Development and sealed confirmation information coefficients for the frozen ETF model",
     caption:
-      "Monthly out-of-sample information coefficient before and after point-in-time beta residualization",
+      "Development and sealed 2024–2026 confirmation mean information coefficient",
   },
   headlineStats: [...etfResearch.headlineStats],
 };

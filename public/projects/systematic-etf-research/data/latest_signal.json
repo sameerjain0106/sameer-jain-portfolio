@@ -1,0 +1,672 @@
+{
+  "artifact": "phase7_latest_forward_signal",
+  "as_of_date": "2026-08-27",
+  "bottom_model_ranked": [
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.04326571966916359,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.019477002619104643,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": -0.013832426294641901,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.012047641732913438,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.010722837657541897,
+          "feature": "distance_from_252d_high"
+        },
+        {
+          "contribution": 0.008531690327785906,
+          "feature": "mom_126d"
+        }
+      ],
+      "model_score_percentile": 0.0,
+      "ticker": "VGSH"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.04309039862991219,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.019323152798053553,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": -0.014011665967487217,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.012221125580332727,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.010785239392762574,
+          "feature": "distance_from_252d_high"
+        },
+        {
+          "contribution": 0.008565463967936643,
+          "feature": "mom_126d"
+        }
+      ],
+      "model_score_percentile": 0.010101010101010102,
+      "ticker": "SHY"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.023343248240505626,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.023025139292568834,
+          "feature": "current_drawdown"
+        },
+        {
+          "contribution": -0.020568347295630725,
+          "feature": "price_sma200_ratio"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.017378147891410206,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": 0.017212856985063977,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": 0.015480317947086538,
+          "feature": "mom_252_21d"
+        }
+      ],
+      "model_score_percentile": 0.020202020202020204,
+      "ticker": "VGLT"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.02614098628478072,
+          "feature": "current_drawdown"
+        },
+        {
+          "contribution": -0.022206945142899056,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": -0.020961653023532485,
+          "feature": "vol_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.01953570584515329,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": 0.018488629385893997,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": 0.016254727390420987,
+          "feature": "mom_252_21d"
+        }
+      ],
+      "model_score_percentile": 0.030303030303030304,
+      "ticker": "TLT"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.04196514536379985,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.018536198731923054,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": -0.014299053976681294,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.012539354740314552,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.010203720882597451,
+          "feature": "distance_from_252d_high"
+        },
+        {
+          "contribution": 0.009364724189005698,
+          "feature": "mom_126d"
+        }
+      ],
+      "model_score_percentile": 0.04040404040404041,
+      "ticker": "BSV"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.037092923565461844,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.016548661700229454,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": -0.014991518341834114,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.013301850589154375,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.011509651825838829,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": 0.010892739330096468,
+          "feature": "price_sma50_ratio"
+        }
+      ],
+      "model_score_percentile": 0.050505050505050504,
+      "ticker": "GOVT"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.03416385915753213,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.016354255055944875,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": -0.016083090974549238,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.014249287461240542,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.013176390735329432,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": 0.01229487958065246,
+          "feature": "price_sma50_ratio"
+        }
+      ],
+      "model_score_percentile": 0.06060606060606061,
+      "ticker": "IEF"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.041561030468001574,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.0182685099766578,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": -0.013290724111334647,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.011795956218288727,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.01062925883691458,
+          "feature": "distance_from_252d_high"
+        },
+        {
+          "contribution": 0.008905318079157207,
+          "feature": "mom_126d"
+        }
+      ],
+      "model_score_percentile": 0.0707070707070707,
+      "ticker": "VCSH"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.03881617469686436,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.017772007747785395,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": -0.015749228631376202,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.013841043537319953,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.011125895988420285,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": 0.01031202131849924,
+          "feature": "price_sma50_ratio"
+        }
+      ],
+      "model_score_percentile": 0.08080808080808081,
+      "ticker": "IEI"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.03788948455161719,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": -0.01642655821682404,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": -0.016177271932764574,
+          "feature": "mom_252d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.01430370823933574,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": 0.012058635744616245,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": 0.011088425242604803,
+          "feature": "price_sma50_ratio"
+        }
+      ],
+      "model_score_percentile": 0.09090909090909091,
+      "ticker": "VGIT"
+    }
+  ],
+  "created_at_utc": "2026-08-28T04:40:49+00:00",
+  "disclaimer": "Model ranking for research only; not investment advice.",
+  "eligible_universe_size": 100,
+  "interpretation": {
+    "bottom": "BOTTOM MODEL-RANKED",
+    "contributions": "Standardized feature contributions to the fitted model score; not causal explanations.",
+    "top": "TOP MODEL-RANKED"
+  },
+  "label": "PAPER MODEL SIGNAL",
+  "model_name": "C0_m0_raw_elastic",
+  "model_version": "phase7-confirmed-v1",
+  "outcome_label": "FORWARD OUTCOME NOT YET OBSERVED",
+  "run_id": "phase7_20260827_175a1bbb41fda805",
+  "source_identity": {
+    "coefficient_file_sha256": "67c4734e9d4bdd2855cb06fa6a7c4bfbb8936bd0f4b31b7d1073ef9e90ec9a22",
+    "data_fingerprint": "1dd2f4f8c8885eb16e27fe908ff205edbe13338af808af627b685b139dd81f9a",
+    "forward_metadata_sha256": "0d45fc929d69712b10a92a40ddefd0382bc4c9609045a0480a97f6a2aec7cefe",
+    "prediction_file_sha256": "64505385f00d6c4c66e242d89e23c43c85c30b7fd0c854777cdb8f8a9a7cc39a",
+    "source_data_fingerprint": "304aace78dc5001b546f938939b0ba3244238dc3806d0fc4f4cb2cf11857bc45"
+  },
+  "status": "PENDING",
+  "target_horizon_spy_sessions": 21,
+  "target_maturity_date": null,
+  "target_maturity_rule": "The target matures on the 21st genuine SPY session strictly after the as-of date. Evaluation must remain pending until then.",
+  "top_model_ranked": [
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.15515246446993572,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": -0.034234079478480874,
+          "feature": "sma20_sma50_ratio"
+        },
+        {
+          "contribution": -0.030519340572913205,
+          "feature": "mom_21d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.2540029095554516,
+          "feature": "mom_252d"
+        },
+        {
+          "contribution": 0.1048438583125524,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": 0.08189355857051944,
+          "feature": "price_sma200_ratio"
+        }
+      ],
+      "model_score_percentile": 1.0,
+      "ticker": "EWY"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.1264467681312643,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": -0.06948083541066795,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": -0.04791992045228804,
+          "feature": "sma20_sma50_ratio"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.17301682915212502,
+          "feature": "mom_252d"
+        },
+        {
+          "contribution": 0.0761873136518089,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": 0.0734665368738352,
+          "feature": "price_sma200_ratio"
+        }
+      ],
+      "model_score_percentile": 0.98989898989899,
+      "ticker": "SOXX"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.1004719373042258,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": -0.05568302924626769,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": -0.0333364908351948,
+          "feature": "sma20_sma50_ratio"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.14405522780120758,
+          "feature": "mom_252d"
+        },
+        {
+          "contribution": 0.0659145725202978,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": 0.059700500109017694,
+          "feature": "vol_252d"
+        }
+      ],
+      "model_score_percentile": 0.9797979797979798,
+      "ticker": "SMH"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.14075528442875654,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": -0.06327783782868242,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": -0.05721405026182279,
+          "feature": "distance_from_252d_high"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.12157934737383132,
+          "feature": "vol_252d"
+        },
+        {
+          "contribution": 0.11905853067649365,
+          "feature": "mom_252d"
+        },
+        {
+          "contribution": 0.05097952880393066,
+          "feature": "max_drawdown_63d"
+        }
+      ],
+      "model_score_percentile": 0.9696969696969697,
+      "ticker": "SLV"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.07864506317896884,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": -0.061628293239667946,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": -0.05372291671571511,
+          "feature": "price_sma50_ratio"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.13932745754310666,
+          "feature": "mom_252d"
+        },
+        {
+          "contribution": 0.10303689611846463,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": 0.038236554119901185,
+          "feature": "vol_252d"
+        }
+      ],
+      "model_score_percentile": 0.9595959595959596,
+      "ticker": "EWT"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.05528996218578044,
+          "feature": "sma20_sma50_ratio"
+        },
+        {
+          "contribution": -0.05026891048690004,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": -0.044056369600303694,
+          "feature": "distance_from_252d_high"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.09329128981602787,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": 0.07626018148233842,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": 0.057343001093963716,
+          "feature": "vol_252d"
+        }
+      ],
+      "model_score_percentile": 0.9494949494949495,
+      "ticker": "TAN"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.046436981037850475,
+          "feature": "sma20_sma50_ratio"
+        },
+        {
+          "contribution": -0.03083232504466215,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": -0.03063556700534891,
+          "feature": "distance_from_252d_high"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.06723996976832233,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": 0.057873306611383596,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": 0.036841867501387376,
+          "feature": "mom_63d"
+        }
+      ],
+      "model_score_percentile": 0.9393939393939394,
+      "ticker": "ICLN"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.024100322950949257,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": -0.017653951739470864,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": -0.011732103600585096,
+          "feature": "mom_21d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.046502999295144294,
+          "feature": "mom_252d"
+        },
+        {
+          "contribution": 0.025723711758493584,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": 0.02073570583417269,
+          "feature": "vol_252d"
+        }
+      ],
+      "model_score_percentile": 0.9292929292929293,
+      "ticker": "EEM"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.024239792993495404,
+          "feature": "sma20_sma50_ratio"
+        },
+        {
+          "contribution": -0.02349001679531628,
+          "feature": "mom_126d"
+        },
+        {
+          "contribution": -0.011409813369875675,
+          "feature": "mom_252_21d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.04868710688625201,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": 0.028398940919641954,
+          "feature": "max_drawdown_63d"
+        },
+        {
+          "contribution": 0.02519389019216242,
+          "feature": "mom_252d"
+        }
+      ],
+      "model_score_percentile": 0.9191919191919192,
+      "ticker": "MTUM"
+    },
+    {
+      "major_negative_contributors": [
+        {
+          "contribution": -0.021651375277601047,
+          "feature": "price_sma50_ratio"
+        },
+        {
+          "contribution": -0.020250017661247958,
+          "feature": "mom_252_21d"
+        },
+        {
+          "contribution": -0.012267108493863043,
+          "feature": "mom_21d"
+        }
+      ],
+      "major_positive_contributors": [
+        {
+          "contribution": 0.0429550530884705,
+          "feature": "mom_252d"
+        },
+        {
+          "contribution": 0.025242189436674296,
+          "feature": "price_sma200_ratio"
+        },
+        {
+          "contribution": 0.018639836251843553,
+          "feature": "vol_252d"
+        }
+      ],
+      "model_score_percentile": 0.9090909090909091,
+      "ticker": "IEMG"
+    }
+  ]
+}
