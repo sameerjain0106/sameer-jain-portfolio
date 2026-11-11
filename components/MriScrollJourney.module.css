@@ -83,6 +83,12 @@
 .experiment a { text-decoration: underline; text-underline-offset: 3px; }
 .anomaly > div { order: 2; }
 .anomaly figure { transform: rotate(-2deg); }
+.methodNotes { padding-top: 42px; }
+.methodNotes > h3 { font: 500 clamp(26px, 3vw, 39px)/1.15 var(--font-bricolage), sans-serif; letter-spacing: -.035em; }
+.methodNotes dl { margin: 24px 0 0; }
+.methodNotes dl > div { display: grid; grid-template-columns: .45fr 1fr; gap: 32px; padding: 23px 0; border-bottom: 1px solid #14275633; }
+.methodNotes dt { font-size: 15px; font-weight: 600; }
+.methodNotes dd { margin: 0; max-width: 70ch; font-size: 14px; line-height: 1.8; }
 .ending { padding-top: 60px; display: flex; align-items: center; flex-wrap: wrap; gap: 40px; justify-content: space-between; }
 .ending p { font: 500 clamp(30px, 3vw, 46px)/1.15 var(--font-bricolage), sans-serif; letter-spacing: -.03em; }
 .ending a { display: flex; align-items: center; gap: 25px; padding: 19px 25px; color: #f2ef9b; background: #173bd3; border-radius: 4px 28px 4px 28px; font-size: 14px; min-height: 60px; }
@@ -151,6 +157,12 @@
   .experiment figure { padding: 8px; }
   .experiment figcaption { font-size: 9px; }
   .anomaly > div { order: 0; }
+  .methodNotes { padding-top: 30px; }
+  .methodNotes > h3 { font-size: 28px; }
+  .methodNotes dl { margin-top: 12px; }
+  .methodNotes dl > div { grid-template-columns: 1fr; gap: 11px; padding-block: 23px; }
+  .methodNotes dt { font-size: 14px; }
+  .methodNotes dd { font-size: 13px; line-height: 1.8; }
   .ending { gap: 25px; padding-top: 40px; }
   .ending p { font-size: 30px; }
   .ending a { font-size: 12px; padding: 15px; gap: 14px; }

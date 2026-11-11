@@ -100,6 +100,11 @@ export default function SpatialEtfRoom({ active, scrollRoot }: { active: boolean
           <p>The frozen model, its confirmation period, and the comparison that keeps the result in perspective.</p>
         </div>
         <ol className={styles.researchRoute} aria-label="Research pipeline" data-scroll-reveal="group">{etfResearch.pipeline.map((stage, index) => <li key={stage}><span>{String(index + 1).padStart(2, "0")}</span><strong>{stage}</strong><span aria-hidden="true">↗</span></li>)}</ol>
+        <dl className={styles.methodNotes} data-project-methods="etf">
+          <div data-scroll-reveal="copy"><dt>Predict a relative rank</dt><dd>One observation is an ETF at a weekly decision date. The target ranks its next {phase7Summary.research_design.target_horizon_spy_sessions} SPY-session adjusted total return against the other ETFs.</dd></div>
+          <div data-scroll-reveal="copy"><dt>Freeze the fitting recipe</dt><dd>Training-median imputation and a training-only StandardScaler feed the 18-feature Elastic Net. The frozen model uses α = {phase7Summary.model.configuration.alpha} and l1_ratio = {phase7Summary.model.configuration.l1_ratio}.</dd></div>
+          <div data-scroll-reveal="copy"><dt>Account for overlapping targets</dt><dd>{result.weekly_decisions} weekly decisions produce {result.prediction_rows.toLocaleString("en-US")} ETF/date predictions. The reported inference uses HAC lag {result.hac_lag} and a moving-block bootstrap to account for serial dependence.</dd></div>
+        </dl>
         <figure className={styles.wideFigure} data-scroll-reveal="figure">
           <Image src={etfResearch.figures.confirmation} alt="Development mean IC 0.109, sealed confirmation mean IC 0.130 with HAC 95 percent interval, and momentum confirmation IC 0.086" width={1505} height={970} sizes="(min-width: 1100px) 80vw, 95vw" />
           <figcaption><span>Frozen model / Sealed confirmation</span><a href={etfResearch.figures.confirmation} target="_blank" rel="noopener noreferrer">Open original figure ↗</a></figcaption>

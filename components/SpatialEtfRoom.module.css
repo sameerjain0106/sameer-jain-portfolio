@@ -54,6 +54,10 @@
 .researchRoute li > span:first-child { color: var(--etf-butter); font-family: var(--font-plex-mono), monospace; font-size: 10px; }
 .researchRoute strong { font-weight: 400; }
 .researchRoute li > span:last-child { color: var(--etf-coral); font-size: 21px; }
+.methodNotes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 35px; margin-top: 45px; }
+.methodNotes > div { border-top: 1px solid #fff6e85c; padding-top: 22px; }
+.methodNotes dt { font: 550 clamp(22px, 2.6vw, 34px)/1.12 var(--font-bricolage), sans-serif; letter-spacing: -.035em; color: var(--etf-butter); max-width: 16ch; }
+.methodNotes dd { margin: 17px 0 0; max-width: 34ch; font-size: 14px; line-height: 1.85; }
 .designNotes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 65px; }
 .designNotes h3 { color: var(--etf-butter); font-family: var(--font-bricolage), sans-serif; font-size: clamp(25px, 3vw, 42px); line-height: 1.15; letter-spacing: -.035em; }
 .designNotes p { margin-top: 16px; max-width: 32ch; font-size: 15px; line-height: 1.8; }
@@ -90,6 +94,8 @@
 .disclaimer { margin-top: 40px; font-size: 12px; }
 
 @media (max-width: 850px) {
+  .methodNotes { gap: 25px; }
+  .methodNotes dd { font-size: 13px; }
   .heroSpread { gap: 24px; }
   .heroCopy h1 { font-size: clamp(62px, 10vw, 86px); }
   .heroFinding { gap: 14px; margin-top: 22px; }
@@ -104,6 +110,10 @@
   .annualStrip > p br { display: none; }
 }
 @media (max-width: 600px) {
+  .methodNotes { grid-template-columns: 1fr; gap: 25px; margin-top: 32px; }
+  .methodNotes > div { padding-top: 20px; }
+  .methodNotes dt { font-size: 27px; max-width: none; }
+  .methodNotes dd { margin-top: 13px; max-width: none; font-size: 14px; line-height: 1.8; }
   .hero { padding-top: 90px; gap: 23px; }
   .hero > .kicker { font-size: 12px; }
   .hero > .kicker > span { display: none; }

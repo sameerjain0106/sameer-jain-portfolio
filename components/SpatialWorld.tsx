@@ -10,6 +10,7 @@ import SpatialEntrance from "./SpatialEntrance";
 import DestinationPreview from "./DestinationPreview";
 import { AmbientMotionProvider, useAmbientMotion } from "@/lib/useAmbientMotion";
 import { useScrollChoreography } from "@/lib/useScrollChoreography";
+import { useRoomSmoothScroll } from "@/lib/useRoomSmoothScroll";
 import styles from "./SpatialWorld.module.css";
 
 type Mode = { kind: "idle" } | { kind: "map" } | { kind: "travel"; from: RoomId; to: RoomId };
@@ -38,6 +39,7 @@ function RoomPanel({ id, active, visible, navigate }: {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const panel = useRef<HTMLElement | null>(null);
   useAmbientMotion(active, undefined, panel);
+  useRoomSmoothScroll(active, scrollRoot);
   useScrollChoreography(active, scrollRoot);
   return <section data-panel={id} data-active={active} hidden={!visible} aria-hidden={!active}
     aria-label={rooms[id].label} className={styles.panel}
@@ -91,8 +93,17 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const panel = root.current?.querySelector<HTMLElement>(`[data-panel="${id}"]`);
     const fragment = window.location.hash;
     const destination = id === "profile" && (fragment === "#education" || fragment === "#about") ? panel?.querySelector<HTMLElement>(fragment) : null;
-    const heading = destination?.querySelector<HTMLElement>("h1, h2") ?? panel?.querySelector<HTMLElement>("[data-room-heading], h1");
-    destination?.scrollIntoView({ block: "start", behavior: "auto" });
+    const stage = panel?.querySelector<HTMLElement>("[data-room-heading]");
+    const book = panel?.querySelector<HTMLElement>('[data-profile-enhanced="true"] [data-profile-book]');
+    const scroller = panel?.querySelector<HTMLElement>("[data-room-scroll]");
+    const unfoldEducation = fragment === "#education" && book && scroller;
+    const heading = destination && !book && fragment === "#education"
+      ? destination.querySelector<HTMLElement>("h1, h2")
+      : stage ?? panel?.querySelector<HTMLElement>("h1");
+    if (unfoldEducation) {
+      const start = book.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      scroller.scrollTop = start + (book.offsetHeight - scroller.clientHeight) * .48;
+    } else destination?.scrollIntoView({ block: "start", behavior: "auto" });
     if (heading) {
       heading.setAttribute("tabindex", "-1");
       heading.focus({ preventScroll: true });
@@ -136,7 +147,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const onHistory = () => navigate(roomFromLocation(), true);
     window.addEventListener("popstate", onHistory);
     window.addEventListener("hashchange", onHistory);
-    if (roomFromLocation() !== worldRef.current.room) onHistory();
+    if (roomFromLocation() !== worldRef.current.room || window.location.hash === "#education" || window.location.hash === "#about") onHistory();
     return () => {
       media.removeEventListener("change", change);
       window.removeEventListener("popstate", onHistory);
