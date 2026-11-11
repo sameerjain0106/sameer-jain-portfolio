@@ -1,0 +1,26 @@
+.controller { display: none; }
+.creature { position: absolute; left: 0; right: 0; top: 0; height: 100svh; z-index: -1; pointer-events: none; user-select: none; overflow: hidden; opacity: .44; --gaze-x: 0px; --gaze-y: 0px; --brow-y: 0px; --idle-strength: 1; --idle-duration: 1; --blink-period: 17.3s; }
+.creature[data-paused="true"] { --idle-strength: .25; --idle-duration: 2.5; --blink-period: 26s; }
+.creature *, .creature svg { pointer-events: none; }
+.creature svg { display: block; width: 100%; height: 100%; overflow: hidden; }
+.creature[data-active="false"], .creature[data-creature-visible="false"] { visibility: hidden; }
+.pupil { transform: translate(var(--gaze-x), var(--gaze-y)); }
+.brow { transform: translateY(var(--brow-y)); }
+.idle { transform-box: view-box; transform-origin: 120px 110px; }
+.creature[data-creature-idle-running="true"][data-room-creature="entrance"] .idle { animation: portalSway calc(18s * var(--idle-duration)) ease-in-out infinite; }
+.creature[data-creature-idle-running="true"][data-room-creature="mri"] .idle { animation: cerebralBreath calc(16s * var(--idle-duration)) ease-in-out infinite; }
+.creature[data-creature-idle-running="true"][data-room-creature="etf"] .idle { animation: tickerRipple calc(17s * var(--idle-duration)) ease-in-out infinite; }
+.creature[data-creature-idle-running="true"][data-room-creature="profile"] .idle { animation: paperFlex calc(18s * var(--idle-duration)) ease-in-out infinite; }
+.creature[data-creature-idle-running="true"][data-room-creature="contact"] .idle { animation: messengerHover calc(15s * var(--idle-duration)) ease-in-out infinite; }
+.eye { transform-box: fill-box; transform-origin: center; }
+.creature[data-creature-awake="true"][data-creature-enabled="true"][data-active="true"] .eye { animation: noticeBlink var(--blink-period) linear infinite; animation-delay: var(--blink-delay, 0s); }
+@keyframes noticeBlink {
+  0%, 43%, 44.5%, 81%, 82.6%, 100% { transform: scaleY(1); }
+  43.6%, 81.7% { transform: scaleY(.08); }
+}
+@keyframes portalSway { 0%, 100% { transform: rotate(calc(-.08deg * var(--idle-strength))); } 50% { transform: translate(calc(.2px * var(--idle-strength)), calc(-.15px * var(--idle-strength))) rotate(calc(.12deg * var(--idle-strength))); } }
+@keyframes cerebralBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(calc(1 + .004 * var(--idle-strength)), calc(1 + .005 * var(--idle-strength))); } }
+@keyframes tickerRipple { 0%, 100% { transform: skewY(calc(-.07deg * var(--idle-strength))); } 50% { transform: translateY(calc(-.2px * var(--idle-strength))) skewY(calc(.13deg * var(--idle-strength))); } }
+@keyframes paperFlex { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(calc(1 - .004 * var(--idle-strength))) rotate(calc(.08deg * var(--idle-strength))); } }
+@keyframes messengerHover { 0%, 100% { transform: translateY(calc(.1px * var(--idle-strength))); } 50% { transform: translateY(calc(-.3px * var(--idle-strength))) rotate(calc(-.12deg * var(--idle-strength))); } }
+@media (max-width: 899px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .creature { display: none; } .eye, .idle { animation: none; } }

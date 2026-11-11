@@ -8,6 +8,8 @@ import SpatialEtfRoom from "./SpatialEtfRoom";
 import { ContactRoom, ProfileRoom } from "./SpatialPeopleRooms";
 import SpatialEntrance from "./SpatialEntrance";
 import DestinationPreview from "./DestinationPreview";
+import RoomCreature from "./RoomCreature";
+import LivingCursor from "./LivingCursor";
 import { AmbientMotionProvider, useAmbientMotion } from "@/lib/useAmbientMotion";
 import { useScrollChoreography } from "@/lib/useScrollChoreography";
 import { useRoomSmoothScroll } from "@/lib/useRoomSmoothScroll";
@@ -330,11 +332,13 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
           </a>)}
         </div>
         <p className={styles.mapFoot}>Move to an edge and hold to travel. Or use the room links.<br />Scroll vertically inside each room. <kbd>Esc</kbd> closes this map.</p>
-        <button className={styles.motionToggle} onClick={toggleIdle} disabled={reduced}>
-          {reduced ? "Idle motion off · reduced-motion preference" : idlePaused ? "Resume idle animations" : "Pause idle animations"}
+        <button className={styles.motionToggle} onClick={toggleIdle} disabled={reduced} aria-pressed={idlePaused}>
+          {reduced ? "Idle motion off · reduced-motion preference" : idlePaused ? "Full background motion" : "Calmer background motion"}
         </button>
       </div>
     </dialog>
+    <RoomCreature room={world.room} active={world.mode.kind === "idle"} paused={idlePaused} />
+    <LivingCursor room={world.room} active={world.mode.kind === "idle"} paused={idlePaused} />
     <noscript><style>{`.${styles.mapButton}{display:none!important}`}</style><nav className={styles.noScript} aria-label="All rooms">{roomIds.map(id => <a key={id} href={roomHref(id)}>{rooms[id].label}</a>)}</nav></noscript>
   </div></AmbientMotionProvider>;
 }
