@@ -5,8 +5,8 @@ import type { RoomId } from "@/data/spatialRooms";
 import styles from "./LivingCursor.module.css";
 
 const colors: Record<RoomId, string> = {
-  entrance: "91 67 224", mri: "255 158 116", etf: "36 73 220",
-  profile: "36 73 220", contact: "40 133 120",
+  entrance: "206 48 234", mri: "72 244 214", etf: "113 59 245",
+  profile: "25 207 233", contact: "237 62 147",
 };
 const editing = "input, textarea, select, [contenteditable]:not([contenteditable='false'])";
 
@@ -34,7 +34,8 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     function paint() {
       frame = 0;
       if (disposed || !supported || document.hidden) { hide(); return; }
-      node!.style.transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
+      node!.style.setProperty("--cursor-x", `${point.x}px`);
+      node!.style.setProperty("--cursor-y", `${point.y}px`);
       node!.dataset.cursorX = String(point.x); node!.dataset.cursorY = String(point.y);
       node!.dataset.cursorHover = String(point.hover);
       node!.dataset.cursorPressed = String(point.pressed);
@@ -107,7 +108,8 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
   return <div ref={cursor} className={styles.cursor} data-living-cursor data-cursor-enabled="false" data-cursor-hover="false"
     data-cursor-running="false" data-active={active} data-paused={paused} aria-hidden="true"
     style={{ "--cursor-color": colors[room] } as CSSProperties}>
-    <span className={styles.bubble}><span className={styles.shell}><i /></span></span>
+    <span className={styles.position}><span className={styles.bubble}><span className={styles.halo} /><span className={styles.shell}><i /></span></span></span>
+    <span className={styles.contrastPosition}><span className={styles.bubble}><span className={styles.contrastRim} data-cursor-contrast /></span></span>
     <span className={styles.point} data-cursor-point />
   </div>;
 }
