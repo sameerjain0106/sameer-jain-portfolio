@@ -115,6 +115,8 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
     let frame = 0, previous = 0, elapsed = 0;
     let disposed = false, lost = false;
     let pointerX = 0, pointerY = 0, targetX = 0, targetY = 0;
+    const visibilityGate = node.parentElement?.closest<HTMLElement>("[data-kinetic-occluded]");
+    let occluded = visibilityGate?.dataset.kineticOccluded === "true";
     const compile = (type: number, source: string) => {
       const shader = gl.createShader(type);
       if (!shader) return null;
@@ -156,7 +158,7 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
     gl.uniform3fv(gl.getUniformLocation(program,"uColorB"),palettes[kind][1]);
     gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.clearColor(0,0,0,0);
     const draw = () => {
-      if (disposed || lost || !element.width || !element.height) return;
+      if (disposed || lost || occluded || !element.width || !element.height) return;
       gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
       gl.uniform1f(time,elapsed); gl.uniform2f(pointer,pointerX,pointerY);
       gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
@@ -168,6 +170,9 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
       previous=now; elapsed+=delta;
       const ease=1-Math.exp(-delta*5);
       pointerX+=(targetX-pointerX)*ease; pointerY+=(targetY-pointerY)*ease;
+      // Preserve the original clock and pointer easing while fully transparent,
+      // so reversing the scroll reveals exactly the same phase. Only the costly
+      // GPU work is skipped; offscreen/paused artwork still stops its RAF below.
       draw(); frame=requestAnimationFrame(render);
     };
     const sync = () => {
@@ -186,6 +191,12 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
     };
     const stateObserver = new MutationObserver(sync);
     stateObserver.observe(node,{attributes:true,attributeFilter:["data-ambient-running"]});
+    const occlusionObserver = visibilityGate ? new MutationObserver(() => {
+      occluded = visibilityGate.dataset.kineticOccluded === "true";
+      node.dataset.kineticOccluded = String(occluded);
+    }) : null;
+    if (visibilityGate) occlusionObserver!.observe(visibilityGate,{attributes:true,attributeFilter:["data-kinetic-occluded"]});
+    node.dataset.kineticOccluded = String(occluded);
     const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(node);
     const section = node.closest("section");
     const move = (event: PointerEvent) => {
@@ -200,7 +211,7 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
     element.addEventListener("webglcontextlost",contextLost); element.addEventListener("webglcontextrestored",contextRestored);
     resize(); sync();
     return () => {
-      disposed=true; cancelAnimationFrame(frame); stateObserver.disconnect(); resizeObserver.disconnect();
+      disposed=true; cancelAnimationFrame(frame); stateObserver.disconnect(); occlusionObserver?.disconnect(); resizeObserver.disconnect();
       section?.removeEventListener("pointermove",move); section?.removeEventListener("pointerleave",leave);
       element.removeEventListener("webglcontextlost",contextLost); element.removeEventListener("webglcontextrestored",contextRestored);
       gl.deleteBuffer(vertices); gl.deleteBuffer(faces); gl.deleteProgram(program); gl.deleteShader(vertex); gl.deleteShader(fragment);

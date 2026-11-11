@@ -46,33 +46,48 @@ const residents: Record<RoomId, Resident> = {
 };
 
 type PointerPosition = { x: number; y: number; known: boolean };
+type CreatureSubscriber = { move: () => void; blink: () => void; reset: () => void };
+type CreatureInput = { pointer: PointerPosition; subscribers: Set<CreatureSubscriber> };
 type CreatureProps = { room: RoomId; active: boolean; paused: boolean };
 
 /** Each surface owns its resident beneath its content, above its painted background. */
-function BackgroundResident({ host, room, active, paused, pointer }: CreatureProps & { host: HTMLElement; pointer: MutableRefObject<PointerPosition> }) {
+function BackgroundResident({ host, room, active, paused, input }: CreatureProps & { host: HTMLElement; input: MutableRefObject<CreatureInput> }) {
   const root = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
+  const coordinates = useRef<SVGSVGElement>(null);
   const uid = useId().replace(/:/g, "");
   const resident = residents[room];
 
   useEffect(() => {
-    const node = root.current, drawing = svg.current;
+    const node = root.current, drawing = svg.current, coordinateSpace = coordinates.current;
     const scroller = host.closest<HTMLElement>("[data-room-scroll]");
-    if (!node || !drawing || !scroller) return;
+    if (!node || !drawing || !coordinateSpace || !scroller) return;
     const fine = matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const headNode = drawing.querySelector<SVGGElement>("[data-creature-head]")!;
     const artNode = drawing.querySelector<SVGGElement>("[data-creature-art]")!;
+    const pupils = Array.from(drawing.querySelectorAll<SVGGElement>("[data-creature-eye]"));
+    const brows = Array.from(drawing.querySelectorAll<SVGPathElement>("[data-creature-brow]"));
+    const eyelids = Array.from(drawing.querySelectorAll<SVGGElement>("[data-creature-click-eye]"));
+    const subscribers = input.current.subscribers;
     let visible = false, enabled = false, disposed = false, needsMeasure = true;
     let focused = document.hasFocus();
     let frame = 0, lastTime = 0, width = 1, height = 1;
+    let renderedWidth = 0, renderedHeight = 0, renderedTop = Number.NaN;
+    let lastGaze = "", lastBrow = "", lastHead = "";
+    let blinkAnimations: Animation[] = [];
     let inverse: DOMMatrix | null = null;
     let target = { x: 0, y: 0, interest: 0 };
     let eyes = { x: 0, y: 0 }, head = { x: 0, y: 0, interest: 0 };
 
+    function status(key: string, value: string | boolean) {
+      const next = String(value);
+      if (node!.dataset[key] !== next) node!.dataset[key] = next;
+    }
     function updateAim() {
-      if (!inverse || !pointer.current.known) return;
-      const point = new DOMPoint(pointer.current.x, pointer.current.y).matrixTransform(inverse);
+      const pointer = input.current.pointer;
+      if (!inverse || !pointer.known) return;
+      const point = new DOMPoint(pointer.x, pointer.y).matrixTransform(inverse);
       if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
       const dx = (point.x - width * .5) / Math.max(1, width * .42);
       const dy = (point.y - height * .43) / Math.max(1, height * .45);
@@ -82,41 +97,69 @@ function BackgroundResident({ host, room, active, paused, pointer }: CreaturePro
     function measure() {
       needsMeasure = false;
       const bounds = host.getBoundingClientRect(), viewport = scroller!.getBoundingClientRect();
-      if (!host.clientWidth || !scroller!.clientHeight) { inverse = null; return; }
       width = host.clientWidth; height = scroller!.clientHeight;
-      node!.style.top = `${viewport.top + scroller!.clientTop - bounds.top - host.clientTop}px`;
-      node!.style.height = `${height}px`;
-      drawing!.setAttribute("viewBox", `0 0 ${width} ${height}`);
-      const scale = Math.max(width / 240, height / 220) * .96;
-      const offsetX = width * .5 - 120 * scale;
-      const offsetY = height * .52 - 110 * scale;
-      artNode.setAttribute("transform", `translate(${offsetX} ${offsetY}) scale(${scale})`);
+      if (!width || !height) { inverse = null; return; }
+      const top = viewport.top + scroller!.clientTop - bounds.top - host.clientTop;
+      if (top !== renderedTop) { node!.style.top = `${top}px`; renderedTop = top; }
+      if (height !== renderedHeight) node!.style.height = `${height}px`;
+      if (width !== renderedWidth || height !== renderedHeight) {
+        const viewBox = `0 0 ${width} ${height}`;
+        drawing!.setAttribute("viewBox", viewBox); coordinateSpace!.setAttribute("viewBox", viewBox);
+        const scale = Math.max(width / 240, height / 220) * .96;
+        const offsetX = width * .5 - 120 * scale, offsetY = height * .52 - 110 * scale;
+        artNode.setAttribute("transform", `translate(${offsetX} ${offsetY}) scale(${scale})`);
+        node!.style.setProperty("--creature-scale", String(scale));
+        renderedWidth = width; renderedHeight = height;
+      }
       // This is measured on scroll/resize, never in the pointer handler.
-      try { inverse = drawing!.getScreenCTM()?.inverse() ?? null; } catch { inverse = null; }
+      // Keep the coordinate SVG outside the composited idle wrapper: idle motion
+      // must not change the original, viewport-relative gaze calculation.
+      try { inverse = coordinateSpace!.getScreenCTM()?.inverse() ?? null; } catch { inverse = null; }
       updateAim();
     }
     function paint() {
       const gazeStrength = paused ? .55 : 1, headStrength = paused ? .35 : 1;
       const turn = head.x * 4 * headStrength;
       const tx = head.x * 2 * headStrength, ty = (head.y * 1.5 - head.interest * 1.8) * headStrength;
-      headNode.setAttribute("transform", `translate(${tx} ${ty}) rotate(${turn} 120 110)`);
-      node!.style.setProperty("--gaze-x", `${(eyes.x * 6 * gazeStrength).toFixed(3)}px`);
-      node!.style.setProperty("--gaze-y", `${(eyes.y * 6 * gazeStrength).toFixed(3)}px`);
-      node!.style.setProperty("--brow-y", `${(-head.interest * 2 * headStrength).toFixed(3)}px`);
-      node!.dataset.creatureGaze = `${eyes.x.toFixed(3)},${eyes.y.toFixed(3)}`;
+      const headTransform = `translate(${tx} ${ty}) rotate(${turn} 120 110)`;
+      const gaze = `translate(${(eyes.x * 6 * gazeStrength).toFixed(3)}px, ${(eyes.y * 6 * gazeStrength).toFixed(3)}px)`;
+      const brow = `translateY(${(-head.interest * 2 * headStrength).toFixed(3)}px)`;
+      if (headTransform !== lastHead) { headNode.setAttribute("transform", headTransform); lastHead = headTransform; }
+      // Scope changing styles to the tiny moving parts instead of invalidating
+      // inherited custom properties throughout every full-screen SVG descendant.
+      if (gaze !== lastGaze) { pupils.forEach(pupil => { pupil.style.transform = gaze; }); lastGaze = gaze; }
+      if (brow !== lastBrow) { brows.forEach(eyebrow => { eyebrow.style.transform = brow; }); lastBrow = brow; }
+      status("creatureGaze", `${eyes.x.toFixed(3)},${eyes.y.toFixed(3)}`);
+    }
+    function cancelBlink() {
+      blinkAnimations.forEach(animation => animation.cancel()); blinkAnimations = [];
+      status("creatureBlinking", false);
+    }
+    function blink() {
+      if (!enabled) return;
+      cancelBlink(); status("creatureBlinking", true);
+      // This separate wrapper leaves the automatic blink's phase untouched.
+      blinkAnimations = eyelids.map(eyelid => eyelid.animate([
+        { transform: "scaleY(1)", offset: 0 },
+        { transform: "scaleY(.08)", offset: .36 },
+        { transform: "scaleY(.08)", offset: .48 },
+        { transform: "scaleY(1)", offset: 1 },
+      ], { duration: paused ? 420 : 240, easing: "ease-in-out" }));
+      const finalBlink = blinkAnimations[blinkAnimations.length - 1];
+      if (finalBlink) finalBlink.onfinish = () => {
+        if (blinkAnimations[blinkAnimations.length - 1] !== finalBlink) return;
+        blinkAnimations = []; status("creatureBlinking", false);
+      };
     }
     function stop() {
       cancelAnimationFrame(frame); frame = 0; lastTime = 0;
-      node!.dataset.creatureRunning = "false";
-      node!.dataset.creatureAwake = "false";
-      node!.dataset.creatureIdleRunning = "false";
+      status("creatureRunning", false); status("creatureAwake", false); status("creatureIdleRunning", false);
+      cancelBlink();
     }
     function reset() {
       stop(); target = { x: 0, y: 0, interest: 0 };
       eyes = { x: 0, y: 0 }; head = { x: 0, y: 0, interest: 0 };
-      headNode.removeAttribute("transform");
-      node!.style.setProperty("--gaze-x", "0px"); node!.style.setProperty("--gaze-y", "0px");
-      node!.style.setProperty("--brow-y", "0px"); node!.dataset.creatureGaze = "0.000,0.000";
+      paint();
     }
     function tick(time: number) {
       frame = 0;
@@ -130,34 +173,33 @@ function BackgroundResident({ host, room, active, paused, pointer }: CreaturePro
       head.interest += (target.interest - head.interest) * slow;
       const unsettled = Math.max(Math.abs(target.x - eyes.x), Math.abs(target.y - eyes.y), Math.abs(target.x - head.x), Math.abs(target.y - head.y), Math.abs(target.interest - head.interest)) > .001;
       if (!unsettled) { eyes = { x: target.x, y: target.y }; head = { ...target }; }
-      paint(); node!.dataset.creatureRunning = String(unsettled);
+      paint(); status("creatureRunning", unsettled);
       if (unsettled) frame = requestAnimationFrame(tick); else lastTime = 0;
     }
     function schedule() {
       if (!disposed && enabled && !frame) {
-        lastTime = 0; node!.dataset.creatureRunning = "true"; frame = requestAnimationFrame(tick);
+        lastTime = 0; status("creatureRunning", true); frame = requestAnimationFrame(tick);
       }
     }
-    function move(event: PointerEvent) {
-      if (!enabled || event.pointerType !== "mouse") return;
-      updateAim(); node!.dataset.creatureAwake = "true";
-      node!.dataset.creatureIdleRunning = String(focused); schedule();
+    function move() {
+      if (!enabled) return;
+      updateAim(); status("creatureAwake", true);
+      status("creatureIdleRunning", focused); schedule();
     }
+    const subscriber: CreatureSubscriber = { move, blink, reset };
     function configure() {
       reset();
       const shown = visible && active && fine.matches && !reduced.matches && !document.hidden;
       enabled = shown && focused;
-      node!.dataset.creatureVisible = String(shown); node!.dataset.creatureEnabled = String(enabled);
-      node!.dataset.creatureIdleRunning = String(enabled);
+      status("creatureVisible", shown); status("creatureEnabled", enabled); status("creatureIdleRunning", enabled);
+      if (enabled) subscribers.add(subscriber); else subscribers.delete(subscriber);
       needsMeasure = true;
       if (shown) { measure(); paint(); }
-      if (enabled && pointer.current.known) { node!.dataset.creatureAwake = "true"; schedule(); }
+      if (enabled && input.current.pointer.known) { status("creatureAwake", true); schedule(); }
     }
-    function refresh() { needsMeasure = true; if (enabled) schedule(); else if (visible && active) { measure(); paint(); } }
+    function refresh() { needsMeasure = true; if (enabled) schedule(); else if (visible && active && fine.matches && !reduced.matches && !document.hidden) { measure(); paint(); } }
     function blur() { focused = false; configure(); }
     function focus() { focused = true; configure(); }
-    function leave(event: PointerEvent) { if (!event.relatedTarget) reset(); }
-    function keyboard(event: KeyboardEvent) { if (event.key === "Tab") reset(); }
     // A folded leaf can touch the viewport with zero area before unfolding.
     // Observe a positive-area threshold too, so that first edge contact cannot
     // leave the resident hidden for the rest of the reverse page turn.
@@ -168,63 +210,64 @@ function BackgroundResident({ host, room, active, paused, pointer }: CreaturePro
     const observer = new ResizeObserver(refresh);
     intersection.observe(host); observer.observe(host); observer.observe(scroller);
     configure();
-    window.addEventListener("pointermove", move, { passive: true });
-    window.addEventListener("pointerout", leave, { passive: true }); window.addEventListener("blur", blur);
+    window.addEventListener("blur", blur);
     window.addEventListener("focus", focus);
-    window.addEventListener("keydown", keyboard); window.addEventListener("resize", refresh, { passive: true });
+    window.addEventListener("resize", refresh, { passive: true });
     scroller.addEventListener("scroll", refresh, { passive: true });
     document.addEventListener("visibilitychange", configure);
     fine.addEventListener("change", configure); reduced.addEventListener("change", configure);
     return () => {
-      disposed = true; stop(); observer.disconnect(); intersection.disconnect();
-      window.removeEventListener("pointermove", move); window.removeEventListener("pointerout", leave);
-      window.removeEventListener("blur", blur); window.removeEventListener("keydown", keyboard);
+      disposed = true; stop(); subscribers.delete(subscriber); observer.disconnect(); intersection.disconnect();
+      window.removeEventListener("blur", blur);
       window.removeEventListener("focus", focus);
       window.removeEventListener("resize", refresh); scroller.removeEventListener("scroll", refresh);
       document.removeEventListener("visibilitychange", configure);
       fine.removeEventListener("change", configure); reduced.removeEventListener("change", configure);
     };
-  }, [host, room, active, paused, pointer, resident]);
+  }, [host, room, active, paused, input]);
 
   return <div ref={root} className={styles.creature} data-room-creature={room} data-active={active} data-paused={paused} data-creature-visible="false" aria-hidden="true"
     style={{ "--creature-ink": resident.shade } as CSSProperties}>
-    <svg ref={svg} viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" focusable="false">
+    <div className={styles.idle} data-creature-idle={room}>
+    <svg ref={svg} data-creature-drawing viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" focusable="false">
       <defs>
         <linearGradient id={`${uid}-body`} x1="48" y1="40" x2="189" y2="215" gradientUnits="userSpaceOnUse"><stop stopColor={resident.light} stopOpacity=".9" /><stop offset=".43" stopColor={resident.color} stopOpacity=".82" /><stop offset="1" stopColor={resident.shade} stopOpacity=".65" /></linearGradient>
         <linearGradient id={`${uid}-edge`} x1="50" y1="45" x2="185" y2="202" gradientUnits="userSpaceOnUse"><stop stopColor={resident.light} /><stop offset=".42" stopColor={resident.color} /><stop offset="1" stopColor={resident.shade} /></linearGradient>
         <radialGradient id={`${uid}-iris`}><stop stopColor="#173bd3" /><stop offset="1" stopColor="#14234f" /></radialGradient>
       </defs>
       <g data-creature-art>
-        <g className={styles.idle} data-creature-idle={room}>
         <g data-creature-head>
           <path d={resident.body} transform="translate(4 6)" fill={resident.shade} opacity=".12" fillRule="evenodd" />
           <path d={resident.body} fill={`url(#${uid}-body)`} stroke={`url(#${uid}-edge)`} strokeWidth="2.4" fillRule="evenodd" />
           <path d={resident.seam} stroke={resident.shade} strokeOpacity=".5" strokeWidth="1.6" strokeLinecap="round" />
           <path d={resident.glint} stroke={resident.light} strokeWidth="3" strokeOpacity=".8" strokeLinecap="round" />
           {resident.eyes.map((eye, i) => <g key={i} transform={`translate(${eye.x} ${eye.y}) rotate(${eye.turn})`}>
-            <path className={styles.brow} d={`M${-eye.rx - 1} ${-eye.ry - 7}Q0 ${-eye.ry - 13} ${eye.rx + 1} ${-eye.ry - 7}`} stroke={resident.shade} strokeWidth="2.1" strokeLinecap="round" />
+            <path data-creature-brow d={`M${-eye.rx - 1} ${-eye.ry - 7}Q0 ${-eye.ry - 13} ${eye.rx + 1} ${-eye.ry - 7}`} stroke={resident.shade} strokeWidth="2.1" strokeLinecap="round" />
+            <g className={styles.clickEye} data-creature-click-eye={i}>
             <g className={styles.eye} style={{ "--blink-delay": `${i * -1.17}s` } as CSSProperties}>
               <ellipse rx={eye.rx + 1.5} ry={eye.ry + 1.5} fill={resident.shade} fillOpacity=".6" />
               <ellipse rx={eye.rx} ry={eye.ry} fill="#fffbea" />
               <ellipse cx={-eye.rx * .28} cy={-eye.ry * .2} rx={eye.rx * .64} ry={eye.ry * .8} fill="#fff" fillOpacity=".65" />
-              <g className={styles.pupil} data-creature-eye={i}>
+              <g data-creature-eye={i}>
                 <ellipse rx={eye.rx * .42} ry={eye.ry * .43} fill={`url(#${uid}-iris)`} />
                 <ellipse rx={eye.rx * .2} ry={eye.ry * .27} fill="#14234f" />
                 <circle cx="-1.8" cy="-3.2" r="1.8" fill="#fffbea" />
               </g>
             </g>
+            </g>
           </g>)}
-        </g>
         </g>
       </g>
     </svg>
+    </div>
+    <svg ref={coordinates} data-creature-coordinate-space className={styles.coordinates} viewBox="0 0 1440 900" preserveAspectRatio="none" focusable="false" />
   </div>;
 }
 
 /** Portal into isolated backgrounds instead of placing artwork over the portfolio. */
 export default function RoomCreature({ room, active, paused }: CreatureProps) {
   const anchor = useRef<HTMLSpanElement>(null);
-  const pointer = useRef<PointerPosition>({ x: 0, y: 0, known: false });
+  const input = useRef<CreatureInput>({ pointer: { x: 0, y: 0, known: false }, subscribers: new Set() });
   const [placement, setPlacement] = useState<{ room: RoomId; hosts: HTMLElement[] }>({ room, hosts: [] });
   useEffect(() => {
     const world = anchor.current?.closest<HTMLElement>("[data-world-room]");
@@ -245,12 +288,25 @@ export default function RoomCreature({ room, active, paused }: CreatureProps) {
     return () => observer?.disconnect();
   }, [room]);
   useEffect(() => {
-    const record = (event: PointerEvent) => { if (event.pointerType === "mouse") pointer.current = { x: event.clientX, y: event.clientY, known: true }; };
-    const leave = (event: PointerEvent) => { if (!event.relatedTarget) pointer.current.known = false; };
-    const blur = () => { pointer.current.known = false; };
+    const current = input.current;
+    const record = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      current.pointer.x = event.clientX; current.pointer.y = event.clientY; current.pointer.known = true;
+      current.subscribers.forEach(subscriber => subscriber.move());
+    };
+    const click = (event: MouseEvent) => { if (event.button === 0) current.subscribers.forEach(subscriber => subscriber.blink()); };
+    const reset = () => current.subscribers.forEach(subscriber => subscriber.reset());
+    const leave = (event: PointerEvent) => { if (!event.relatedTarget) { current.pointer.known = false; reset(); } };
+    const keyboard = (event: KeyboardEvent) => { if (event.key === "Tab") reset(); };
+    const blur = () => { current.pointer.known = false; };
     window.addEventListener("pointermove", record, { passive: true });
+    window.addEventListener("click", click, { passive: true, capture: true });
+    window.addEventListener("keydown", keyboard);
     window.addEventListener("pointerout", leave, { passive: true }); window.addEventListener("blur", blur);
-    return () => { window.removeEventListener("pointermove", record); window.removeEventListener("pointerout", leave); window.removeEventListener("blur", blur); };
+    return () => {
+      window.removeEventListener("pointermove", record); window.removeEventListener("click", click, true);
+      window.removeEventListener("keydown", keyboard); window.removeEventListener("pointerout", leave); window.removeEventListener("blur", blur);
+    };
   }, []);
-  return <><span ref={anchor} className={styles.controller} aria-hidden="true" />{placement.room === room && placement.hosts.map((host, index) => createPortal(<BackgroundResident host={host} room={room} active={active} paused={paused} pointer={pointer} />, host, `${room}-${index}`))}</>;
+  return <><span ref={anchor} className={styles.controller} aria-hidden="true" />{placement.room === room && placement.hosts.map((host, index) => createPortal(<BackgroundResident host={host} room={room} active={active} paused={paused} input={input} />, host, `${room}-${index}`))}</>;
 }

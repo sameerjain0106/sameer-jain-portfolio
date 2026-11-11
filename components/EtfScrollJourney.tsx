@@ -74,27 +74,45 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
     if (!section || !visual || !scrollRoot || !active) return;
     const enabled = matchMedia("(min-width: 900px) and (prefers-reduced-motion: no-preference)");
     const artwork = Array.from(visual.querySelectorAll<HTMLElement>("[data-etf-art]"));
-    let frame = 0, disposed = false, previous = Number.NaN, fitDirty = true;
+    let frame = 0, disposed = false, previous = Number.NaN, geometryDirty = true;
+    let height = 0, sectionTop = 0, sectionBottom = 0;
+    let centers: number[] = [];
+    const published = new Map<string, string>();
+    function setVisual(name: string, value: string) {
+      if (published.get(name) === value) return;
+      published.set(name, value);
+      visual!.style.setProperty(name, value);
+    }
+    function measure() {
+      height = scrollRoot!.clientHeight;
+      const nextHeight = `${height}px`;
+      if (section!.style.getPropertyValue("--story-height") !== nextHeight) section!.style.setProperty("--story-height", nextHeight);
+      // Cache untransformed chapter locations in scroll-content coordinates.
+      // Scroll only changes the anchor; resizing, fonts and room resume rebuild
+      // the cache before any new frame is painted.
+      const viewportTop = scrollRoot!.getBoundingClientRect().top + scrollRoot!.clientTop;
+      const offset = scrollRoot!.scrollTop - viewportTop;
+      const bounds = section!.getBoundingClientRect();
+      sectionTop = bounds.top + offset; sectionBottom = bounds.bottom + offset;
+      centers = beats.current.map(beat => { const box = beat!.getBoundingClientRect(); return box.top + box.height * .5 + offset; });
+      const available = Math.max(160, height - 155);
+      const fits = artwork.map(art => Math.min(1, available / Math.max(1, art.offsetHeight)));
+      artwork.forEach((art, index) => {
+        const nextFit = String(fits[index]);
+        if (art.style.getPropertyValue("--art-fit") !== nextFit) art.style.setProperty("--art-fit", nextFit);
+      });
+      geometryDirty = false;
+    }
     function paint() {
       frame = 0;
       if (disposed || document.hidden) return;
-      section!.dataset.storyEnhanced = String(enabled.matches);
+      const enhanced = String(enabled.matches);
+      if (section!.dataset.storyEnhanced !== enhanced) section!.dataset.storyEnhanced = enhanced;
       if (!enabled.matches || !scrollRoot!.clientHeight) return;
-      const height = scrollRoot!.clientHeight;
-      section!.style.setProperty("--story-height", `${height}px`);
-      if (fitDirty) {
-        // Size the evidence to the usable viewport, without turning shorter
-        // laptop windows into a different scrolling or creature experience.
-        const available = Math.max(160, height - 155);
-        const fits = artwork.map(art => Math.min(1, available / Math.max(1, art.offsetHeight)));
-        artwork.forEach((art, index) => art.style.setProperty("--art-fit", String(fits[index])));
-        fitDirty = false;
-      }
-      const viewportTop = scrollRoot!.getBoundingClientRect().top + scrollRoot!.clientTop;
-      const bounds = section!.getBoundingClientRect();
-      if (bounds.bottom <= viewportTop || bounds.top >= viewportTop + height) return;
-      const centers = beats.current.map(beat => { const box = beat!.getBoundingClientRect(); return box.top + box.height * .5; });
-      const anchor = viewportTop + height * scrollMotion.viewportAnchor;
+      if (geometryDirty) measure();
+      const scroll = scrollRoot!.scrollTop;
+      if (sectionBottom <= scroll || sectionTop >= scroll + height) return;
+      const anchor = scroll + height * scrollMotion.viewportAnchor;
       let progress = 0;
       for (let i = 0; i < centers.length - 1; i++) {
         if (anchor >= centers[i + 1]) progress = i + 1;
@@ -107,21 +125,22 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       const chapter = Math.round(progress);
       if (chapter !== currentRef.current) { currentRef.current = chapter; setCurrent(chapter); }
       section!.dataset.journeyProgress = (progress / (story.length - 1)).toFixed(4);
-      section!.dataset.journeyScene = String(chapter);
-      visual!.style.setProperty("--story-ground", mix(story[base].ground, story[next].ground, blend));
-      visual!.style.setProperty("--story-progress", String(progress / (story.length - 1)));
-      story.forEach((_, index) => visual!.style.setProperty(`--sheet-${index}-y`, `${(index - base - blend) * 100}%`));
-      visual!.style.setProperty("--gather", String(clamp(progress / .65)));
-      visual!.style.setProperty("--window", String(.3 + .7 * clamp((progress - .5) / .5)));
-      visual!.style.setProperty("--seal", String(clamp((progress - 1.5) / .5)));
-      visual!.style.setProperty("--evidence-open", String(clamp((progress - 2.5) / .5)));
-      visual!.style.setProperty("--comparison-open", String(clamp((progress - 3.5) / .5)));
+      if (section!.dataset.journeyScene !== String(chapter)) section!.dataset.journeyScene = String(chapter);
+      setVisual("--story-ground", mix(story[base].ground, story[next].ground, blend));
+      setVisual("--story-progress", String(progress / (story.length - 1)));
+      story.forEach((_, index) => setVisual(`--sheet-${index}-y`, `${(index - base - blend) * 100}%`));
+      setVisual("--gather", String(clamp(progress / .65)));
+      setVisual("--window", String(.3 + .7 * clamp((progress - .5) / .5)));
+      setVisual("--seal", String(clamp((progress - 1.5) / .5)));
+      setVisual("--evidence-open", String(clamp((progress - 2.5) / .5)));
+      setVisual("--comparison-open", String(clamp((progress - 3.5) / .5)));
     }
     function schedule() { if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(paint); }
-    function refresh() { previous = Number.NaN; fitDirty = true; schedule(); }
+    function refresh() { if (disposed) return; previous = Number.NaN; geometryDirty = true; schedule(); }
     function visibility() { if (document.hidden) { cancelAnimationFrame(frame); frame = 0; } else refresh(); }
     const observer = new ResizeObserver(refresh);
     observer.observe(section); observer.observe(scrollRoot);
+    beats.current.forEach(beat => { if (beat) observer.observe(beat); });
     scrollRoot.addEventListener("scroll", schedule, { passive: true });
     enabled.addEventListener("change", refresh);
     document.addEventListener("visibilitychange", visibility);

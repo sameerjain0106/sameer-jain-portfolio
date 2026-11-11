@@ -18,39 +18,62 @@ export default function SpatialEntrance({ active, scrollRoot, navigate }: {
     if (!active || !element || !stage || !scrollRoot) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const fine = matchMedia("(hover: hover) and (pointer: fine)");
-    let frame = 0;
+    let frame = 0, disposed = false;
     let x = 0, y = 0, targetX = 0, targetY = 0;
+    let pointerX = 0, pointerY = 0, pendingPointer = false;
+    let bounds: DOMRect | null = null, boundsDirty = true, heightDirty = true, viewportHeight = 1;
+    const painted = new Map<string, string>();
+    const write = (name: string, value: string) => {
+      if (painted.get(name) === value) return;
+      // These variables only affect the hero; do not invalidate the lower room.
+      stage.style.setProperty(name, value);
+      painted.set(name, value);
+    };
     const render = () => {
       frame = 0;
+      if (disposed || document.hidden) return;
+      // Read geometry once per frame, before any writes, and only when dirty.
+      if (heightDirty) { viewportHeight = Math.max(1, scrollRoot.clientHeight); heightDirty = false; }
+      if (pendingPointer) {
+        if (boundsDirty || !bounds) { bounds = stage.getBoundingClientRect(); boundsDirty = false; }
+        targetX = (pointerX - bounds.left - bounds.width / 2) / bounds.width * 30;
+        targetY = (pointerY - bounds.top - bounds.height / 2) / bounds.height * 24;
+        pendingPointer = false;
+      }
+      const progress = Math.min(1, scrollRoot.scrollTop / viewportHeight);
       x += (targetX - x) * .095; y += (targetY - y) * .095;
-      element.style.setProperty("--look-x", `${x.toFixed(2)}px`);
-      element.style.setProperty("--look-y", `${y.toFixed(2)}px`);
-      element.style.setProperty("--look-turn", `${(x * .15).toFixed(2)}deg`);
-      const progress = Math.min(1, scrollRoot.scrollTop / scrollRoot.clientHeight);
-      element.style.setProperty("--drift", `${motion.matches ? 0 : progress * 65}px`);
+      write("--look-x", `${x.toFixed(2)}px`);
+      write("--look-y", `${y.toFixed(2)}px`);
+      write("--look-turn", `${(x * .15).toFixed(2)}deg`);
+      write("--drift", `${motion.matches ? 0 : progress * 65}px`);
       if (Math.abs(targetX - x) + Math.abs(targetY - y) > .03) frame = requestAnimationFrame(render);
     };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(render); };
+    const schedule = () => { if (!disposed && !document.hidden && !frame) frame = requestAnimationFrame(render); };
     const move = (event: PointerEvent) => {
       if (motion.matches || !fine.matches || event.pointerType !== "mouse" || document.hidden) return;
-      const bounds = stage.getBoundingClientRect();
-      targetX = (event.clientX - bounds.left - bounds.width / 2) / bounds.width * 30;
-      targetY = (event.clientY - bounds.top - bounds.height / 2) / bounds.height * 24;
+      pointerX = event.clientX; pointerY = event.clientY; pendingPointer = true;
       schedule();
     };
-    const reset = () => { targetX = 0; targetY = 0; schedule(); };
+    const reset = () => { pendingPointer = false; targetX = 0; targetY = 0; schedule(); };
+    const scroll = () => { boundsDirty = true; schedule(); };
+    const resize = () => { boundsDirty = true; heightDirty = true; schedule(); };
+    const observer = new ResizeObserver(resize);
+    observer.observe(stage); observer.observe(scrollRoot);
     const visibility = () => { if (document.hidden) { cancelAnimationFrame(frame); frame = 0; } else reset(); };
     stage.addEventListener("pointermove", move, { passive: true });
     stage.addEventListener("pointerleave", reset);
-    scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    scrollRoot.addEventListener("scroll", scroll, { passive: true });
+    window.addEventListener("resize", resize, { passive: true });
     document.addEventListener("visibilitychange", visibility);
     motion.addEventListener("change", reset);
+    void document.fonts.ready.then(() => { if (!disposed) resize(); });
     schedule();
     return () => {
-      cancelAnimationFrame(frame);
+      disposed = true; cancelAnimationFrame(frame); observer.disconnect();
       stage.removeEventListener("pointermove", move);
       stage.removeEventListener("pointerleave", reset);
-      scrollRoot.removeEventListener("scroll", schedule);
+      scrollRoot.removeEventListener("scroll", scroll);
+      window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", visibility);
       motion.removeEventListener("change", reset);
     };

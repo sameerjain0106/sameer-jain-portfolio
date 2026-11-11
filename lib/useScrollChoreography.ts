@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-type Beat = { node: HTMLElement; top: number; height: number; kind: string; side: number };
+type Beat = { node: HTMLElement; top: number; height: number; kind: string; side: number; progress: number };
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 /** Native scroll is the timeline: entry fades retrace the same states in reverse. */
@@ -16,6 +16,7 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
     let frame = 0;
     let dirty = true;
     let disposed = false;
+    let fieldScroll = "";
 
     // Positioning is added only where needed; the MRI stage keeps its sticky position.
     surfaces.forEach(node => { if (!node.hasAttribute("data-surface-positioned") && getComputedStyle(node).position === "static") node.style.position = "relative"; });
@@ -36,7 +37,7 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
       const scrollTop = scroller!.scrollTop;
       beats = nodes.map((node, index) => {
         const box = node.getBoundingClientRect();
-        return { node, top: box.top - rootTop + scrollTop, height: box.height, kind: node.dataset.scrollReveal ?? "copy", side: index % 2 ? 1 : -1 };
+        return { node, top: box.top - rootTop + scrollTop, height: box.height, kind: node.dataset.scrollReveal ?? "copy", side: index % 2 ? 1 : -1, progress: Number.NaN };
       });
       dirty = false;
     }
@@ -49,12 +50,22 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
       const scrollTop = scroller.scrollTop;
       const maxScroll = scroller.scrollHeight - height;
       const reduced = motion.matches;
-      scroller.style.setProperty("--field-scroll", `${reduced ? 0 : -Math.sin(scrollTop * .00065) * 32}px`);
+      const nextFieldScroll = `${reduced ? 0 : -Math.sin(scrollTop * .00065) * 32}px`;
+      if (nextFieldScroll !== fieldScroll) {
+        fieldScroll = nextFieldScroll;
+        // A non-inheriting property keeps the field's movement from invalidating
+        // every text and SVG descendant. Only each surface's ::before inherits it.
+        surfaces.forEach(surface => surface.style.setProperty("--field-scroll", fieldScroll));
+      }
       beats.forEach(beat => {
         const travel = Math.min(height * .44, Math.max(height * .22, beat.height * .55 + height * .15));
         const start = beat.top - height * .96;
         const end = Math.min(start + travel, maxScroll);
         const progress = reduced || !beat.height ? 1 : end <= start ? Number(scrollTop >= end) : clamp((scrollTop - start) / (end - start));
+        // Most reveals are fully before or after their short entrance window.
+        // Their styles stay valid until progress changes or geometry is rebuilt.
+        if (progress === beat.progress) return;
+        beat.progress = progress;
         const eased = progress * progress * (3 - 2 * progress);
         const remaining = 1 - eased;
         const figure = beat.kind === "figure";

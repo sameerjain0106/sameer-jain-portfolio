@@ -108,9 +108,20 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
     let frame: number | null = null;
     let disposed = false;
     let measurementsDirty = true;
+    let geometryDirty = true;
+    let positions: number[] = [];
+    let sectionTop = 0;
+    let sectionBottom = 0;
     let previousTime: number | null = null;
     let previousProgress = Number.NaN;
     let publishedPointer = "";
+    const published = new Map<string, string>();
+
+    function setStyle(node: HTMLElement, name: string, value: string) {
+      if (published.get(name) === value) return;
+      published.set(name, value);
+      node.style.setProperty(name, value);
+    }
 
     function measureViewport() {
       const box = scrollRoot?.getBoundingClientRect();
@@ -124,16 +135,32 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       return next;
     }
 
+    function measureGeometry() {
+      const view = measureViewport();
+      const scroll = scrollRoot?.scrollTop ?? window.scrollY;
+      const offset = scroll - view.top;
+      const bounds = root.current!.getBoundingClientRect();
+      sectionTop = bounds.top + offset;
+      sectionBottom = bounds.bottom + offset;
+      positions = beats.current.filter((node): node is HTMLElement => node !== null).map(node => {
+        const box = node.getBoundingClientRect();
+        return box.top + box.height * .5 + offset;
+      });
+      geometryDirty = false;
+      return view;
+    }
+
     function render(time: number) {
       frame = null;
       if (disposed || document.hidden || !enabled.matches || !root.current || root.current.dataset.active !== "true" || !stage.current) return;
       const scene = stage.current;
       if (measurementsDirty) {
-        const view = measureViewport();
-        const bounds = root.current.getBoundingClientRect();
-        if (!view.width || !view.height || bounds.bottom <= view.top || bounds.top >= view.top + view.height) { previousTime = null; return; }
-        const positions = beats.current.filter((node): node is HTMLElement => node !== null).map((node) => { const box = node.getBoundingClientRect(); return box.top + box.height * .5; });
-        const anchor = view.top + view.height * config.viewportAnchor;
+        // Embedded chapters keep stable content coordinates during scrolling.
+        // Standalone pages still remeasure because preceding page content can move.
+        const view = geometryDirty || !embedded ? measureGeometry() : viewport.current;
+        const scroll = scrollRoot?.scrollTop ?? window.scrollY;
+        if (!view.width || !view.height || sectionBottom <= scroll || sectionTop >= scroll + view.height) { previousTime = null; return; }
+        const anchor = scroll + view.height * config.viewportAnchor;
         let progress = 0;
         for (let i = 0; i < positions.length - 1; i++) {
           if (anchor >= positions[i + 1]) progress = i + 1;
@@ -149,20 +176,22 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
           if (activeRef.current !== next) { activeRef.current = next; setActive(next); }
           const ground = mix(story[base].ground, story[Math.min(base + 1, story.length - 1)].ground, blend);
           const ink = readableInk(ground, story[next].ink);
-          scene.style.setProperty("--world-ground", ground);
-          root.current.style.setProperty("--world-ink", ink);
-          root.current.style.setProperty("--world-accent", contrast(ground, "#ff8066") >= 3 ? "#ff8066" : ink);
-          scene.style.setProperty("--orbit-angle", `${progress * 21}deg`);
-          scene.style.setProperty("--world-progress", `${progress / (story.length - 1)}`);
+          setStyle(scene, "--world-ground", ground);
+          setStyle(root.current, "--world-ink", ink);
+          setStyle(root.current, "--world-accent", contrast(ground, "#ff8066") >= 3 ? "#ff8066" : ink);
+          setStyle(scene, "--orbit-angle", `${progress * 21}deg`);
+          setStyle(scene, "--world-progress", `${progress / (story.length - 1)}`);
           root.current.dataset.storyProgress = (progress / (story.length - 1)).toFixed(4);
           story.forEach((_, i) => {
             const distance = clamp((i - progress) / config.artWindow, -1, 1);
-            scene.style.setProperty(`--scene-${i}-opacity`, `${1 - Math.abs(distance)}`);
             // The room's evidence travels vertically as a solid strip. Text stays
             // in native document flow instead of fading between compositions.
-            scene.style.setProperty(`--scene-${i}-y`, embedded ? `${(i - base - blend) * 100}%` : `${distance * 85}px`);
-            scene.style.setProperty(`--scene-${i}-rotate`, `${distance * (i === 2 || i === 3 || i === 4 ? 2.5 : 7)}deg`);
-            scene.style.setProperty(`--scene-${i}-scale`, `${1 - Math.abs(distance) * .07}`);
+            setStyle(scene, `--scene-${i}-y`, embedded ? `${(i - base - blend) * 100}%` : `${distance * 85}px`);
+            if (!embedded) {
+              setStyle(scene, `--scene-${i}-opacity`, `${1 - Math.abs(distance)}`);
+              setStyle(scene, `--scene-${i}-rotate`, `${distance * (i === 2 || i === 3 || i === 4 ? 2.5 : 7)}deg`);
+              setStyle(scene, `--scene-${i}-scale`, `${1 - Math.abs(distance) * .07}`);
+            }
           });
         }
       }
@@ -184,7 +213,8 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       if (moving) schedule();
     }
     function schedule() { if (!disposed && frame === null && !document.hidden && enabled.matches && root.current?.dataset.active === "true") frame = requestAnimationFrame(render); }
-    function refresh() { if (disposed) return; measurementsDirty = true; schedule(); }
+    function updateProgress() { if (disposed) return; measurementsDirty = true; schedule(); }
+    function refresh() { if (disposed) return; geometryDirty = true; updateProgress(); }
     function resize() { if (disposed) return; measureViewport(); refresh(); }
     function pause() {
       if (frame !== null) cancelAnimationFrame(frame);
@@ -198,10 +228,11 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     if (scrollRoot) observer?.observe(scrollRoot);
     if (root.current) observer?.observe(root.current);
+    beats.current.forEach(beat => { if (beat) observer?.observe(beat); });
     kick.current = schedule;
     resize();
     void document.fonts.ready.then(() => { if (!disposed) refresh(); });
-    scrollTarget.addEventListener("scroll", refresh, { passive: true });
+    scrollTarget.addEventListener("scroll", updateProgress, { passive: true });
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", visibility);
     enabled.addEventListener("change", motionMode);
@@ -210,7 +241,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       kick.current = null;
       pause();
       observer?.disconnect();
-      scrollTarget.removeEventListener("scroll", refresh);
+      scrollTarget.removeEventListener("scroll", updateProgress);
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", visibility);
       enabled.removeEventListener("change", motionMode);

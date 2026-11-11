@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { gsap } from "gsap";
 import { arrows, directions, neighbor, roomFromLocation, roomHref, roomIds, rooms, type Direction, type RoomId } from "@/data/spatialRooms";
 import MriScrollJourney from "./MriScrollJourney";
@@ -35,7 +35,7 @@ function edgeAt(x: number, y: number): Direction | null {
   return null;
 }
 
-function RoomPanel({ id, active, visible, navigate }: {
+const RoomPanel = memo(function RoomPanel({ id, active, visible, navigate }: {
   id: RoomId; active: boolean; visible: boolean; navigate: (id: RoomId) => void;
 }) {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
@@ -54,7 +54,7 @@ function RoomPanel({ id, active, visible, navigate }: {
       {id === "contact" && <ContactRoom active={active} scrollRoot={scrollRoot} />}
     </div>
   </section>;
-}
+});
 
 export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
   const [world, setWorld] = useState<World>({ room: initialRoom, visited: [initialRoom], mode: { kind: "idle" } });
@@ -84,6 +84,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
   });
 
   const cancelHold = useCallback(() => {
+    if (!hold.current && !holdFrame.current) return;
     cancelAnimationFrame(holdFrame.current);
     holdFrame.current = 0;
     hold.current = null;

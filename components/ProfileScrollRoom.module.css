@@ -21,7 +21,7 @@
 .coverFacts > div { display: flex; flex-direction: column; gap: 8px; }
 .coverFacts dt { font-size: 12px; line-height: 1.5; }
 .coverFacts dd { order: -1; font: 600 clamp(34px, 4.2vw, 62px)/1 var(--font-bricolage), sans-serif; color: #1c42ce; letter-spacing: -.055em; margin: 0; }
-.corner { position: absolute; right: 0; bottom: 0; width: 12%; aspect-ratio: 1; background: #1c42ce; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.corner { position: absolute; right: 0; bottom: 0; width: 12%; aspect-ratio: 1; background: #1c42ce; clip-path: polygon(100% 0, 100% 100%, 0 100%); transform-origin: bottom right; }
 .education { background: #ffdbc1; }
 .educationHead { position: relative; display: grid; grid-template-columns: .55fr 1fr; align-items: start; column-gap: 35px; }
 .educationHead .pageLabel { padding-top: 8px; }
@@ -76,7 +76,7 @@
 .room[data-profile-enhanced="true"] .bookEdge { display: flex; position: absolute; z-index: 7; left: 18%; right: 18%; top: 0; height: 24px; justify-content: space-around; pointer-events: none; }
 .bookEdge i { width: 13px; height: 24px; border: 3px solid #132b52; border-top: 0; border-radius: 0 0 12px 12px; box-shadow: 2px 0 0 #ffffff44; }
 .stage[data-ambient-running="true"] .corner { animation: cornerLift 8s ease-in-out infinite alternate; }
-@keyframes cornerLift { to { width: 13.3%; filter: brightness(1.06); } }
+@keyframes cornerLift { to { transform: scale(1.1083333333); filter: brightness(1.06); } }
 @media (min-width: 760px) and (max-height: 790px) {
   .leaf { padding-top: 95px; padding-bottom: 65px; }
   .cover h1 { font-size: clamp(80px, 17svh, 130px); margin-top: 20px; }

@@ -34,6 +34,14 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
     let disposed = false;
     let visible = true;
     let stops: number[] = [];
+    let previousProgress = Number.NaN;
+    let previousCurrent = -1;
+    const published = new Map<string, string>();
+    function setVisual(name: string, value: string) {
+      if (published.get(name) === value) return;
+      published.set(name, value);
+      section!.style.setProperty(name, value);
+    }
 
     function measure() {
       const viewportTop = scrollRoot!.getBoundingClientRect().top + scrollRoot!.clientTop;
@@ -55,20 +63,25 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
         progress += clamp((scroll - boundaries[i]) / Math.max(1, boundaries[i + 1] - boundaries[i]));
       }
       if (motion.matches) progress = steps.length;
+      if (progress === previousProgress) return;
+      previousProgress = progress;
       const amounts = steps.map((_, i) => clamp(progress - i));
       const [features, groups, clusters, evaluation] = amounts;
-      section!.style.setProperty("--pipeline-features", String(features));
-      section!.style.setProperty("--pipeline-groups", String(groups));
-      section!.style.setProperty("--pipeline-clusters", String(clusters));
-      section!.style.setProperty("--pipeline-evaluation", String(evaluation));
-      section!.style.setProperty("--pipeline-source-x", `${(1 - features) * 115}px`);
-      section!.style.setProperty("--pipeline-source-y", `${(1 - features) * 90}px`);
-      section!.style.setProperty("--pipeline-source-scale", String(1.75 - features * .75));
-      section!.style.setProperty("--pipeline-source-turn", `${(1 - features) * -7}deg`);
+      setVisual("--pipeline-features", String(features));
+      setVisual("--pipeline-groups", String(groups));
+      setVisual("--pipeline-clusters", String(clusters));
+      setVisual("--pipeline-evaluation", String(evaluation));
+      setVisual("--pipeline-source-x", `${(1 - features) * 115}px`);
+      setVisual("--pipeline-source-y", `${(1 - features) * 90}px`);
+      setVisual("--pipeline-source-scale", String(1.75 - features * .75));
+      setVisual("--pipeline-source-turn", `${(1 - features) * -7}deg`);
       section!.dataset.pipelineProgress = (progress / steps.length).toFixed(4);
       const current = Math.max(0, Math.min(steps.length - 1, Math.round(progress) - 1));
-      chapters.forEach((node, index) => { node.dataset.pipelineCurrent = String(index === current); });
-      if (counter) counter.textContent = `${String(current + 1).padStart(2, "0")} / 04`;
+      if (current !== previousCurrent) {
+        previousCurrent = current;
+        chapters.forEach((node, index) => { node.dataset.pipelineCurrent = String(index === current); });
+        if (counter) counter.textContent = `${String(current + 1).padStart(2, "0")} / 04`;
+      }
     }
 
     function schedule() { if (!disposed && visible && !document.hidden && !frame) frame = requestAnimationFrame(render); }

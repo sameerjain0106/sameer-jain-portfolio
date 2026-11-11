@@ -11,7 +11,7 @@
 .panel[data-panel="profile"] { --field-pattern: repeating-radial-gradient(ellipse at 0% 80%, transparent 0 110px, currentColor 111px 113px, transparent 114px 205px); --field-size: 1100px 800px; --field-speed: 42s; --field-opacity: .065; }
 .panel[data-panel="contact"] { --field-pattern: repeating-radial-gradient(circle at 90% 20%, transparent 0 68px, currentColor 69px 70px, transparent 71px 140px); --field-size: 950px 800px; --field-speed: 31s; --field-opacity: .075; }
 .world [data-room-surface] { isolation: isolate; overflow: clip; }
-.world [data-room-surface]::before { content: ""; position: absolute; z-index: -1; inset: -70px; pointer-events: none; background-image: var(--field-pattern); background-size: var(--field-size); opacity: 0; translate: 0 var(--field-scroll, 0px); animation: roomFieldDrift var(--field-speed) ease-in-out infinite alternate; animation-play-state: paused; }
+.world [data-room-surface]::before { --field-scroll: inherit; content: ""; position: absolute; z-index: -1; inset: -70px; pointer-events: none; background-image: var(--field-pattern); background-size: var(--field-size); opacity: 0; translate: 0 var(--field-scroll, 0px); animation: roomFieldDrift var(--field-speed) ease-in-out infinite alternate; animation-play-state: paused; }
 .world [data-room-surface][data-surface-visible]::before { opacity: var(--field-opacity); }
 .panel[data-ambient-running="true"] [data-surface-visible="true"]::before { animation-play-state: running; }
 .panel[data-panel="etf"] [data-room-surface]::before, .panel[data-panel="contact"] [data-room-surface]::before { animation-direction: alternate-reverse; }

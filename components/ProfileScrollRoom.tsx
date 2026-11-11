@@ -53,20 +53,32 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
     let frame = 0;
     let lastWidth = 0;
     let lastHeight = 0;
+    let previousProgress = Number.NaN;
+    let previousLeaf = -1;
+    const published = new Map<string, string>();
+    function setVisual(name: string, value: string) {
+      if (published.get(name) === value) return;
+      published.set(name, value);
+      section!.style.setProperty(name, value);
+    }
 
     function paint(progress: number) {
-      if (document.hidden) return;
+      if (document.hidden || progress === previousProgress) return;
+      previousProgress = progress;
       const cover = smooth((progress - .12) / .28);
       const education = smooth((progress - .56) / .28);
       const leaf = progress < .4 ? 0 : progress < .84 ? 1 : 2;
-      section!.style.setProperty("--cover-fold", `${cover * -112}deg`);
-      section!.style.setProperty("--education-fold", `${education * -112}deg`);
-      section!.style.setProperty("--tool-spread", String(.94 + education * .06));
-      section!.style.setProperty("--book-progress", String(progress));
-      section!.style.setProperty("--fold-shadow", String(Math.sin(cover * Math.PI) * .24));
+      setVisual("--cover-fold", `${cover * -112}deg`);
+      setVisual("--education-fold", `${education * -112}deg`);
+      setVisual("--tool-spread", String(.94 + education * .06));
+      setVisual("--book-progress", String(progress));
+      setVisual("--fold-shadow", String(Math.sin(cover * Math.PI) * .24));
       section!.dataset.profileProgress = progress.toFixed(4);
-      section!.dataset.profileLeaf = String(leaf);
-      if (counter) counter.textContent = `${String(leaf + 1).padStart(2, "0")} / 03 · ${leafNames[leaf]}`;
+      if (leaf !== previousLeaf) {
+        previousLeaf = leaf;
+        section!.dataset.profileLeaf = String(leaf);
+        if (counter) counter.textContent = `${String(leaf + 1).padStart(2, "0")} / 03 · ${leafNames[leaf]}`;
+      }
     }
 
     function configure() {
@@ -76,6 +88,7 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
       owned = undefined;
       lastWidth = scrollRoot!.clientWidth;
       lastHeight = scrollRoot!.clientHeight;
+      previousProgress = Number.NaN;
       const enhanced = !reduced.matches && lastHeight >= 620;
       section!.dataset.profileEnhanced = String(enhanced);
       section!.style.setProperty("--profile-height", `${lastHeight}px`);

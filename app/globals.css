@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The scroll field belongs to each painted surface, not its content subtree. */
+@property --field-scroll {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 :root {
   color-scheme: dark;
   --paper: #f4efe6;

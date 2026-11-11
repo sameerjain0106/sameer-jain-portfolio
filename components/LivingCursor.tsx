@@ -9,6 +9,7 @@ const colors: Record<RoomId, string> = {
   profile: "25 207 233", contact: "237 62 147",
 };
 const editing = "input, textarea, select, [contenteditable]:not([contenteditable='false'])";
+const clickable = "a[href]:not([aria-disabled='true']), button:not(:disabled):not([aria-disabled='true']), [role='button']:not([aria-disabled='true']), summary, [data-edge]";
 // The shared silhouette begins at the real hotspot; every deformation pivots here.
 const arrow = "M0 0 C2.3 1.1 4.5 2.5 6.6 4 L25.3 17.3 C27.8 19.1 27.2 21.7 24.3 22 L17.3 22.6 L21.9 31.5 C23 33.6 22.4 35.2 20.4 36.2 L19.8 36.5 C17.7 37.5 16.2 36.8 15.2 34.8 L10.7 26.3 L5.4 30.7 C3.1 32.6 .9 31.4 .8 28.5 Z";
 
@@ -27,27 +28,40 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     let supported = false, frame = 0, visible = false, disposed = false;
     let bounds = world.getBoundingClientRect();
     let point = { x: 0, y: 0, hover: false, pressed: false };
+    let published = { x: Number.NaN, y: Number.NaN,
+      hover: node.dataset.cursorHover === "true", pressed: node.dataset.cursorPressed === "true" };
 
     function hide() {
-      cancelAnimationFrame(frame); frame = 0; visible = false;
-      node!.dataset.cursorEnabled = "false";
+      cancelAnimationFrame(frame); frame = 0;
       node!.dataset.cursorRunning = "false";
-      node!.dataset.cursorPressed = "false";
-      world!.removeAttribute("data-custom-cursor");
+      if (visible) {
+        node!.dataset.cursorEnabled = "false";
+        world!.removeAttribute("data-custom-cursor");
+      }
+      if (published.pressed) node!.dataset.cursorPressed = "false";
+      published.pressed = false; visible = false;
     }
     function paint() {
       frame = 0;
       if (disposed || !supported || document.hidden) { hide(); return; }
-      node!.style.setProperty("--cursor-x", `${point.x}px`);
-      node!.style.setProperty("--cursor-y", `${point.y}px`);
-      node!.dataset.cursorX = String(point.x); node!.dataset.cursorY = String(point.y);
-      node!.dataset.cursorHover = String(point.hover);
-      node!.dataset.cursorPressed = String(point.pressed);
+      if (point.x !== published.x) {
+        node!.style.setProperty("--cursor-x", `${point.x}px`);
+        node!.dataset.cursorX = String(point.x);
+      }
+      if (point.y !== published.y) {
+        node!.style.setProperty("--cursor-y", `${point.y}px`);
+        node!.dataset.cursorY = String(point.y);
+      }
+      if (point.hover !== published.hover) node!.dataset.cursorHover = String(point.hover);
+      if (point.pressed !== published.pressed) node!.dataset.cursorPressed = String(point.pressed);
+      published = { ...point };
       node!.dataset.cursorRunning = "false";
       // Hide the platform pointer only after the replacement has its real position.
+      if (!visible) {
+        node!.dataset.cursorEnabled = "true";
+        world!.dataset.customCursor = "true";
+      }
       visible = true;
-      node!.dataset.cursorEnabled = "true";
-      world!.dataset.customCursor = "true";
     }
     function schedule() {
       if (!frame) { node!.dataset.cursorRunning = "true"; frame = requestAnimationFrame(paint); }
@@ -59,7 +73,7 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     function move(event: PointerEvent) {
       if (event.pointerType !== "mouse" || !eligible(event.target, event.clientX, event.clientY)) { hide(); return; }
       point = { x: event.clientX, y: event.clientY, pressed: event.buttons !== 0,
-        hover: !!(event.target as Element).closest("a[href], button, [role='button'], summary, [data-edge]") };
+        hover: !!(event.target as Element).closest(clickable) };
       schedule();
     }
     function press(event: PointerEvent) {
@@ -81,8 +95,8 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
       if (!visible) return;
       const target = document.elementFromPoint(point.x, point.y);
       if (!eligible(target, point.x, point.y)) { hide(); return; }
-      point.hover = !!target?.closest("a[href], button, [role='button'], summary, [data-edge]");
-      schedule();
+      const hover = !!target?.closest(clickable);
+      if (point.hover !== hover) { point.hover = hover; schedule(); }
     }
     function keyboard(event: KeyboardEvent) { if (event.key === "Tab") hide(); }
 

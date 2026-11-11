@@ -26,29 +26,55 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const opening = view.querySelector<HTMLElement>("[data-contact-opening]")!;
     const letter = view.querySelector<HTMLElement>("[data-contact-letter]")!;
+    const bloom = view.querySelector<HTMLElement>("[data-kinetic-occluded]")!;
     let owned: ScrollTrigger | undefined;
     let frame = 0;
     let disposed = false;
     let lastWidth = 0;
     let lastHeight = 0;
+    let previousProgress = Number.NaN;
+    let openingHidden: boolean | undefined;
+    let letterHidden: boolean | undefined;
+    let bloomHidden = bloom.dataset.kineticOccluded === "true";
+    const published = new Map<string, string>();
+    const setVisual = (name: string, value: string) => {
+      if (published.get(name) === value) return;
+      published.set(name, value);
+      section.style.setProperty(name, value);
+    };
+    const occludeBloom = (hidden: boolean) => {
+      if (hidden !== bloomHidden) {
+        bloomHidden = hidden;
+        bloom.dataset.kineticOccluded = String(hidden);
+      }
+    };
     const paint = (progress: number) => {
-      if (document.hidden) return;
+      if (document.hidden || progress === previousProgress) return;
+      previousProgress = progress;
       const open = smooth((progress - .09) / .32);
       const lift = smooth((progress - .27) / .35);
       const expand = smooth((progress - .4) / .36);
       const mobile = lastWidth < 760;
       section.dataset.contactProgress = progress.toFixed(4);
-      section.style.setProperty("--letter-open", String(open));
-      section.style.setProperty("--letter-lift", String(lift));
-      section.style.setProperty("--letter-expand", String(expand));
-      section.style.setProperty("--letter-away", String(smooth((progress - .5) / .25)));
-      section.style.setProperty("--letter-x", `${mobile ? 0 : (1 - expand) * lastWidth * .21}px`);
-      section.style.setProperty("--letter-y", `${(1 - expand) * lastHeight * (mobile ? .245 : .025) - Math.sin(expand * Math.PI) * lastHeight * .13 - lift * (1 - expand) * lastHeight * .08}px`);
-      section.style.setProperty("--letter-scale", String((mobile ? .55 : .42) + expand * (mobile ? .45 : .58)));
-      opening.inert = progress > .23;
-      opening.setAttribute("aria-hidden", String(progress > .23));
-      letter.inert = progress < .75;
-      letter.setAttribute("aria-hidden", String(progress < .75));
+      setVisual("--letter-open", String(open));
+      setVisual("--letter-lift", String(lift));
+      setVisual("--letter-expand", String(expand));
+      setVisual("--letter-away", String(smooth((progress - .5) / .25)));
+      setVisual("--letter-x", `${mobile ? 0 : (1 - expand) * lastWidth * .21}px`);
+      setVisual("--letter-y", `${(1 - expand) * lastHeight * (mobile ? .245 : .025) - Math.sin(expand * Math.PI) * lastHeight * .13 - lift * (1 - expand) * lastHeight * .08}px`);
+      setVisual("--letter-scale", String((mobile ? .55 : .42) + expand * (mobile ? .45 : .58)));
+      const nextOpeningHidden = progress > .23, nextLetterHidden = progress < .75;
+      if (nextOpeningHidden !== openingHidden) {
+        openingHidden = nextOpeningHidden;
+        opening.inert = openingHidden;
+        opening.setAttribute("aria-hidden", String(openingHidden));
+      }
+      if (nextLetterHidden !== letterHidden) {
+        letterHidden = nextLetterHidden;
+        letter.inert = letterHidden;
+        letter.setAttribute("aria-hidden", String(letterHidden));
+      }
+      occludeBloom(open === 1);
     };
     function configure() {
       frame = 0;
@@ -57,10 +83,13 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
       owned = undefined;
       lastWidth = scrollRoot!.clientWidth;
       lastHeight = scrollRoot!.clientHeight;
+      previousProgress = Number.NaN;
+      openingHidden = letterHidden = undefined;
       const enhanced = !reduced.matches && lastHeight >= (lastWidth < 760 ? 610 : 650);
       section!.dataset.contactEnhanced = String(enhanced);
       section!.style.setProperty("--contact-height", `${lastHeight}px`);
       if (!enhanced) {
+        occludeBloom(false);
         opening.inert = false; opening.removeAttribute("aria-hidden");
         letter.inert = false; letter.removeAttribute("aria-hidden");
         return;
@@ -95,7 +124,7 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
           <span className={styles.scrollCue}>Scroll to open the letter <span aria-hidden="true">↓</span></span>
         </div>
         <div className={styles.art} ref={art}>
-          <div className={styles.bloom} data-ambient-art="contact" aria-hidden="true"><KineticSculpture kind="bloom" active={active} scrollRoot={scrollRoot} /></div>
+          <div className={styles.bloom} data-ambient-art="contact" data-kinetic-occluded="false" aria-hidden="true"><KineticSculpture kind="bloom" active={active} scrollRoot={scrollRoot} /></div>
           <div className={styles.envelopeBack} aria-hidden="true" />
           <div className={styles.letter} data-contact-letter>
             <div className={styles.letterTop}><span>To a good conversation</span><span className={styles.stamp} aria-hidden="true">SJ</span></div>
