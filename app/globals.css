@@ -9,6 +9,13 @@
   initial-value: 0px;
 }
 
+/* Only the notebook cover's shadow explicitly inherits this changing value. */
+@property --profile-fold-shadow {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
 :root {
   color-scheme: dark;
   --paper: #f4efe6;

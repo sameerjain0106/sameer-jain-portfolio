@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type CSSProperties } from "react";
+import Link from "next/link";
 import results from "@/public/projects/brain-tumor-mri/results/metrics.json";
 import styles from "./MriPipeline.module.css";
 
@@ -184,6 +185,6 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
         </li>)}
       </ol>
     </div>
-    <footer className={styles.ending}><p>A strong pattern in one dataset.<br /><strong>Still a question for the next one.</strong></p><a href="/projects/brain-tumor-mri-classification">Read the methods &amp; limitations <span aria-hidden="true">↗</span></a></footer>
+    <footer className={styles.ending}><p>A strong pattern in one dataset.<br /><strong>Still a question for the next one.</strong></p><Link href="/projects/brain-tumor-mri-classification" prefetch={false}>Read the methods &amp; limitations <span aria-hidden="true">↗</span></Link></footer>
   </section>;
 }

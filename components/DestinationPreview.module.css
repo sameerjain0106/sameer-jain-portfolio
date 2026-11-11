@@ -1,4 +1,4 @@
-.preview { --peek-ground: #cbc8f2; --peek-ink: #172456; --peek-accent: #ff8066; position: absolute; z-index: 13; pointer-events: none; color: var(--peek-ink); width: min(490px, 44vw); height: min(660px, 86svh); top: 50%; translate: 0 -50%; }
+.preview { --hold: 0; --peek-ground: #cbc8f2; --peek-ink: #172456; --peek-accent: #ff8066; position: absolute; z-index: 13; pointer-events: none; color: var(--peek-ink); width: min(490px, 44vw); height: min(660px, 86svh); top: 50%; translate: 0 -50%; }
 .preview[data-destination-preview="mri"] { --peek-ground: #173bd3; --peek-ink: #f2ef9b; }
 .preview[data-destination-preview="etf"] { --peek-ground: #f2ef9b; --peek-ink: #173bd3; }
 .preview[data-destination-preview="profile"] { --peek-ground: #ff987f; --peek-ink: #173bd3; --peek-accent: #f2ef9b; }

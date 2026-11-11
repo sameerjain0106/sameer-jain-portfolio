@@ -23,6 +23,7 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     const node = cursor.current;
     const world = node?.closest<HTMLElement>("[data-world-room]");
     if (!node || !world) return;
+    const positions = Array.from(node.querySelectorAll<HTMLElement>("[data-cursor-position]"));
     const fine = matchMedia("(hover: hover) and (pointer: fine)");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let supported = false, frame = 0, visible = false, disposed = false;
@@ -44,12 +45,14 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     function paint() {
       frame = 0;
       if (disposed || !supported || document.hidden) { hide(); return; }
+      if (point.x !== published.x || point.y !== published.y) {
+        const transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
+        positions.forEach(position => { position.style.transform = transform; });
+      }
       if (point.x !== published.x) {
-        node!.style.setProperty("--cursor-x", `${point.x}px`);
         node!.dataset.cursorX = String(point.x);
       }
       if (point.y !== published.y) {
-        node!.style.setProperty("--cursor-y", `${point.y}px`);
         node!.dataset.cursorY = String(point.y);
       }
       if (point.hover !== published.hover) node!.dataset.cursorHover = String(point.hover);
@@ -126,7 +129,7 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
   return <div ref={cursor} className={styles.cursor} data-living-cursor data-cursor-enabled="false" data-cursor-hover="false"
     data-cursor-running="false" data-active={active} data-paused={paused} aria-hidden="true"
     style={{ "--cursor-color": colors[room] } as CSSProperties}>
-    <span className={styles.position}><span className={styles.bubble}>
+    <span className={styles.position} data-cursor-position><span className={styles.bubble}>
       <svg className={styles.shell} width="28" height="38" viewBox="0 0 28 38" focusable="false" data-cursor-arrow>
         <defs>
           <radialGradient id={glassId} cx="18%" cy="18%" r="100%">
@@ -145,7 +148,7 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
         <path d="M8.7 7.7 C12.8 9.7 18.3 13.5 21.9 16.6" className={styles.reflection} />
       </svg>
     </span></span>
-    <span className={styles.contrastPosition}><span className={styles.bubble}>
+    <span className={styles.contrastPosition} data-cursor-position><span className={styles.bubble}>
       <svg className={styles.contrastShell} width="28" height="38" viewBox="0 0 28 38" focusable="false">
         <defs>
           <mask id={rimMaskId} maskUnits="userSpaceOnUse" x="-4" y="-4" width="36" height="46">
@@ -156,6 +159,6 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
         <path d={arrow} className={styles.contrastRim} mask={`url(#${rimMaskId})`} data-cursor-contrast />
       </svg>
     </span></span>
-    <span className={styles.point} data-cursor-point />
+    <span className={styles.point} data-cursor-point data-cursor-position />
   </div>;
 }

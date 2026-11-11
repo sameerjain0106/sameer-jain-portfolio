@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 import { EXPERIMENT_DOMAIN, EXPERIMENT_LENGTH, EXPERIMENT_SPLIT, LOOKBACKS, runExperiment, type Lookback } from "@/lib/splitExperiment";
 import styles from "./SplitExperiment.module.css";
 
@@ -107,7 +108,7 @@ export default function SplitExperiment() {
       <details className={styles.method}>
         <summary>What’s actually happening here? <span aria-hidden="true">+</span></summary>
         <p>This is a deliberately constructed teaching example, separate from my research results. A deterministic series (seed 71) changes from momentum to mean reversion after step 108. Exposure is the sign of the preceding 3, 12, or 30 returns, with zero exposure during warm-up. The toy index starts at 100, compounds each step, and excludes costs. All choices use identical data and chart scales.</p>
-        <p>Trying settings after seeing the holdout is exploration, so that holdout is no longer an independent test. <a href="/projects/systematic-etf-research">Read the actual ETF research ↗</a></p>
+        <p>Trying settings after seeing the holdout is exploration, so that holdout is no longer an independent test. <Link href="/projects/systematic-etf-research" prefetch={false}>Read the actual ETF research ↗</Link></p>
       </details>
       <noscript><p className={styles.noScript}>This is a static teaching view. Enable JavaScript to change the strategy and reveal the holdout, or follow the link to the full research.</p></noscript>
     </div>

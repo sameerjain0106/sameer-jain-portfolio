@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { arrows, directions, neighbor, roomFromLocation, roomHref, roomIds, rooms, type Direction, type RoomId } from "@/data/spatialRooms";
 import MriScrollJourney from "./MriScrollJourney";
@@ -68,10 +69,12 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
   const reducedRef = useRef(false);
   const armed = useRef(true);
   const holdFrame = useRef(0);
-  const hold = useRef<{ direction: Direction; started: number } | null>(null);
+  const hold = useRef<{ direction: Direction; started: number; progress: number; edge: HTMLElement | null } | null>(null);
+  const preview = useRef<HTMLElement | null>(null);
   const inhibitedUntil = useRef(0);
   const pressed = useRef(false);
   const finishTravel = useRef<(() => void) | null>(null);
+  const pendingRoomFocus = useRef<RoomId | null>(null);
   worldRef.current = world;
 
   useEffect(() => {
@@ -83,12 +86,19 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     return !paused;
   });
 
+  const setPreview = useCallback((node: HTMLElement | null) => {
+    preview.current = node;
+    // A delayed React commit should show the current hold, not restart the preview.
+    node?.style.setProperty("--hold", String(hold.current?.progress ?? 0));
+  }, []);
+
   const cancelHold = useCallback(() => {
     if (!hold.current && !holdFrame.current) return;
     cancelAnimationFrame(holdFrame.current);
     holdFrame.current = 0;
+    hold.current?.edge?.style.removeProperty("--hold");
+    preview.current?.style.setProperty("--hold", "0");
     hold.current = null;
-    root.current?.style.setProperty("--hold", "0");
     setDwell(null);
   }, []);
 
@@ -120,8 +130,8 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     armed.current = false;
     const from = current.mode.kind === "travel" ? current.mode.to : current.room;
     if (to === from && current.mode.kind !== "travel") {
+      pendingRoomFocus.current = to;
       setWorld({ ...current, mode: { kind: "idle" } });
-      requestAnimationFrame(() => focusRoom(to));
       return;
     }
     const next: World = {
@@ -132,7 +142,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     worldRef.current = next;
     setWorld(next);
     if (!fromHistory) window.history.pushState(null, "", roomHref(to));
-  }, [cancelHold, focusRoom]);
+  }, [cancelHold]);
 
   const followLink = (event: MouseEvent<HTMLAnchorElement>, id: RoomId) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
@@ -169,11 +179,10 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       if (!live) return;
       live = false;
       const next: World = { room: trip.to, visited: worldRef.current.visited, mode: { kind: "idle" } };
+      pendingRoomFocus.current = trip.to;
       worldRef.current = next;
       setWorld(next);
       inhibitedUntil.current = performance.now() + 300;
-      // Focus after the room is no longer inert. No scroll jump on return visits.
-      requestAnimationFrame(() => focusRoom(trip.to));
     };
     finishTravel.current = complete;
     if (!outgoing || !incoming || reducedRef.current || trip.from === trip.to) {
@@ -197,7 +206,33 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     }, root);
     window.addEventListener("resize", complete);
     return () => { live = false; finishTravel.current = null; window.removeEventListener("resize", complete); context.revert(); };
-  }, [world.mode, focusRoom]);
+  }, [world.mode]);
+
+  useEffect(() => {
+    const id = pendingRoomFocus.current;
+    if (!id || world.mode.kind !== "idle" || world.room !== id) return;
+    const panel = root.current?.querySelector<HTMLElement>(`[data-panel="${id}"]`);
+    const notebook = panel?.querySelector<HTMLElement>("[data-profile-journey]");
+    let frame = 0;
+    let readiness: MutationObserver | undefined;
+    const applyFocus = () => {
+      frame = 0;
+      if (pendingRoomFocus.current !== id || !panel || panel.inert) return;
+      // A newly mounted notebook must choose its enhanced or fallback layout first.
+      if (notebook && !notebook.hasAttribute("data-profile-enhanced")) return;
+      pendingRoomFocus.current = null;
+      readiness?.disconnect();
+      focusRoom(id);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(applyFocus); };
+    if (notebook && !notebook.hasAttribute("data-profile-enhanced")) {
+      readiness = new MutationObserver(schedule);
+      readiness.observe(notebook, { attributes: true, attributeFilter: ["data-profile-enhanced"] });
+    }
+    // Wait for the committed active room, rather than racing React's state update.
+    schedule();
+    return () => { cancelAnimationFrame(frame); readiness?.disconnect(); };
+  }, [world.mode, world.room, focusRoom]);
 
   useEffect(() => {
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -206,7 +241,11 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       if (!pending) return;
       if (worldRef.current.mode.kind !== "idle" || document.hidden || document.getSelection()?.toString()) { cancelHold(); return; }
       const progress = Math.min(1, (now - pending.started) / HOLD_MS);
-      root.current?.style.setProperty("--hold", String(progress));
+      pending.progress = progress;
+      // Only these two small subtrees consume hold progress; room content does not.
+      const value = String(progress);
+      pending.edge?.style.setProperty("--hold", value);
+      preview.current?.style.setProperty("--hold", value);
       if (progress >= 1) {
         const target = neighbor(worldRef.current.room, pending.direction);
         cancelHold();
@@ -223,7 +262,10 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       if (!neighbor(state.room, edge)) { cancelHold(); return; }
       if (hold.current?.direction === edge) return;
       cancelHold();
-      hold.current = { direction: edge, started: performance.now() };
+      hold.current = {
+        direction: edge, started: performance.now(), progress: 0,
+        edge: gate ?? root.current?.querySelector<HTMLElement>(`[data-edge="${edge}"]`) ?? null,
+      };
       setDwell(edge);
       holdFrame.current = requestAnimationFrame(tick);
     };
@@ -288,7 +330,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     style={{ "--room-color": current.color } as CSSProperties}>
     <a href="#room-navigation" className={styles.skip}>Skip to room navigation</a>
     <header className={styles.header} data-no-dwell>
-      <a href="/" onClick={event => followLink(event, "entrance")} className={styles.signature} aria-label="Sameer Jain, entrance">sj<span>↗</span></a>
+      <Link href="/" prefetch={false} onClick={event => followLink(event, "entrance")} className={styles.signature} aria-label="Sameer Jain, entrance">sj<span>↗</span></Link>
       <span className={styles.location}><span className={styles.locationDot} />{current.label}</span>
       <button ref={mapButton} onClick={openMap} disabled={traveling} className={styles.mapButton} aria-haspopup="dialog" aria-label="Open portfolio map">
         <span className={styles.miniMap} aria-hidden="true">{roomIds.map(id => <i key={id} data-current={id === world.room} style={{ gridColumn: rooms[id].x + 2, gridRow: rooms[id].y + 2 }} />)}</span>
@@ -298,7 +340,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     <div className={styles.rooms}>
       {world.visited.map(id => <RoomPanel key={id} id={id} active={world.mode.kind === "idle" && world.room === id} visible={world.room === id || (world.mode.kind === "travel" && world.mode.to === id)} navigate={navigate} />)}
     </div>
-    {dwell && neighbor(world.room, dwell) && <DestinationPreview room={neighbor(world.room, dwell)!} direction={dwell} />}
+    {dwell && neighbor(world.room, dwell) && <DestinationPreview room={neighbor(world.room, dwell)!} direction={dwell} progressRef={setPreview} />}
     <nav id="room-navigation" aria-label="Adjacent rooms" className={styles.edges} aria-hidden={traveling} ref={node => { if (node) node.inert = traveling; }}>
       {directions.map(direction => {
         const target = neighbor(world.room, direction);

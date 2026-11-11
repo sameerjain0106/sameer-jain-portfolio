@@ -1,4 +1,4 @@
-.room { --profile-height: 100svh; --cover-fold: 0deg; --education-fold: 0deg; --tool-spread: 1; --book-progress: 0; --fold-shadow: 0; color: #132b52; background: #1c42ce; font-family: var(--font-plex-sans), sans-serif; }
+.room { --profile-height: 100svh; color: #132b52; background: #1c42ce; font-family: var(--font-plex-sans), sans-serif; }
 .room h1, .room h2, .room h3, .room p, .room dl { margin: 0; }
 .room a { color: inherit; }
 .room a:focus-visible { outline: 3px solid currentColor; outline-offset: 6px; }
@@ -63,16 +63,17 @@
 .room[data-profile-enhanced="true"] .book { height: calc(var(--profile-height) * 3.6); }
 .room[data-profile-enhanced="true"] .stage { position: sticky; top: 0; height: var(--profile-height); perspective: 1500px; overflow: hidden; background: #142756; }
 .room[data-profile-enhanced="true"] .leaf { position: absolute; inset: 0; min-height: 0; backface-visibility: hidden; transform-style: preserve-3d; }
-.room[data-profile-enhanced="true"] .cover { z-index: 3; transform-origin: 50% 0; transform: rotateX(var(--cover-fold)); }
-.room[data-profile-enhanced="true"] .cover::after { content: ""; position: absolute; inset: 0; background: #142756; opacity: var(--fold-shadow); pointer-events: none; }
-.room[data-profile-enhanced="true"] .education { z-index: 2; transform-origin: 50% 0; transform: rotateX(var(--education-fold)); }
-.room[data-profile-enhanced="true"] .toolkit { z-index: 1; transform: scale(var(--tool-spread)); transform-origin: 50% 0; }
+.room[data-profile-enhanced="true"] .leaf[data-profile-covered="true"] { visibility: hidden; }
+.room[data-profile-enhanced="true"] .cover { z-index: 3; transform-origin: 50% 0; transform: rotateX(0deg); }
+.room[data-profile-enhanced="true"] .cover::after { --profile-fold-shadow: inherit; content: ""; position: absolute; inset: 0; background: #142756; opacity: var(--profile-fold-shadow, 0); pointer-events: none; }
+.room[data-profile-enhanced="true"] .education { z-index: 2; transform-origin: 50% 0; transform: rotateX(0deg); }
+.room[data-profile-enhanced="true"] .toolkit { z-index: 1; transform: scale(1); transform-origin: 50% 0; }
 .room[data-profile-enhanced="true"] .coverFacts { position: absolute; bottom: 14%; left: max(7vw, 62px); right: max(7vw, 62px); margin-top: 0 !important; justify-content: space-between; max-width: 850px; }
 .room[data-profile-enhanced="true"] .bookIndex { position: absolute; display: flex; align-items: center; left: max(7vw, 62px); right: max(7vw, 62px); bottom: 4%; gap: 30px; color: #132b52; z-index: 8; font-size: 11px; pointer-events: none; }
 .room[data-profile-leaf="2"] .bookIndex { color: #ffdbc1; }
 .bookIndex > span:first-child { min-width: 175px; }
 .progress { height: 2px; flex: 1; background: #7c89ab55; }
-.progress i { height: 100%; display: block; background: currentColor; transform: scaleX(var(--book-progress)); transform-origin: left; }
+.progress i { height: 100%; display: block; background: currentColor; transform: scaleX(0); transform-origin: left; }
 .room[data-profile-enhanced="true"] .bookEdge { display: flex; position: absolute; z-index: 7; left: 18%; right: 18%; top: 0; height: 24px; justify-content: space-around; pointer-events: none; }
 .bookEdge i { width: 13px; height: 24px; border: 3px solid #132b52; border-top: 0; border-radius: 0 0 12px 12px; box-shadow: 2px 0 0 #ffffff44; }
 .stage[data-ambient-running="true"] .corner { animation: cornerLift 8s ease-in-out infinite alternate; }

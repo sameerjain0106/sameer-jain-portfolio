@@ -1,10 +1,11 @@
 import Image from "next/image";
+import type { Ref } from "react";
 import { rooms, type Direction, type RoomId } from "@/data/spatialRooms";
 import styles from "./DestinationPreview.module.css";
 
 /** Charging never mounts another live room or WebGL scene. */
-export default function DestinationPreview({ room, direction }: { room: RoomId; direction: Direction }) {
-  return <aside className={styles.preview} data-destination-preview={room} data-direction={direction} aria-hidden="true">
+export default function DestinationPreview({ room, direction, progressRef }: { room: RoomId; direction: Direction; progressRef?: Ref<HTMLElement> }) {
+  return <aside ref={progressRef} className={styles.preview} data-destination-preview={room} data-direction={direction} aria-hidden="true">
     <div className={styles.window}><div className={styles.content}>
       <span className={styles.eyebrow}>Through here / {rooms[room].short}</span>
       <strong className={styles.title}>{rooms[room].edgeLabel}</strong>

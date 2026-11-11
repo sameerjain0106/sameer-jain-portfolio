@@ -1,4 +1,4 @@
-.world { --room-color: #cbc8f2; --hold: 0; position: relative; width: 100%; height: 100svh; min-height: 360px; overflow: hidden; isolation: isolate; background: #171f53; color: #172456; font-family: var(--font-plex-sans), sans-serif; color-scheme: light; }
+.world { --room-color: #cbc8f2; position: relative; width: 100%; height: 100svh; min-height: 360px; overflow: hidden; isolation: isolate; background: #171f53; color: #172456; font-family: var(--font-plex-sans), sans-serif; color-scheme: light; }
 .world *, .world [id] { scroll-behavior: auto; scroll-margin-top: 90px; }
 .world ::selection { background: #ff8066; color: #172456; }
 .world a:focus-visible, .world button:focus-visible { outline: 3px solid currentColor; outline-offset: 5px; }
@@ -42,7 +42,7 @@
 .miniMap i[data-current=true] { background: #2449dc; }
 .edges { position: absolute; inset: 0; z-index: 15; pointer-events: none; transition: opacity .15s; }
 .edges[aria-hidden=true] { opacity: 0; }
-.edge { --gate-progress: 0; --gate-hover: 0; position: absolute; pointer-events: none; width: 84px; height: 280px; color: #172456; text-decoration: none; white-space: nowrap; }
+.edge { --hold: 0; --gate-progress: 0; --gate-hover: 0; position: absolute; pointer-events: none; width: 84px; height: 280px; color: #172456; text-decoration: none; white-space: nowrap; }
 .gateSurface { width: 100%; height: 100%; overflow: visible; pointer-events: none; transform: scale(calc(1 + var(--gate-hover) * .1 + var(--gate-progress) * .19)); transition: transform 180ms cubic-bezier(.2,.8,.2,1); }
 .gateBody { fill: #f5f4d9; stroke: #17245630; stroke-width: 1; pointer-events: visiblePainted; transition: fill 180ms; }
 .gateCharge { fill: none; stroke: #2449dc; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--gate-progress)); opacity: 0; }

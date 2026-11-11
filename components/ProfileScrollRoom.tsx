@@ -48,6 +48,8 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const counter = section.querySelector<HTMLElement>("[data-profile-counter]");
     const leaves = Array.from(section.querySelectorAll<HTMLElement>("[data-profile-leaf]"));
+    const [coverLeaf, educationLeaf, toolkitLeaf] = leaves;
+    const progressBar = section.querySelector<HTMLElement>("[data-profile-progress-bar]");
     let owned: ScrollTrigger | undefined;
     let disposed = false;
     let frame = 0;
@@ -56,10 +58,15 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
     let previousProgress = Number.NaN;
     let previousLeaf = -1;
     const published = new Map<string, string>();
-    function setVisual(name: string, value: string) {
-      if (published.get(name) === value) return;
-      published.set(name, value);
-      section!.style.setProperty(name, value);
+    function setVisual(key: string, element: HTMLElement | null | undefined, property: string, value: string) {
+      if (!element || published.get(key) === value) return;
+      published.set(key, value);
+      element.style.setProperty(property, value);
+    }
+    function setCovered(element: HTMLElement | undefined, covered: boolean) {
+      if (!element) return;
+      const value = String(covered);
+      if (element.dataset.profileCovered !== value) element.dataset.profileCovered = value;
     }
 
     function paint(progress: number) {
@@ -68,11 +75,15 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
       const cover = smooth((progress - .12) / .28);
       const education = smooth((progress - .56) / .28);
       const leaf = progress < .4 ? 0 : progress < .84 ? 1 : 2;
-      setVisual("--cover-fold", `${cover * -112}deg`);
-      setVisual("--education-fold", `${education * -112}deg`);
-      setVisual("--tool-spread", String(.94 + education * .06));
-      setVisual("--book-progress", String(progress));
-      setVisual("--fold-shadow", String(Math.sin(cover * Math.PI) * .24));
+      // Keep scroll writes on their painted elements instead of inheriting them through every page.
+      setVisual("cover", coverLeaf, "transform", `rotateX(${cover * -112}deg)`);
+      setVisual("education", educationLeaf, "transform", `rotateX(${education * -112}deg)`);
+      setVisual("toolkit", toolkitLeaf, "transform", `scale(${.94 + education * .06})`);
+      setVisual("progress", progressBar, "transform", `scaleX(${progress})`);
+      setVisual("shadow", coverLeaf, "--profile-fold-shadow", String(Math.sin(cover * Math.PI) * .24));
+      // Only hide pages while the flat page above completely covers them; their clocks keep running.
+      setCovered(educationLeaf, cover === 0);
+      setCovered(toolkitLeaf, education === 0);
       section!.dataset.profileProgress = progress.toFixed(4);
       if (leaf !== previousLeaf) {
         previousLeaf = leaf;
@@ -97,7 +108,16 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
         if (enhanced) leaf.setAttribute("aria-hidden", "true");
         else leaf.removeAttribute("aria-hidden");
       });
-      if (!enhanced) return;
+      if (!enhanced) {
+        leaves.forEach(leaf => {
+          leaf.style.removeProperty("transform");
+          delete leaf.dataset.profileCovered;
+        });
+        progressBar?.style.removeProperty("transform");
+        coverLeaf?.style.removeProperty("--profile-fold-shadow");
+        published.clear();
+        return;
+      }
       owned = ScrollTrigger.create({
         trigger: book, scroller: scrollRoot!, start: "top top", end: "bottom bottom",
         onUpdate: self => paint(self.progress), onRefresh: self => paint(self.progress),
@@ -147,7 +167,7 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
           <div className={styles.toolGroups}>{site.skillGroups.map((group, i) => <section key={group.label} className={styles.toolGroup} data-profile-tools={i}><span className={styles.toolTab} aria-hidden="true" /><h3>{group.label}</h3><ul>{group.items.map(item => <li key={item}>{item}</li>)}</ul></section>)}</div>
         </article>
         <div className={styles.bookEdge} aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
-        <div className={styles.bookIndex} aria-hidden="true"><span data-profile-counter>01 / 03 · The person</span><span className={styles.progress}><i /></span><span>A few pages about me</span></div>
+        <div className={styles.bookIndex} aria-hidden="true"><span data-profile-counter>01 / 03 · The person</span><span className={styles.progress}><i data-profile-progress-bar /></span><span>A few pages about me</span></div>
       </div>
     </div>
     <footer className={styles.footer} data-room-surface><p>A closer look at the<br />experience behind the work.</p><a href={site.links.resume} target="_blank" rel="noopener noreferrer">Read the complete résumé <span aria-hidden="true">↗</span></a><span>{site.name} / {site.location}</span></footer>

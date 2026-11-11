@@ -1,6 +1,6 @@
 .room { --ink: #113d42; --blue: #1748cb; --paper: #fff5d9; color: var(--ink); font-family: var(--font-plex-sans), sans-serif; background: var(--paper); }
 .room h1, .room h2, .room p { margin: 0; }
-.journey { --letter-open: 0; --letter-lift: 0; --letter-expand: 0; --letter-away: 0; --contact-height: 100svh; position: relative; }
+.journey { --letter-open: 0; --letter-expand: 0; --letter-away: 0; --contact-height: 100svh; position: relative; }
 .stage { position: relative; background: #d7f0df; min-height: 100svh; overflow: hidden; isolation: isolate; padding: 115px max(7vw, 70px) 80px; }
 .opening { position: relative; z-index: 5; max-width: 48%; }
 .location { font-size: 13px; line-height: 1.5; }

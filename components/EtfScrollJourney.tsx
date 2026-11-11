@@ -74,14 +74,16 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
     if (!section || !visual || !scrollRoot || !active) return;
     const enabled = matchMedia("(min-width: 900px) and (prefers-reduced-motion: no-preference)");
     const artwork = Array.from(visual.querySelectorAll<HTMLElement>("[data-etf-art]"));
+    const sheets = Array.from(visual.querySelectorAll<HTMLElement>("[data-etf-evidence]"));
+    const progressBar = visual.querySelector<HTMLElement>("[data-etf-progress-bar]");
     let frame = 0, disposed = false, previous = Number.NaN, geometryDirty = true;
     let height = 0, sectionTop = 0, sectionBottom = 0;
     let centers: number[] = [];
     const published = new Map<string, string>();
-    function setVisual(name: string, value: string) {
-      if (published.get(name) === value) return;
-      published.set(name, value);
-      visual!.style.setProperty(name, value);
+    function setPaint(key: string, node: HTMLElement | null | undefined, property: string, value: string) {
+      if (!node || published.get(key) === value) return;
+      published.set(key, value);
+      node.style.setProperty(property, value);
     }
     function measure() {
       height = scrollRoot!.clientHeight;
@@ -126,14 +128,17 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       if (chapter !== currentRef.current) { currentRef.current = chapter; setCurrent(chapter); }
       section!.dataset.journeyProgress = (progress / (story.length - 1)).toFixed(4);
       if (section!.dataset.journeyScene !== String(chapter)) section!.dataset.journeyScene = String(chapter);
-      setVisual("--story-ground", mix(story[base].ground, story[next].ground, blend));
-      setVisual("--story-progress", String(progress / (story.length - 1)));
-      story.forEach((_, index) => setVisual(`--sheet-${index}-y`, `${(index - base - blend) * 100}%`));
-      setVisual("--gather", String(clamp(progress / .65)));
-      setVisual("--window", String(.3 + .7 * clamp((progress - .5) / .5)));
-      setVisual("--seal", String(clamp((progress - 1.5) / .5)));
-      setVisual("--evidence-open", String(clamp((progress - 2.5) / .5)));
-      setVisual("--comparison-open", String(clamp((progress - 3.5) / .5)));
+      // Keep changes on the painted elements instead of inheriting each frame's
+      // progress through every illustrated chapter in the sticky stage.
+      setPaint("ground", visual, "background-color", mix(story[base].ground, story[next].ground, blend));
+      setPaint("progress", progressBar, "transform", `scaleX(${progress / (story.length - 1)})`);
+      sheets.forEach((sheet, index) => setPaint(`sheet-${index}`, sheet, "transform", `translateY(${(index - base - blend) * 100}%)`));
+      // Each phase only animates the illustration in its own sheet.
+      setPaint("--gather", sheets[0], "--gather", String(clamp(progress / .65)));
+      setPaint("--window", sheets[1], "--window", String(.3 + .7 * clamp((progress - .5) / .5)));
+      setPaint("--seal", sheets[2], "--seal", String(clamp((progress - 1.5) / .5)));
+      setPaint("--evidence-open", sheets[3], "--evidence-open", String(clamp((progress - 2.5) / .5)));
+      setPaint("--comparison-open", sheets[4], "--comparison-open", String(clamp((progress - 3.5) / .5)));
     }
     function schedule() { if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(paint); }
     function refresh() { if (disposed) return; previous = Number.NaN; geometryDirty = true; schedule(); }
@@ -156,8 +161,8 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
   return <section ref={root} className={styles.journey} data-etf-journey data-vertical-story aria-label="From market features to sealed ETF evidence">
     <noscript><style>{`.${styles.journey}{display:block!important}.${styles.stage}{display:none!important}.${styles.track}{grid-area:auto!important}.${styles.beat}{display:block!important;min-height:0!important;background:var(--beat-ground)!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}`}</style></noscript>
     <div ref={stage} className={styles.stage} data-etf-story-stage data-room-surface data-surface-positioned aria-hidden="true">
-      {story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} style={{ transform: `translateY(var(--sheet-${index}-y, ${index * 100}%))` }}><div className={styles.art} data-etf-art><ResearchArt index={index} /></div></div>)}
-      <div className={styles.progress}><span>{story[current].word}</span><i><b /></i><span>{String(current + 1).padStart(2, "0")} / 05</span></div>
+      {story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} style={{ transform: `translateY(${index * 100}%)` }}><div className={styles.art} data-etf-art><ResearchArt index={index} /></div></div>)}
+      <div className={styles.progress}><span>{story[current].word}</span><i><b data-etf-progress-bar /></i><span>{String(current + 1).padStart(2, "0")} / 05</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} ref={el => { beats.current[index] = el; }} className={styles.beat} data-journey-scene={index} data-room-surface data-surface-flow aria-labelledby={`${uid}-${beat.id}`} style={{ "--beat-ground": beat.ground } as CSSProperties}>
       <div className={styles.copy} data-etf-copy>

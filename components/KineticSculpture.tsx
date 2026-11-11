@@ -179,14 +179,22 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
       if (node.dataset.ambientRunning === "true" && !lost && !disposed) { if (!frame) { previous=0; frame=requestAnimationFrame(render); } }
       else { cancelAnimationFrame(frame); frame=0; previous=0; }
     };
+    let projectionAspect = Number.NaN;
     const resize = () => {
       const width=node.clientWidth, height=node.clientHeight;
       if (!width || !height || lost || disposed) return;
       const dpr=Math.min(devicePixelRatio,1.5,800/Math.max(width,height));
-      element.width=Math.max(1,Math.round(width*dpr)); element.height=Math.max(1,Math.round(height*dpr));
+      const pixelWidth=Math.max(1,Math.round(width*dpr)), pixelHeight=Math.max(1,Math.round(height*dpr));
+      const aspect=width/height;
+      // Reassigning an unchanged canvas size still clears its drawing buffer.
+      // A fresh context always uploads its projection, even at the same size.
+      if (element.width===pixelWidth && element.height===pixelHeight && projectionAspect===aspect) return;
+      if (element.width!==pixelWidth) element.width=pixelWidth;
+      if (element.height!==pixelHeight) element.height=pixelHeight;
       gl.viewport(0,0,element.width,element.height);
       const f=1/Math.tan(.66/2), near=.1, far=30;
-      gl.uniformMatrix4fv(projection,false,new Float32Array([f/(width/height),0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0]));
+      gl.uniformMatrix4fv(projection,false,new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0]));
+      projectionAspect=aspect;
       draw(); setReady(true);
     };
     const stateObserver = new MutationObserver(sync);

@@ -83,7 +83,7 @@
 
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   .journey { display: grid; }
-  .stage { display: block; position: sticky; top: 0; align-self: start; height: var(--story-height); grid-area: 1 / 1; background: var(--story-ground, #f2ef9b); overflow: hidden; pointer-events: none; }
+  .stage { display: block; position: sticky; top: 0; align-self: start; height: var(--story-height); grid-area: 1 / 1; background: #f2ef9b; overflow: hidden; pointer-events: none; }
   .track { position: relative; grid-area: 1 / 1; z-index: 1; pointer-events: none; }
   .beat { min-height: calc(var(--story-height) * 1.1); display: flex; align-items: center; background: transparent; padding: 100px max(80px, 6vw) 80px; }
   .beat:first-child { min-height: var(--story-height); }
@@ -103,7 +103,7 @@
   .sheet2 .packet { width: 90%; height: 330px; }
   .progress { position: absolute; bottom: 24px; left: max(80px, 6vw); right: max(75px, 5.2vw); display: flex; align-items: center; gap: 24px; font-size: 11px; }
   .progress > i { width: min(22vw, 320px); height: 2px; background: #111b3933; }
-  .progress b { display: block; height: 100%; background: #173bd3; transform: scaleX(var(--story-progress, 0)); transform-origin: left; }
+  .progress b { display: block; height: 100%; background: #173bd3; transform: scaleX(0); transform-origin: left; }
   .progress > span:last-child { margin-left: auto; }
 }
 @media (min-width: 900px) and (max-width: 1150px) {

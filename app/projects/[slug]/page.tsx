@@ -9,12 +9,13 @@ export function generateStaticParams() {
   return detailedProjects.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
-}): Metadata {
-  const project = detailedProjects.find((p) => p.slug === params.slug);
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const project = detailedProjects.find((p) => p.slug === slug);
   if (!project) return {};
   return {
     title: `${project.title} | Sameer Jain`,
@@ -34,8 +35,9 @@ export function generateMetadata({
   };
 }
 
-export default function ProjectPage({ params }: { params: { slug: string } }) {
-  const project = detailedProjects.find((p) => p.slug === params.slug);
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const project = detailedProjects.find((p) => p.slug === slug);
   if (!project) notFound();
 
   return (

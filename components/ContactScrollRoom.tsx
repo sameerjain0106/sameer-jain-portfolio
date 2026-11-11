@@ -57,7 +57,6 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
       const mobile = lastWidth < 760;
       section.dataset.contactProgress = progress.toFixed(4);
       setVisual("--letter-open", String(open));
-      setVisual("--letter-lift", String(lift));
       setVisual("--letter-expand", String(expand));
       setVisual("--letter-away", String(smooth((progress - .5) / .25)));
       setVisual("--letter-x", `${mobile ? 0 : (1 - expand) * lastWidth * .21}px`);

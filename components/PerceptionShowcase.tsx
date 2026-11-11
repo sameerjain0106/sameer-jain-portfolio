@@ -81,6 +81,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
   const beats = useRef<Array<HTMLElement | null>>([]);
   const kick = useRef<(() => void) | null>(null);
   const pointer = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+  const pointerMedia = useRef<MediaQueryList | null>(null);
   const viewport = useRef({ left: 0, top: 0, width: 0, height: 0 });
   const activeRef = useRef(0);
   const [active, setActive] = useState(0);
@@ -104,6 +105,9 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       return;
     }
     const enabled = window.matchMedia("(min-width: 900px) and (prefers-reduced-motion: no-preference)");
+    const orbit = scene?.querySelector<HTMLElement>('[data-mri-orbit="primary"]');
+    const orbitSmall = scene?.querySelector<HTMLElement>('[data-mri-orbit="secondary"]');
+    const progressBar = scene?.querySelector<HTMLElement>("[data-mri-progress-bar]");
     const scrollTarget = scrollRoot ?? window;
     let frame: number | null = null;
     let disposed = false;
@@ -121,6 +125,11 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       if (published.get(name) === value) return;
       published.set(name, value);
       node.style.setProperty(name, value);
+    }
+    function setTransform(key: string, node: HTMLElement | null | undefined, value: string) {
+      if (!node || published.get(key) === value) return;
+      published.set(key, value);
+      node.style.transform = value;
     }
 
     function measureViewport() {
@@ -179,8 +188,11 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
           setStyle(scene, "--world-ground", ground);
           setStyle(root.current, "--world-ink", ink);
           setStyle(root.current, "--world-accent", contrast(ground, "#ff8066") >= 3 ? "#ff8066" : ink);
-          setStyle(scene, "--orbit-angle", `${progress * 21}deg`);
-          setStyle(scene, "--world-progress", `${progress / (story.length - 1)}`);
+          // These three transforms do not need to invalidate the evidence below them.
+          const orbitAngle = `${progress * 21}deg`;
+          setTransform("orbit", orbit, `rotate(${orbitAngle}) scaleY(.75)`);
+          setTransform("orbit-small", orbitSmall, `rotate(calc(${orbitAngle} * -1))`);
+          setTransform("progress", progressBar, `scaleX(${progress / (story.length - 1)})`);
           root.current.dataset.storyProgress = (progress / (story.length - 1)).toFixed(4);
           story.forEach((_, i) => {
             const distance = clamp((i - progress) / config.artWindow, -1, 1);
@@ -251,7 +263,9 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
   function resetPointer() { pointer.current.targetX = 0; pointer.current.targetY = 0; kick.current?.(); }
 
   return <section id="work" className={`${styles.world} ${embedded ? styles.embedded : ""}`} data-embedded={embedded} data-active={isActive} ref={root} aria-label="Sameer Jain's featured MRI research" onPointerLeave={resetPointer} onPointerMove={(event) => {
-    if (!isActive || event.pointerType !== "mouse" || !window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)").matches) return;
+    if (!isActive || event.pointerType !== "mouse") return;
+    pointerMedia.current ??= window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
+    if (!pointerMedia.current.matches) return;
     const view = viewport.current;
     if (!view.width || !view.height) return;
     pointer.current.targetX = (clamp((event.clientX - view.left) / view.width) - .5) * config.pointerRange;
@@ -260,9 +274,9 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
   }}>
     <noscript><style>{`.${styles.stage}{display:none!important}.${styles.beat}{background:var(--beat-ground)!important;color:var(--beat-ink)!important;display:block!important;min-height:0!important;padding-block:${embedded ? "92px 60px" : "50px"}!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}.${styles.copy},.${styles.inlineArt}{opacity:1!important;translate:none!important;scale:none!important;rotate:none!important}.${styles.track}{grid-area:auto!important}`}</style></noscript>
     <div className={styles.stage} ref={stage} data-room-surface data-surface-positioned role="group" aria-label="Recorded MRI research figures">
-      <div className={styles.orbit} aria-hidden="true" /><div className={styles.orbitSmall} aria-hidden="true" />
+      <div className={styles.orbit} data-mri-orbit="primary" aria-hidden="true" /><div className={styles.orbitSmall} data-mri-orbit="secondary" aria-hidden="true" />
       {story.map((beat, index) => <div key={beat.id} data-mri-evidence={index} className={`${styles.scene} ${styles[`scene${index}`]}`} aria-hidden={index !== active} style={embedded ? { transform: `translateY(var(--scene-${index}-y, ${index * 100}%))` } : { opacity: `var(--scene-${index}-opacity, ${index === 0 ? 1 : 0})`, transform: `translateY(var(--scene-${index}-y, 0px)) rotate(var(--scene-${index}-rotate, 0deg)) scale(var(--scene-${index}-scale, 1))` }}><SceneArt index={index} /></div>)}
-      <div className={styles.worldMark} aria-hidden="true"><span>{story[active].word}</span><span className={styles.worldProgress}><span /></span><span>{String(active + 1).padStart(2, "0")} / 06</span></div>
+      <div className={styles.worldMark} aria-hidden="true"><span>{story[active].word}</span><span className={styles.worldProgress}><span data-mri-progress-bar /></span><span>{String(active + 1).padStart(2, "0")} / 06</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} data-world-beat={index} data-scene={beat.id} data-room-surface data-surface-flow ref={(element) => { beats.current[index] = element; }} className={`${styles.beat} ${styles[`beat${index}`]}`} style={{ "--beat-ground": beat.ground, "--beat-ink": beat.ink } as CSSProperties}>
       <div className={styles.copy} data-mri-copy data-scroll-reveal={embedded ? undefined : "copy"}>

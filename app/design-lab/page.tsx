@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function DesignLabPage({ searchParams }: { searchParams: { view?: string } }) {
-  const initialDirection = searchParams.view === "atlas" || searchParams.view === "lab" ? searchParams.view : "story";
+export default async function DesignLabPage({ searchParams }: { searchParams: Promise<{ view?: string | string[] }> }) {
+  const { view } = await searchParams;
+  const initialDirection = view === "atlas" || view === "lab" ? view : "story";
   return <DesignLab initialDirection={initialDirection} />;
 }
