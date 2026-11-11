@@ -61,7 +61,6 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
       const leaf = progress < .4 ? 0 : progress < .84 ? 1 : 2;
       section!.style.setProperty("--cover-fold", `${cover * -112}deg`);
       section!.style.setProperty("--education-fold", `${education * -112}deg`);
-      section!.style.setProperty("--education-slide", `${education * -7}%`);
       section!.style.setProperty("--tool-spread", String(.94 + education * .06));
       section!.style.setProperty("--book-progress", String(progress));
       section!.style.setProperty("--fold-shadow", String(Math.sin(cover * Math.PI) * .24));
