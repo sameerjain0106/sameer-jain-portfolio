@@ -1,0 +1,63 @@
+.experiment { --plot-ink: #f4efe6; --plot-muted: #c5bac0; --plot-line: #60505a; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(290px, 0.8fr); background: #30232c; color: var(--plot-ink); position: relative; }
+.plotSide { grid-column: 1; grid-row: 1 / span 2; min-width: 0; padding: 28px 30px 24px; align-self: center; }
+.plotHeader { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 22px; }
+.labLabel { font-size: 14px; }
+.synthetic { font: 12px var(--font-plex-mono), monospace; color: var(--plot-muted); border: 1px solid var(--plot-line); padding: 5px 9px; white-space: nowrap; }
+.chart { width: 100%; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.axis { font: 12px var(--font-plex-mono), monospace; fill: var(--plot-muted); }
+.axis line { stroke: var(--plot-line); stroke-width: .65; }
+.trainingPath { fill: none; stroke: #e9b970; stroke-width: 2.8; stroke-linejoin: round; stroke-linecap: round; }
+.splitLine { stroke: var(--plot-muted); stroke-width: 1; stroke-dasharray: 4 5; }
+.holdoutPath { opacity: 0; transition: opacity 350ms ease; }
+.holdoutPath path { fill: none; stroke: #e9b970; stroke-width: 2.8; stroke-linejoin: round; }
+.cover { transform-box: fill-box; transform-origin: right; color: var(--plot-ink); transition: transform 650ms cubic-bezier(.23, 1, .32, 1), opacity 400ms ease; }
+.coverFill { fill: #3d303a; }
+.question { font: italic 80px var(--font-newsreader), Georgia, serif; fill: var(--plot-ink); }
+.coverText { font: 15px var(--font-plex-sans), sans-serif; fill: var(--plot-ink); }
+.experiment[data-revealed="true"] .cover { transform: scaleX(0); opacity: 0; }
+.experiment[data-revealed="true"] .holdoutPath { opacity: 1; }
+.marker line { stroke: #f4efe6; stroke-width: .75; opacity: .5; }
+.marker circle { fill: #e9b970; stroke: #30232c; stroke-width: 3; }
+.scrubber { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; margin-top: 24px; font-size: 13px; }
+.scrubber label { color: var(--plot-muted); }
+.scrubber input { width: 100%; min-width: 0; accent-color: #e9b970; height: 44px; cursor: ew-resize; }
+.scrubber output { font: 12px var(--font-plex-mono), monospace; min-width: 91px; text-align: right; }
+.scrubber output span { color: var(--plot-muted); }
+.controls { grid-column: 2; grid-row: 2; border-left: 1px dashed var(--plot-line); padding: 18px 30px 20px; }
+.titleBlock { grid-column: 2; grid-row: 1; padding: 30px 30px 0; border-left: 1px dashed var(--plot-line); }
+.annotation { color: #e9b970; font: italic 18px var(--font-newsreader), Georgia, serif; display: inline-block; transform: rotate(-3deg); margin-bottom: 14px; }
+.titleBlock h2 { font: 400 clamp(36px, 3.2vw, 53px)/1.03 var(--font-newsreader), Georgia, serif; letter-spacing: -.035em; max-width: 12ch; }
+.titleBlock h2 em { font-weight: 400; }
+.titleBlock p { font-size: 16px; line-height: 1.6; margin-top: 16px; color: var(--plot-muted); max-width: 35ch; }
+.mobileJump { display: none; }
+.lookbacks { border: 0; margin-top: 0; padding: 0; min-width: 0; }
+.lookbacks legend { font-size: 13px; margin-bottom: 10px; }
+.lookbacks legend span { color: var(--plot-muted); margin-left: 8px; font-size: 12px; }
+.lookbacks > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.lookbacks button { min-height: 53px; border: 1px solid var(--plot-line); padding: 6px; font: 18px var(--font-newsreader), Georgia, serif; transition: background 160ms ease, color 160ms ease, transform 160ms ease; }
+.lookbacks button span { font: 12px var(--font-plex-sans), sans-serif; margin-left: 7px; }
+.lookbacks button[aria-pressed="true"] { background: var(--plot-ink); color: #30232c; border-color: var(--plot-ink); }
+.lookbacks button:hover { border-color: #e9b970; }
+.lookbacks button:active, .revealButton:active { transform: translateY(2px); }
+.revealButton { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; margin-top: 12px; color: #30232c; background: #e9b970; font-size: 15px; transition: background 180ms ease, transform 180ms ease; }
+.revealButton:hover { background: #f6cc8b; }
+.revealButton span { font-size: 23px; line-height: 1; }
+.outcome { min-height: 76px; margin-top: 16px; }
+.outcome p { color: var(--plot-muted); font-size: 15px; line-height: 1.6; }
+.outcome strong { color: #f5d5a8; font-weight: 500; }
+.method { grid-column: 1 / -1; border-top: 1px solid var(--plot-line); font-size: 13px; }
+.method summary { padding: 13px 30px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; min-height: 48px; align-items: center; }
+.method summary::-webkit-details-marker { display: none; }
+.method summary span { font-size: 20px; transition: transform 150ms ease; }
+.method[open] summary span { transform: rotate(45deg); }
+.method p { margin-left: 30px; padding: 0 30px 22px 0; line-height: 1.8; font-size: 15px; color: var(--plot-muted); max-width: 75ch; }
+.noScript { padding: 24px; font-size: 16px; }
+.method a { color: #f5d5a8; text-decoration: underline; text-underline-offset: 4px; }
+.experiment :is(button, input, summary, a):focus-visible { outline-color: #e9b970; outline-offset: 4px; }
+@media (min-width: 1600px) { .plotSide { padding: 40px; } }
+@media (max-width: 900px) { .experiment { grid-template-columns: minmax(0, 1.2fr) minmax(265px, .8fr); } .plotSide { padding: 22px 18px; } .titleBlock { padding: 24px 24px 0; } .controls { padding: 18px 24px 20px; } .plotHeader { flex-wrap: wrap; } .scrubber { gap: 8px; grid-template-columns: 1fr auto; } .scrubber label { grid-column: 1 / -1; } .titleBlock h2 { font-size: 38px; } .lookbacks button span { margin-left: 3px; } }
+@media (max-width: 650px) { .experiment { grid-template-columns: 1fr; } .titleBlock { grid-column: 1; grid-row: 1; padding: 24px 22px 0; border-left: 0; } .controls { grid-column: 1; grid-row: 3; border-left: 0; padding: 0 22px 14px; } .titleBlock h2 { font-size: 36px; max-width: none; } .annotation { font-size: 16px; margin-bottom: 10px; } .titleBlock p { font-size: 16px; max-width: none; margin-top: 12px; } .lookbacks { margin-top: 4px; } .lookbacks button { min-height: 48px; } .outcome { min-height: 72px; margin-top: 12px; } .plotSide { grid-column: 1; grid-row: 2; padding: 24px 16px 12px; } .plotHeader { margin-bottom: 18px; } .labLabel { display: none; } .synthetic { font-size: 12px; } .scrubber { margin-top: 5px; } .method { grid-row: 4; } .method summary { padding-inline: 22px; } .method p { margin-left: 22px; padding-right: 22px; } .axis { font-size: 26px; } .coverText { font-size: 25px; } }
+@media (prefers-reduced-motion: reduce) { .experiment *, .experiment *::before, .experiment *::after { transition: none !important; animation: none !important; } }
+@media (min-width: 651px) and (max-width: 1000px) { .axis { font-size: 24px; } .coverText { font-size: 26px; } }
+@media (max-width: 650px) { .mobileJump { display: inline-flex; align-items: center; justify-content: space-between; gap: 32px; min-height: 44px; padding: 8px 0; margin-top: 10px; border-bottom: 1px solid #e9b970; font-size: 15px; color: #f5d5a8; } }

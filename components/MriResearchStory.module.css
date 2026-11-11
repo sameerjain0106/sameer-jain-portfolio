@@ -1,0 +1,53 @@
+.walkthrough { --story-ink: #153b3f; --story-muted: #4b686b; --story-line: #bfd5d0; --story-blue: #2458dc; color: var(--story-ink); font-family: var(--font-plex-sans), sans-serif; }
+.heading { padding-block: 42px 60px; }
+.heading > span { color: var(--story-muted); font-size: 13px; }
+.heading h2 { font: 500 clamp(38px, 5.5vw, 76px)/1.02 var(--font-space-grotesk), sans-serif; letter-spacing: -.055em; margin-top: 22px; }
+.heading > p { max-width: 50ch; color: var(--story-muted); font-size: 17px; line-height: 1.75; margin-top: 25px; }
+.storyGrid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(30px, 5vw, 74px); align-items: start; }
+.chapters { min-width: 0; }
+.chapters article { padding: 32px 0 90px; min-height: 510px; border-top: 1px solid var(--story-line); scroll-margin-top: 110px; }
+.chapterNumber { font-size: 13px; color: var(--story-muted); transition: color 200ms ease; }
+.chapters article[data-active="true"] .chapterNumber { color: var(--story-blue); }
+.chapters h3 { font: 500 clamp(27px, 2.4vw, 36px)/1.15 var(--font-space-grotesk), sans-serif; letter-spacing: -.04em; margin-top: 22px; text-wrap: balance; }
+.chapters p { font-size: 17px; line-height: 1.8; color: var(--story-muted); margin-top: 25px; max-width: 46ch; }
+.chapters strong { display: block; margin-top: 25px; font-size: 15px; color: #2146ac; font-weight: 500; line-height: 1.7; }
+.chapters p.chapterNote { font-size: 14px; line-height: 1.75; }
+.evidence { position: sticky; top: 105px; min-width: 0; --story-progress: 0; }
+.walkthrough[data-preview="true"] .evidence { top: 24px; }
+.evidenceHeader { display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: var(--story-muted); padding-bottom: 14px; }
+.progressTrack { height: 2px; background: #c3d6dc; }
+.progressTrack span { display: block; height: 100%; width: 100%; transform: scaleX(var(--story-progress)); transform-origin: left; background: var(--story-blue); }
+.chapterControls { display: flex; margin-bottom: 16px; }
+.chapterControls button { flex: 1; padding: 13px 10px; min-height: 48px; font-size: 14px; color: var(--story-muted); }
+.chapterControls button[aria-pressed="true"] { color: var(--story-blue); }
+.surface { height: clamp(320px, calc(100svh - 340px), 610px); position: relative; overflow: hidden; background: #dce9fa; isolation: isolate; }
+.evidenceLayer { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; padding: 14px; pointer-events: none; }
+.evidenceLayer img { width: 100%; height: 100%; object-fit: contain; transform: translate3d(var(--pointer-x, 0px), var(--pointer-y, 0px), 0); transition: transform 240ms cubic-bezier(.23,1,.32,1); }
+.imageWindow { width: 100%; height: 100%; }
+.scanWindow { height: 100%; aspect-ratio: 386/380; max-width: 100%; margin-inline: auto; position: relative; overflow: hidden; }
+.scanFigure { background: #000; padding: 0; position: relative; overflow: hidden; }
+.evidenceLayer.scanFigure { position: absolute; }
+.scanWindow img { position: absolute; top: 0; margin-top: -19.43%; left: -10.62%; width: 582.9%; height: auto; max-width: none; object-fit: initial; }
+.caption { font-size: 14px; line-height: 1.75; color: var(--story-muted); margin-top: 18px; max-width: 66ch; }
+.source { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: #2146ac; text-decoration: underline; text-underline-offset: 5px; }
+.scrollHint { font-size: 13px; color: var(--story-muted); margin-top: 8px; }
+.mobileEvidence { display: none; }
+.storyEnd { border-top: 1px solid var(--story-line); padding-block: 24px; display: flex; justify-content: space-between; gap: 24px; font-size: 15px; line-height: 1.7; }
+.storyEnd > span { color: var(--story-muted); }
+.storyEnd a { color: #2146ac; text-decoration: underline; text-underline-offset: 5px; }
+.walkthrough :is(button, a):focus-visible { outline: 2px solid var(--story-blue); outline-offset: 4px; }
+@media (max-width: 1000px) { .storyGrid { gap: 32px; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); } .chapters article { min-height: 570px; } .chapters p { font-size: 16px; } }
+@media (max-width: 700px) { .heading { padding-block: 28px; } .heading h2 { font-size: 37px; } .heading > p { font-size: 16px; margin-top: 20px; } .storyGrid { display: block; } .evidence { display: none; } .chapters article { min-height: 0; padding: 26px 0 48px; } .chapters h3 { font-size: 29px; margin-top: 16px; } .chapters p { font-size: 16px; margin-top: 19px; } .chapters strong { font-size: 14px; margin-top: 20px; } .chapters p.chapterNote { font-size: 13px; } .mobileEvidence { display: block; margin-top: 25px; } .mobileFigure { aspect-ratio: 1.15; background: #dce9fa; padding: 10px; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; } .mobileFigure img { width: 100%; height: 100%; object-fit: contain; } .mobileFigure.scanFigure { aspect-ratio: 386/380; background: #000; padding: 0; } .mobileFigure.scanFigure img { width: 582.9%; height: auto; object-fit: initial; } .mobileEvidence figcaption { font-size: 13px; line-height: 1.75; color: var(--story-muted); margin-top: 14px; } .mobileEvidence a { display: inline-flex; min-height: 44px; align-items: center; font-size: 13px; color: #2146ac; text-decoration: underline; text-underline-offset: 4px; } .storyEnd { flex-direction: column; gap: 16px; font-size: 14px; } }
+@media (prefers-reduced-motion: reduce) { .evidenceLayer img, .chapterNumber { transition: none; } }
+.walkthrough[data-motion="off"] .evidenceLayer img { transform: none; transition: none; }
+@media (prefers-reduced-motion: reduce) { .evidenceLayer img { transform: none; } }
+
+.chapterControls { background: #dff0e9; border-radius: 6px; }
+.chapterControls button[aria-pressed="true"] { background: #dce9fa; border-radius: 6px; }
+.chapters strong { padding: 10px 13px; background: #ffe0cc; border-radius: 5px; }
+.evidenceLayer.scanFigure { background: transparent; padding: 15px; }
+.evidence[data-active="0"] .surface { background: #ffe0cc; }
+.evidence[data-active="1"] .surface { background: #dce9fa; }
+.evidence[data-active="2"] .surface { background: #dff0e9; }
+.scanWindow { background: #090b10; }
+@media (max-width: 700px) { .mobileFigure.scanFigure { background: #ffe0cc; padding: 11px; } }

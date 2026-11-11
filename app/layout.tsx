@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { site } from "@/data/site";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import PageBackground from "@/components/PageBackground";
+import SiteFrame from "@/components/SiteFrame";
+
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-bricolage", display: "swap", adjustFontFallback: false, fallback: ["Arial", "sans-serif"] });
 
 const vercelHost =
   process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1731,
         height: 909,
-        alt: "Sameer Jain — Machine Learning, Data Science, and Quantitative Research",
+        alt: "Sameer Jain — Machine Learning, Computer Vision, and Data Engineering",
       },
     ],
   },
@@ -67,14 +67,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${plexSans.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${plexSans.variable} ${plexMono.variable} ${bricolage.variable}`}>
       <body className="bg-base text-ink font-body antialiased selection:bg-signal/20 selection:text-signal">
-        <PageBackground />
-        <div className="relative min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        <SiteFrame>{children}</SiteFrame>
       </body>
     </html>
   );

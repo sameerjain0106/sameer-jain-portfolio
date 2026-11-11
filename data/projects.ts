@@ -250,8 +250,8 @@ const etfResearchProject: ProjectSummary = {
 };
 
 export const projects: ProjectSummary[] = [
-  etfResearchProject,
   ...detailedProjects,
+  etfResearchProject,
 ];
 
 export const featuredProjects = projects.filter((p) => p.featured);

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import TechPill from "@/components/TechPill";
+import PaperSignalExplorer from "@/components/PaperSignalExplorer";
 import { etfResearch, latestSignal, phase7Summary } from "@/data/etfResearch";
 
 function SectionHeader({
@@ -372,15 +373,15 @@ export default function SystematicEtfResearchCaseStudy() {
       <CaseSection>
         <SectionHeader
           index="09"
-          eyebrow="Current forward paper test"
+          eyebrow="Forward paper test snapshot"
           title="A prediction recorded before its outcome exists"
           description="The first genuine prospective run was created at the latest mechanically valid date and then rerun to verify the same immutable record rather than create a duplicate."
         />
         <div className="mt-8 overflow-hidden rounded-xl border border-signal/35 bg-signal/5">
           <div className="flex flex-col gap-3 border-b border-signal/20 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="mono-label text-[10px] text-signal">Live paper prediction</p>
-              <p className="mono-label mt-2 text-[9px] text-ink-muted">Outcome not yet observed</p>
+              <p className="mono-label text-[10px] text-signal">Archived paper snapshot</p>
+              <p className="mono-label mt-2 text-[9px] text-ink-muted">Status recorded at publication</p>
             </div>
             <span className="mono-label w-fit rounded-full border border-amber/40 bg-amber/10 px-3 py-1.5 text-[9px] text-amber">
               {latestSignal.status}
@@ -399,24 +400,7 @@ export default function SystematicEtfResearchCaseStudy() {
               </div>
             ))}
           </dl>
-          <div className="grid gap-px bg-base-border lg:grid-cols-2">
-            {[
-              ["Top model-ranked", latestSignal.top_model_ranked.slice(0, 5)],
-              ["Bottom model-ranked", latestSignal.bottom_model_ranked.slice(0, 5)],
-            ].map(([label, rows]) => (
-              <div key={label as string} className="bg-base p-5 sm:p-6">
-                <p className="mono-label text-[9px] text-signal">{label as string}</p>
-                <ol className="mt-4 divide-y divide-base-border">
-                  {(rows as typeof latestSignal.top_model_ranked).map((row) => (
-                    <li key={row.ticker} className="flex items-center justify-between gap-4 py-3">
-                      <span className="font-mono text-sm text-ink">{row.ticker}</span>
-                      <span className="font-mono text-xs text-ink-muted">percentile {Math.round(row.model_score_percentile * 100)}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            ))}
-          </div>
+          <PaperSignalExplorer snapshot={latestSignal} />
           <div className="border-t border-base-border bg-base-panel p-5 text-xs leading-5 text-ink-faint">
             Run {latestSignal.run_id}. Paper model signal for research only; not investment advice. No immature outcome has been evaluated.
           </div>

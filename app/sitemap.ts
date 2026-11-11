@@ -1,8 +1,7 @@
 import { MetadataRoute } from "next";
 import { projects } from "@/data/projects";
 
-// TODO: replace with your real deployed domain once you have one
-const BASE_URL = "https://your-domain.vercel.app";
+const BASE_URL = "https://sameer-jain-portfolio-sandy.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const projectRoutes = projects.map((p) => ({

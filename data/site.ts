@@ -1,8 +1,8 @@
 export const site = {
   name: "Sameer Jain",
-  role: "Machine Learning · Data Science · Quantitative Methods",
+  role: "Machine Learning · Computer Vision · Data Engineering",
   tagline:
-    "Georgia Tech Industrial Engineering student building machine-learning workflows, statistical forecasting systems, and data products across research and production-scale datasets.",
+    "Georgia Tech Industrial Engineering student building machine-learning workflows, computer-vision experiments, and data products across research and production-scale datasets.",
   location: "Atlanta, GA",
 
   links: {
@@ -59,6 +59,6 @@ export const site = {
   seo: {
     title: "Sameer Jain | Machine Learning & Data Science",
     description:
-      "Portfolio of Sameer Jain, a Georgia Tech Industrial Engineering student working on machine learning, data science, statistical forecasting, and quantitative methods.",
+      "Portfolio of Sameer Jain, a Georgia Tech Industrial Engineering student working on machine learning, computer vision, and data engineering.",
   },
 };

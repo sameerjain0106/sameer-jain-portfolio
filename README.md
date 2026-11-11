@@ -4,6 +4,19 @@ Next.js 14 (App Router) + TypeScript + Tailwind CSS portfolio, built to
 showcase ML/quant research projects with real methodology, results, and
 visualizations — no invented metrics.
 
+The homepage is a spatial portfolio with five rooms: an entrance, Brain
+Tumor MRI research, ETF return prediction, About Sameer, and Contact & Links.
+Hold the mouse at an available edge to preview the destination and travel,
+or click/tap its label. The Map button can jump directly to any room;
+keyboard users can open it with **Shift+M**.
+
+Each room uses native vertical scrolling. Content reveals and the MRI
+pipeline follow scroll position in both directions. The pipeline is an
+illustration of the recorded research process, not live medical inference.
+Reduced-motion and no-JavaScript modes keep the content readable with static
+fallbacks. Open **Map → Pause idle animations** to stop the background motion
+and sculptures; this preference is remembered.
+
 ---
 
 ## 1. Run it locally
@@ -73,6 +86,10 @@ every change made and why.
 
 ## 4. Deploying to Vercel
 
+Production: [sameer-jain-portfolio-sandy.vercel.app](https://sameer-jain-portfolio-sandy.vercel.app).
+This repository is already connected to Vercel; pushes to `main` trigger
+production deployments. The steps below describe the initial setup.
+
 1. Push this repository to GitHub (see below).
 2. Go to [vercel.com/new](https://vercel.com/new) and import the repo.
 3. Vercel auto-detects Next.js — no config changes needed. Click **Deploy**.
@@ -94,10 +111,11 @@ git push -u origin main
 ## 5. Dependencies
 
 Production: `next`, `react`, `react-dom`, `recharts` (for the results
-bar chart).
+bar chart), and `gsap` (for spatial room transitions).
 Dev: `typescript`, `tailwindcss`, `autoprefixer`, `postcss`, ESLint +
-Next.js config, and type definitions. Nothing beyond what's needed —
-no UI kit, no animation library beyond native CSS/canvas.
+Next.js config, and type definitions. The destination previews and MRI
+pipeline add no runtime dependencies. Native CSS, SVG, canvas, and WebGL
+handle the remaining visual effects; there is no UI kit or 3D library.
 
 ---
 
@@ -145,7 +163,10 @@ public/
 
 ---
 
-## 7. Design notes
+## 7. Earlier design notes
+
+These notes document the earlier layout. The current spatial homepage is
+described at the top of this README.
 
 - Dark-first, near-black base (`#0A0C10`) with a signal-cyan accent
   (`#4DD8C4`) and a secondary muted amber (`#D9A45B`) used sparingly for

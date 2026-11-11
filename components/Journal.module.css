@@ -1,0 +1,17 @@
+.journal { --paper: #f2ef9b; --journal-ink: #111b39; --rust: #173bd3; --journal-line: #cec982; color: #111b39; background: #f2ef9b; color-scheme: light; }
+:global(body):has(.journal) { background: #173bd3; }
+.work, .archivePage { width: min(100%,1536px); padding-inline: clamp(22px,4.5vw,80px); margin-inline: auto; }
+.work { padding-block: 75px 105px; }
+.sectionIntro { display:flex; align-items:end; justify-content:space-between; gap:45px; margin-bottom:42px; }
+.sectionIntro h2, .archivePage h1 { font:700 clamp(49px,7vw,104px)/.92 var(--font-bricolage),sans-serif; letter-spacing:-.065em; color:#173bd3; }
+.sectionIntro h2 { max-width:9ch; transform:rotate(-3deg); }
+.sectionIntro p { font-size:17px; line-height:1.7; max-width:37ch; }
+.sectionLabel { display:inline-block; font-size:14px; margin-bottom:20px; }
+.archivePage { padding-block:70px 100px; }
+.archivePage > p { margin-top:25px; max-width:53ch; font-size:17px; line-height:1.8; }
+.archivePage > div { margin-top:40px; }
+.journal :is(a,button,summary,input):focus-visible { outline-color:#173bd3; }
+@media(max-width:700px) { .work { padding-block:50px 65px; } .sectionIntro { display:block; } .sectionIntro h2 { font-size:64px; max-width:10ch; } .sectionIntro p { margin-top:28px; font-size:16px; } .archivePage { padding-block:38px 65px; } .archivePage h1 { font-size:56px; } }
+@media(prefers-reduced-motion:reduce) { .sectionIntro h2 { transform:none; } }
+@supports(animation-timeline:view()) { @media(prefers-reduced-motion:no-preference) { .sectionIntro h2 { animation: title-arrive linear both; animation-timeline:view(); animation-range:entry 0% cover 28%; } } }
+@keyframes title-arrive { from { transform:translateX(-28px) rotate(-5deg); } to { transform:translateX(0) rotate(-3deg); } }

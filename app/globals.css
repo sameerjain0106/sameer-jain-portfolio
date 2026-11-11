@@ -4,11 +4,18 @@
 
 :root {
   color-scheme: dark;
+  --paper: #f4efe6;
+  --journal-ink: #231d18;
+  --rust: #a33425;
 }
 
 * {
   scroll-behavior: smooth;
 }
+
+[id] { scroll-margin-top: 110px; }
+.journal-reveal-ready { opacity: 0; transform: translateY(22px); transition: opacity 650ms cubic-bezier(.23,1,.32,1) var(--reveal-delay, 0ms), transform 650ms cubic-bezier(.23,1,.32,1) var(--reveal-delay, 0ms); }
+.journal-entered { opacity: 1; transform: translateY(0); }
 
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -17,6 +24,7 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .journal-reveal-ready { opacity: 1 !important; transform: none !important; }
 }
 
 body {
@@ -75,9 +83,9 @@ input:focus-visible,
 /* Desktop-first content shell: intentionally wider than Tailwind's max-w-6xl
    so the portfolio uses 16:9 screens instead of clustering in the center. */
 .site-shell {
-  width: min(100%, 1680px);
+  width: min(100%, 1536px);
   margin-inline: auto;
-  padding-inline: clamp(1.5rem, 3vw, 3.25rem);
+  padding-inline: clamp(22px, 4.5vw, 80px);
 }
 
 /* Animated ML visual. Pure SVG/CSS motion with a tiny React timer for the

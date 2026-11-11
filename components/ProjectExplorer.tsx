@@ -1,55 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ProjectCategory, ProjectSummary } from "@/lib/types";
+import { useState } from "react";
+import type { ProjectCategory, ProjectSummary } from "@/lib/types";
 import ProjectCard from "@/components/ProjectCard";
+import styles from "./ProjectExplorer.module.css";
 
 const ALL = "All" as const;
+type Filter = typeof ALL | ProjectCategory;
 
 export default function ProjectExplorer({ projects }: { projects: ProjectSummary[] }) {
-  const categories = useMemo(() => {
-    const set = new Set<ProjectCategory>();
-    projects.forEach((p) => p.category.forEach((c) => set.add(c)));
-    return [ALL, ...Array.from(set)];
-  }, [projects]);
-
-  const [active, setActive] = useState<string>(ALL);
-
-  const filtered = useMemo(() => {
-    if (active === ALL) return projects;
-    return projects.filter((p) => p.category.includes(active as ProjectCategory));
-  }, [projects, active]);
+  const [active, setActive] = useState<Filter>(ALL);
+  const categories: Filter[] = [ALL, ...new Set(projects.flatMap((project) => project.category))];
+  const entries = projects.map((project, index) => ({ project, number: index + 1 }));
+  const filtered = entries.filter(({ project }) => active === ALL || project.category.includes(active));
+  const count = filtered.length;
+  const hasFilters = projects.length > 1 && categories.length > 1;
 
   return (
-    <div>
-      {categories.length > 2 && (
-        <div className="mb-8 flex flex-wrap gap-2">
-          {categories.map((c) => (
-            <button
-              key={c}
-              onClick={() => setActive(c)}
-              className={
-                active === c
-                  ? "mono-label rounded-full border border-signal bg-signal/10 px-3 py-1.5 text-[11px] text-signal transition-colors"
-                  : "mono-label rounded-full border border-base-border px-3 py-1.5 text-[11px] text-ink-muted transition-colors hover:border-signal/40 hover:text-signal"
-              }
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {filtered.length === 0 ? (
-        <p className="text-sm text-ink-muted">
-          No projects in this category yet.
+    <div className={`${styles.archive} ${projects.length === 1 ? styles.single : ""}`}>
+      <div className={`${styles.controls} ${hasFilters ? "" : styles.compactControls}`}>
+        {hasFilters && (
+          <div className={styles.filters} role="group" aria-label="Filter projects by category">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                aria-pressed={active === category}
+                onClick={() => setActive(category)}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
+        <p className={styles.count} role="status">
+          {active === ALL ? count : `${count} of ${entries.length}`}{" "}
+          {count === 1 && active === ALL ? "case study" : "case studies"}
         </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {filtered.map((project) => (
-            <ProjectCard key={project.slug} project={project} />
+      </div>
+
+      {count > 0 ? (
+        <ol className={styles.entries} role="list">
+          {filtered.map(({ project, number }) => (
+            <li key={project.slug}>
+              <ProjectCard project={project} number={number} />
+            </li>
           ))}
-        </div>
+        </ol>
+      ) : (
+        <p className={styles.empty}>No case studies in this category.</p>
       )}
     </div>
   );

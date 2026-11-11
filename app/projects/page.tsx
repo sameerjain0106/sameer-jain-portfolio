@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import SectionHeading from "@/components/SectionHeading";
 import ProjectExplorer from "@/components/ProjectExplorer";
 import { projects } from "@/data/projects";
+import styles from "@/components/Journal.module.css";
 
 export const metadata: Metadata = {
   title: "Projects | Sameer Jain",
@@ -9,18 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function ProjectsPage() {
-  return (
-    <section className="py-14">
-      <div className="mx-auto max-w-6xl px-6 md:px-10">
-        <SectionHeading
-          eyebrow="All Projects"
-          title="Technical work"
-          description="Filter by category, or browse everything below."
-        />
-        <div className="mt-12">
-          <ProjectExplorer projects={projects} />
-        </div>
-      </div>
-    </section>
-  );
+  return <div className={styles.journal}><section className={styles.archivePage}>
+    <span className={styles.sectionLabel}>The research archive</span>
+    <h1>Questions, tested.</h1>
+    <p>Browse by field. Open a case study for the full methodology, results, limitations, and source material.</p>
+    <div><ProjectExplorer projects={projects} /></div>
+  </section></div>;
 }
