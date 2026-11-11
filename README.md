@@ -86,7 +86,7 @@ every change made and why.
 
 ## 4. Deploying to Vercel
 
-Production: [sameer-jain-portfolio-sandy.vercel.app](https://sameer-jain-portfolio-sandy.vercel.app).
+Production: [musteermain.vercel.app](https://musteermain.vercel.app).
 This repository is already connected to Vercel; pushes to `main` trigger
 production deployments. The steps below describe the initial setup.
 

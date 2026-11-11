@@ -9,7 +9,7 @@ const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["500", "600
 const vercelHost =
   process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
 const metadataBase = new URL(
-  vercelHost ? `https://${vercelHost}` : "http://localhost:3000",
+  vercelHost ? `https://${vercelHost}` : "https://musteermain.vercel.app",
 );
 
 const spaceGrotesk = Space_Grotesk({

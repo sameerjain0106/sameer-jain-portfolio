@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://sameer-jain-portfolio-sandy.vercel.app/sitemap.xml",
+    sitemap: "https://musteermain.vercel.app/sitemap.xml",
   };
 }
