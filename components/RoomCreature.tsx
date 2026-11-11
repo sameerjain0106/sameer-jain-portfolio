@@ -158,10 +158,13 @@ function BackgroundResident({ host, room, active, paused, pointer }: CreaturePro
     function focus() { focused = true; configure(); }
     function leave(event: PointerEvent) { if (!event.relatedTarget) reset(); }
     function keyboard(event: KeyboardEvent) { if (event.key === "Tab") reset(); }
+    // A folded leaf can touch the viewport with zero area before unfolding.
+    // Observe a positive-area threshold too, so that first edge contact cannot
+    // leave the resident hidden for the rest of the reverse page turn.
     const intersection = new IntersectionObserver(entries => {
       const next = entries.some(entry => entry.isIntersecting && entry.intersectionRatio > 0);
       if (next !== visible) { visible = next; configure(); }
-    }, { root: scroller, threshold: 0 });
+    }, { root: scroller, threshold: [0, .001] });
     const observer = new ResizeObserver(refresh);
     intersection.observe(host); observer.observe(host); observer.observe(scroller);
     configure();
