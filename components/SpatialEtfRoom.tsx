@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import PaperSignalExplorer from "@/components/PaperSignalExplorer";
 import KineticSculpture from "./KineticSculpture";
+import EtfScrollJourney from "./EtfScrollJourney";
 import { etfResearch, latestSignal, phase7Summary } from "@/data/etfResearch";
 import styles from "./SpatialEtfRoom.module.css";
 
@@ -90,18 +91,15 @@ export default function SpatialEtfRoom({ active, scrollRoot }: { active: boolean
         </figure>
       </section>
 
+      <EtfScrollJourney active={active} scrollRoot={scrollRoot} />
+
       <section className={styles.design} aria-labelledby={confirmationId} data-room-surface="design">
         <div className={styles.sectionLead} data-scroll-reveal="copy">
-          <p className={styles.kicker}>01 / Information boundaries</p>
-          <h2 id={confirmationId}>FREEZE FIRST.<br /><span>THEN FIND OUT.</span></h2>
-          <p>A model selected before 2024. A confirmation period kept sealed. The engineering is in the boundary between the two.</p>
+          <p className={styles.kicker}>The recorded evidence</p>
+          <h2 id={confirmationId}>SHOW THE<br /><span>WORK.</span></h2>
+          <p>The frozen model, its confirmation period, and the comparison that keeps the result in perspective.</p>
         </div>
         <ol className={styles.researchRoute} aria-label="Research pipeline" data-scroll-reveal="group">{etfResearch.pipeline.map((stage, index) => <li key={stage}><span>{String(index + 1).padStart(2, "0")}</span><strong>{stage}</strong><span aria-hidden="true">↗</span></li>)}</ol>
-        <div className={styles.designNotes}>
-          <div data-scroll-reveal="copy"><h3>2019–2023</h3><p>Model development. Chronological expanding folds, purged targets, and training-only preprocessing.</p></div>
-          <div data-scroll-reveal="copy"><h3>2024–2026</h3><p>Sealed confirmation. The 18-feature Elastic Net and hyperparameters stayed frozen.</p></div>
-          <div data-scroll-reveal="copy"><h3>A careful claim</h3><p>Positive rank predictability was confirmed against zero. An advantage over momentum was not statistically established.</p></div>
-        </div>
         <figure className={styles.wideFigure} data-scroll-reveal="figure">
           <Image src={etfResearch.figures.confirmation} alt="Development mean IC 0.109, sealed confirmation mean IC 0.130 with HAC 95 percent interval, and momentum confirmation IC 0.086" width={1505} height={970} sizes="(min-width: 1100px) 80vw, 95vw" />
           <figcaption><span>Frozen model / Sealed confirmation</span><a href={etfResearch.figures.confirmation} target="_blank" rel="noopener noreferrer">Open original figure ↗</a></figcaption>

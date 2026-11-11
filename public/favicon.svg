@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="6" fill="#0A0C10"/>
-  <circle cx="10" cy="12" r="2.5" fill="#4DD8C4"/>
-  <circle cx="22" cy="10" r="2.5" fill="#4DD8C4"/>
-  <circle cx="16" cy="22" r="2.5" fill="#4DD8C4"/>
-  <path d="M10 12L22 10M10 12L16 22M22 10L16 22" stroke="#4DD8C4" stroke-opacity="0.4" stroke-width="1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Sameer Jain</title>
+  <path d="M20 2H58A4 4 0 0 1 62 6V44A18 18 0 0 1 44 62H6A4 4 0 0 1 2 58V20A18 18 0 0 1 20 2Z" fill="#CBC8F2"/>
+  <path d="M20 2H58A4 4 0 0 1 62 6V40A18 18 0 0 1 44 58H6A4 4 0 0 1 2 54V20A18 18 0 0 1 20 2Z" fill="#F5F4D9"/>
+  <path d="M47 2H58A4 4 0 0 1 62 6V17Z" fill="#FF8066"/>
+  <path d="M28 21C24 15 11 16 11 25C11 33 28 29 28 38C28 48 15 49 10 42M38 19H50V37C50 48 35 49 34 40" stroke="#2449DC" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

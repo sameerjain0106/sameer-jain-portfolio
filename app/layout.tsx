@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     images: ["/og.png"],
   },
   icons: {
-    icon: "/favicon.svg",
+    icon: [{ url: "/favicon.svg?v=sj-1", type: "image/svg+xml", sizes: "any" }],
   },
 };
 

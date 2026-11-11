@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { gsap } from "gsap";
 import { arrows, directions, neighbor, roomFromLocation, roomHref, roomIds, rooms, type Direction, type RoomId } from "@/data/spatialRooms";
-import PerceptionShowcase from "./PerceptionShowcase";
-import MriPipeline from "./MriPipeline";
+import MriScrollJourney from "./MriScrollJourney";
 import SpatialEtfRoom from "./SpatialEtfRoom";
 import { ContactRoom, ProfileRoom } from "./SpatialPeopleRooms";
 import SpatialEntrance from "./SpatialEntrance";
@@ -45,7 +44,7 @@ function RoomPanel({ id, active, visible, navigate }: {
     ref={element => { panel.current = element; if (element) element.inert = !active; }}>
     <div ref={setScrollRoot} className={styles.scroller} data-room-scroll={id}>
       {id === "entrance" && <SpatialEntrance active={active} scrollRoot={scrollRoot} navigate={navigate} />}
-      {id === "mri" && <div><PerceptionShowcase scrollRoot={scrollRoot} isActive={active} embedded /><MriPipeline active={active} scrollRoot={scrollRoot} /></div>}
+      {id === "mri" && <MriScrollJourney active={active} scrollRoot={scrollRoot} />}
       {id === "etf" && <SpatialEtfRoom active={active} scrollRoot={scrollRoot} />}
       {id === "profile" && <ProfileRoom active={active} scrollRoot={scrollRoot} />}
       {id === "contact" && <ContactRoom active={active} scrollRoot={scrollRoot} />}
