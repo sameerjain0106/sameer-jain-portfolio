@@ -154,10 +154,13 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
           root.current.style.setProperty("--world-accent", contrast(ground, "#ff8066") >= 3 ? "#ff8066" : ink);
           scene.style.setProperty("--orbit-angle", `${progress * 21}deg`);
           scene.style.setProperty("--world-progress", `${progress / (story.length - 1)}`);
+          root.current.dataset.storyProgress = (progress / (story.length - 1)).toFixed(4);
           story.forEach((_, i) => {
             const distance = clamp((i - progress) / config.artWindow, -1, 1);
             scene.style.setProperty(`--scene-${i}-opacity`, `${1 - Math.abs(distance)}`);
-            scene.style.setProperty(`--scene-${i}-y`, `${distance * 85}px`);
+            // The room's evidence travels vertically as a solid strip. Text stays
+            // in native document flow instead of fading between compositions.
+            scene.style.setProperty(`--scene-${i}-y`, embedded ? `${(i - base - blend) * 100}%` : `${distance * 85}px`);
             scene.style.setProperty(`--scene-${i}-rotate`, `${distance * (i === 2 || i === 3 || i === 4 ? 2.5 : 7)}deg`);
             scene.style.setProperty(`--scene-${i}-scale`, `${1 - Math.abs(distance) * .07}`);
           });
@@ -227,11 +230,11 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
     <noscript><style>{`.${styles.stage}{display:none!important}.${styles.beat}{background:var(--beat-ground)!important;color:var(--beat-ink)!important;display:block!important;min-height:0!important;padding-block:${embedded ? "92px 60px" : "50px"}!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}.${styles.copy},.${styles.inlineArt}{opacity:1!important;translate:none!important;scale:none!important;rotate:none!important}.${styles.track}{grid-area:auto!important}`}</style></noscript>
     <div className={styles.stage} ref={stage} data-room-surface data-surface-positioned role="group" aria-label="Recorded MRI research figures">
       <div className={styles.orbit} aria-hidden="true" /><div className={styles.orbitSmall} aria-hidden="true" />
-      {story.map((beat, index) => <div key={beat.id} className={`${styles.scene} ${styles[`scene${index}`]}`} aria-hidden={index !== active} style={{ opacity: `var(--scene-${index}-opacity, ${index === 0 ? 1 : 0})`, transform: `translateY(var(--scene-${index}-y, 0px)) rotate(var(--scene-${index}-rotate, 0deg)) scale(var(--scene-${index}-scale, 1))` }}><SceneArt index={index} /></div>)}
+      {story.map((beat, index) => <div key={beat.id} data-mri-evidence={index} className={`${styles.scene} ${styles[`scene${index}`]}`} aria-hidden={index !== active} style={embedded ? { transform: `translateY(var(--scene-${index}-y, ${index * 100}%))` } : { opacity: `var(--scene-${index}-opacity, ${index === 0 ? 1 : 0})`, transform: `translateY(var(--scene-${index}-y, 0px)) rotate(var(--scene-${index}-rotate, 0deg)) scale(var(--scene-${index}-scale, 1))` }}><SceneArt index={index} /></div>)}
       <div className={styles.worldMark} aria-hidden="true"><span>{story[active].word}</span><span className={styles.worldProgress}><span /></span><span>{String(active + 1).padStart(2, "0")} / 06</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} data-world-beat={index} data-scene={beat.id} data-room-surface data-surface-flow ref={(element) => { beats.current[index] = element; }} className={`${styles.beat} ${styles[`beat${index}`]}`} style={{ "--beat-ground": beat.ground, "--beat-ink": beat.ink } as CSSProperties}>
-      <div className={styles.copy} data-scroll-reveal="copy">
+      <div className={styles.copy} data-mri-copy data-scroll-reveal={embedded ? undefined : "copy"}>
         <p className={styles.label}>{beat.label}</p>
         {index === 0 ? <h1 data-room-heading tabIndex={-1}><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h1> : <h2><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h2>}
         <p className={styles.body}>{beat.body}</p>
@@ -239,7 +242,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
         <p className={styles.note}>{beat.note}</p>
         {index === 0 ? <div className={styles.heroActions}><Link href="/projects/brain-tumor-mri-classification">Explore the project <span aria-hidden="true">↗</span></Link><span>Scroll to look closer ↓</span></div> : index === story.length - 1 ? <Link className={styles.finalAction} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.source} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
       </div>
-      <figure className={styles.inlineArt} data-scroll-reveal="figure" ref={index === 0 ? firstArt : undefined}><SceneArt index={index} mobile /><figcaption>{beat.caption}</figcaption></figure>
+      <figure className={styles.inlineArt} data-scroll-reveal={embedded ? undefined : "figure"} ref={index === 0 ? firstArt : undefined}><SceneArt index={index} mobile /><figcaption>{beat.caption}</figcaption></figure>
     </article>)}</div>
     <p className={styles.integrity}>A visual journey through saved research artifacts. No live medical inference.</p>
   </section>;

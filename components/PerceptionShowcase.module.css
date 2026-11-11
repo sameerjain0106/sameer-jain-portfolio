@@ -87,6 +87,7 @@
   .beat5 .copy { width: 65%; }
   .inlineArt { display: none; }
   .scene { position: absolute; inset: 0; transform-origin: 62% 50%; will-change: transform, opacity; }
+  .embedded .scene { will-change: transform; }
   .scene > * { position: absolute; transform: translate3d(calc(var(--cursor-x, 0px) * .7), calc(var(--cursor-y, 0px) * .7), 0); }
   .scene0 .constellation, .scene5 .constellation { width: 48%; height: 100%; right: -1%; top: 0; aspect-ratio: auto; }
   .scene0 .frameSculpture { left: 18%; }
