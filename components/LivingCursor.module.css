@@ -5,8 +5,8 @@
 .position, .contrastPosition, .point { position: fixed; top: 0; left: 0; z-index: 90; transform: translate3d(var(--cursor-x), var(--cursor-y), 0); }
 .position, .contrastPosition { width: 0; height: 0; }
 .contrastPosition { z-index: 91; mix-blend-mode: difference; }
-.bubble { position: absolute; left: 0; top: 0; width: 28px; height: 38px; transform: scale(1); transform-origin: 0 0; transition: transform 180ms cubic-bezier(.23,1,.32,1); }
-.shell, .contrastShell { display: block; width: 28px; height: 38px; overflow: visible; color: rgb(var(--cursor-color)); transform-origin: 0 0; animation: livingMembrane 7.5s ease-in-out infinite; animation-play-state: paused; }
+.bubble { position: absolute; left: 0; top: 0; width: 23.8px; height: 32.3px; transform: scale(1); transform-origin: 0 0; transition: transform 180ms cubic-bezier(.23,1,.32,1); }
+.shell, .contrastShell { display: block; width: 23.8px; height: 32.3px; overflow: visible; color: rgb(var(--cursor-color)); transform-origin: 0 0; animation: livingMembrane 7.5s ease-in-out infinite; animation-play-state: paused; }
 .shell path, .contrastShell path { stroke-linecap: round; stroke-linejoin: round; }
 .keyline { fill: rgb(var(--cursor-color) / .14); stroke: #14234fe6; stroke-width: 3; }
 .glass { stroke: rgb(var(--cursor-color) / .95); stroke-width: 1.8; }

@@ -3,10 +3,10 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { etfResearch, phase7Summary } from "@/data/etfResearch";
 import { etfFeatureFamilies, etfStory as story } from "@/data/etfStory";
+import { perceptionMotion as scrollMotion } from "@/data/perceptionStory";
 import styles from "./EtfScrollJourney.module.css";
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
-const ease = (value: number) => value * value * (3 - 2 * value);
 const result = phase7Summary.statistical_result;
 const comparison = phase7Summary.momentum_comparison;
 const fixed = (value: number) => value.toFixed(3).replace("-", "−");
@@ -60,7 +60,7 @@ function ResearchArt({ index }: { index: number }) {
   return <IntervalEvidence paired={index === 4} />;
 }
 
-/** One sticky dossier, advanced only by the room's reversible native scroll. */
+/** MRI-style full-viewport evidence, advanced only by the room's native scroll. */
 export default function EtfScrollJourney({ active, scrollRoot }: { active: boolean; scrollRoot: HTMLElement | null }) {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -72,8 +72,9 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
   useEffect(() => {
     const section = root.current, visual = stage.current;
     if (!section || !visual || !scrollRoot || !active) return;
-    const enabled = matchMedia("(min-width: 900px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)");
-    let frame = 0, disposed = false, previous = Number.NaN;
+    const enabled = matchMedia("(min-width: 900px) and (prefers-reduced-motion: no-preference)");
+    const artwork = Array.from(visual.querySelectorAll<HTMLElement>("[data-etf-art]"));
+    let frame = 0, disposed = false, previous = Number.NaN, fitDirty = true;
     function paint() {
       frame = 0;
       if (disposed || document.hidden) return;
@@ -81,11 +82,19 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       if (!enabled.matches || !scrollRoot!.clientHeight) return;
       const height = scrollRoot!.clientHeight;
       section!.style.setProperty("--story-height", `${height}px`);
+      if (fitDirty) {
+        // Size the evidence to the usable viewport, without turning shorter
+        // laptop windows into a different scrolling or creature experience.
+        const available = Math.max(160, height - 155);
+        const fits = artwork.map(art => Math.min(1, available / Math.max(1, art.offsetHeight)));
+        artwork.forEach((art, index) => art.style.setProperty("--art-fit", String(fits[index])));
+        fitDirty = false;
+      }
       const viewportTop = scrollRoot!.getBoundingClientRect().top + scrollRoot!.clientTop;
       const bounds = section!.getBoundingClientRect();
       if (bounds.bottom <= viewportTop || bounds.top >= viewportTop + height) return;
       const centers = beats.current.map(beat => { const box = beat!.getBoundingClientRect(); return box.top + box.height * .5; });
-      const anchor = viewportTop + height * .5;
+      const anchor = viewportTop + height * scrollMotion.viewportAnchor;
       let progress = 0;
       for (let i = 0; i < centers.length - 1; i++) {
         if (anchor >= centers[i + 1]) progress = i + 1;
@@ -94,7 +103,7 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       if (progress === previous) return;
       previous = progress;
       const base = Math.floor(progress), next = Math.min(base + 1, story.length - 1);
-      const blend = ease(clamp((progress - base - .18) / .64));
+      const blend = clamp((progress - base - scrollMotion.transitionStart) / (scrollMotion.transitionEnd - scrollMotion.transitionStart));
       const chapter = Math.round(progress);
       if (chapter !== currentRef.current) { currentRef.current = chapter; setCurrent(chapter); }
       section!.dataset.journeyProgress = (progress / (story.length - 1)).toFixed(4);
@@ -109,7 +118,7 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       visual!.style.setProperty("--comparison-open", String(clamp((progress - 3.5) / .5)));
     }
     function schedule() { if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(paint); }
-    function refresh() { previous = Number.NaN; schedule(); }
+    function refresh() { previous = Number.NaN; fitDirty = true; schedule(); }
     function visibility() { if (document.hidden) { cancelAnimationFrame(frame); frame = 0; } else refresh(); }
     const observer = new ResizeObserver(refresh);
     observer.observe(section); observer.observe(scrollRoot);
@@ -126,12 +135,9 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
   }, [active, scrollRoot]);
 
   return <section ref={root} className={styles.journey} data-etf-journey data-vertical-story aria-label="From market features to sealed ETF evidence">
+    <noscript><style>{`.${styles.journey}{display:block!important}.${styles.stage}{display:none!important}.${styles.track}{grid-area:auto!important}.${styles.beat}{display:block!important;min-height:0!important;background:var(--beat-ground)!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}`}</style></noscript>
     <div ref={stage} className={styles.stage} data-etf-story-stage data-room-surface data-surface-positioned aria-hidden="true">
-      <div className={styles.dossier}>
-        <div className={styles.dossierLabel}><span>RESEARCH DOSSIER</span><span>ETF / 01</span></div>
-        <div className={styles.evidenceWindow}>{story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} style={{ transform: `translateY(var(--sheet-${index}-y, ${index * 100}%))` }}><ResearchArt index={index} /></div>)}</div>
-        <div className={styles.dossierFoot}><span>{story[current].word}</span><span>{String(current + 1).padStart(2, "0")} / 05</span></div>
-      </div>
+      {story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} style={{ transform: `translateY(var(--sheet-${index}-y, ${index * 100}%))` }}><div className={styles.art} data-etf-art><ResearchArt index={index} /></div></div>)}
       <div className={styles.progress}><span>{story[current].word}</span><i><b /></i><span>{String(current + 1).padStart(2, "0")} / 05</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} ref={el => { beats.current[index] = el; }} className={styles.beat} data-journey-scene={index} data-room-surface data-surface-flow aria-labelledby={`${uid}-${beat.id}`} style={{ "--beat-ground": beat.ground } as CSSProperties}>
