@@ -1,0 +1,91 @@
+% Build from the repository root with an existing LaTeX installation:
+% pdflatex -interaction=nonstopmode -halt-on-error -output-directory=<build-dir> resume/resume.tex
+% Compile twice, inspect the one-page PDF, then copy it to public/resume.pdf.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[letterpaper,top=0.45in,bottom=0.35in,left=0.60in,right=0.60in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[lining]{ebgaramond}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\input{glyphtounicode}
+\pdfgentounicode=1
+\hypersetup{pdftitle={Sameer Jain - Resume},pdfauthor={Sameer Jain},pdfsubject={Experience, education, and selected projects}}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlist[itemize]{leftmargin=14pt,labelsep=5pt,itemsep=0.5pt,topsep=1.5pt,parsep=0pt,partopsep=0pt}
+\newcommand{\ressection}[1]{\vspace{6pt}{\fontsize{12}{13}\selectfont\bfseries\scshape #1}\par\vspace{1pt}}
+\newcommand{\entry}[3]{\textbf{#1}\enspace|\enspace\textit{#2}\hfill #3\par}
+\newcommand{\project}[3]{\textbf{#1}\enspace|\enspace\textit{#2}\hfill #3\par}
+\begin{document}
+\fontsize{10.8}{12.0}\selectfont
+\begin{center}
+  {\fontsize{23}{25}\selectfont\bfseries\scshape Sameer Jain}\par
+  \vspace{2pt}\hrule\vspace{4pt}
+  Cumming, GA 30041 \enspace\textbullet\enspace (404) 263-9702 \enspace\textbullet\enspace
+  \href{mailto:jain.sameer.2006@gmail.com}{jain.sameer.2006@gmail.com} \enspace\textbullet\enspace
+  \href{https://musteermain.vercel.app/}{Portfolio}
+\end{center}
+\vspace{-7pt}
+
+\ressection{Education}
+\textbf{Georgia Institute of Technology}: Atlanta, GA\hfill May 2028\par
+Bachelor of Science in Industrial Engineering\par
+Concentration in \textbf{Probability and Statistics, Data Analytics, and Machine Learning}\hfill GPA: 3.83\par
+
+\ressection{Relevant Experience}
+\entry{AT\&T}{Data Science Engineer, Atlanta, GA}{June 2026 -- August 2026}
+\begin{itemize}
+  \item Built an agentic AI to automate SQL generation and Snowflake Cortex ML forecasting, reducing manual input by 500+ hours annually by using Copilot Studio to orchestrate workflows across 25M+ financial records.
+  \item Automated ingestion of 25M+ Azure SQL Analytics records into Snowflake via Power Automate + Excel Office Scripts, converting raw financial data into processable datasets and eliminating 100\% of manual input.
+  \item Built 20+ Excel Office Scripts to automate financial statement standardization and KPI reporting, saving 350+ analyst hours annually by using automated feature engineering and workflows across 150+ recurring reports.
+  \item Leveraged Snowflake + Cortex ML (forecasting, anomaly detection, embeddings, time-series models) to model revenue and cash flow, detecting 1,000+ anomalies and improving reporting efficiency by 70\%.
+\end{itemize}
+\vspace{3pt}
+\entry{Georgia Institute of Technology}{Undergraduate Teaching Assistant, Atlanta, GA}{May 2025 -- Present}
+\begin{itemize}
+  \item Instructed 400+ students in Pandas, NumPy, SQL, BeautifulSoup, Regex, API integration, and Scikit-Learn.
+  \item Guided 400+ students on end-to-end analytics projects, including ETL pipelines, and API integration.
+  \item Reviewed 30,000+ lines of code delivering insights on 200+ gigabyte datasets exceeding 500M rows.
+  \item Automated grading for 150+ coding homework problems and spent 180+ hours of individual student tutoring.
+\end{itemize}
+\vspace{3pt}
+\entry{Georgia Tech Energy Forecasting Lab}{Machine Learning Researcher, Atlanta, GA}{Aug 2025 -- Dec 2025}
+\begin{itemize}
+  \item Built PyTorch models to predict energy use in Atlanta for 1,200+ buildings from 20+ climate/material features.
+  \item Achieved sub 10\% MAE and 80\% faster runtimes, reducing multi-hour simulations to minutes per scenario.
+  \item Built 3+ rapid urban energy models to support a peer-reviewed sustainable design publication.
+  \item Developed NASA ETL pipelines for satellite data using GeoPandas, Rasterio, and GDAL on 1200+ buildings.
+\end{itemize}
+
+\ressection{Selected Projects}
+\project{Brain Tumor MRI Classification}{Machine Learning}{January 2026 -- May 2026}
+\begin{itemize}
+  \item Compared supervised learning, clustering, and anomaly detection across 6,056 MRI crops using PCA, classical classifiers, ResNet50 embeddings, and convolutional autoencoders.
+  \item Aggregated 2,048-dimensional ResNet50 features into 603 image-level vectors; K-Means achieved an adjusted Rand index of 1.00 on the single-source dataset.
+  \item Built a glioma-only autoencoder with 100-component PCA and Mahalanobis scoring; evaluated 4,452 scans with held-out glioma images and a threshold derived exclusively from training data.
+\end{itemize}
+\vspace{3pt}
+\project{Systematic ETF Research Engine}{Data Science \& Engineering}{August 2026 -- Present}
+\begin{itemize}
+  \item Built a Python/DuckDB pipeline for 100 ETFs and 291K+ market observations, with versioned Parquet datasets, point-in-time features, and purged expanding-window validation.
+  \item Froze an 18-feature Elastic Net before evaluating 133 held-out weeks; achieved 0.130 mean Spearman information coefficient, with dependence-adjusted significance (one-sided HAC p = 0.009).
+  \item Implemented append-only forward paper predictions with deterministic hashes and delayed evaluation after 21 SPY sessions, preserving immutable forecasts for prospective assessment.
+\end{itemize}
+\vspace{3pt}
+\project{Granted -- JPMorgan Chase Data for Good Hackathon}{Data Scientist}{October 2026}
+\begin{itemize}
+  \item Co-built Granted, winning 1st place in the AnnieCannons challenge; developed a React/FastAPI prototype for nonprofit grant analytics, opportunity matching, and AI-assisted editing.
+  \item Engineered versioned Parquet datasets from 304 grant records and 254 documents, extracting 2,477 question/answer segments with schema checks, source hashes, and evidence links.
+  \item Integrated local Ollama/Qwen models with checks for source quotes, word limits, and preservation of numbers, dates, and names; kept generated revisions subject to human review.
+\end{itemize}
+
+\ressection{Skills and Interests}
+\begin{itemize}
+  \item Programming: Python (Pandas, NumPy, scikit-learn, Selenium, PyTorch, TensorFlow, PySpark), SQL, R, Java, D3.js
+  \item Software: MySQL, SQLite, Azure, PowerBI, Tableau, Snowflake, Git, Excel, PageRank, OpenRefine, AWS, GCP
+  \item Modeling: Machine Learning, Deep Learning, Regression Analysis, Time Series Regression, Tree-Based Models
+  \item Analytical: Data Visualization, Relational Databases, Feature Engineering, Experimental Design, A/B Testing
+\end{itemize}
+\end{document}
