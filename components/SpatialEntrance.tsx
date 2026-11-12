@@ -5,6 +5,7 @@ import Image from "next/image";
 import { roomHref, type RoomId } from "@/data/spatialRooms";
 import { phase7Summary } from "@/data/etfResearch";
 import KineticSculpture from "./KineticSculpture";
+import EntrancePortrait from "./EntrancePortrait";
 import styles from "./SpatialEntrance.module.css";
 
 export default function SpatialEntrance({ active, scrollRoot, navigate }: {
@@ -113,14 +114,17 @@ export default function SpatialEntrance({ active, scrollRoot, navigate }: {
       </div>
     </section>
     <section className={styles.questions} aria-labelledby="questions-heading" data-room-surface>
-      <p className={styles.chapterIntro} data-scroll-reveal="copy">Georgia Tech / Industrial Engineering</p>
-      <h2 id="questions-heading" data-scroll-reveal="copy">Good questions<br />lead <span>somewhere.</span></h2>
-      <p className={styles.questionsLede} data-scroll-reveal="copy">I build experiments to find patterns, test their limits, and understand what the results actually mean.</p>
-      <div className={styles.projectPaths}>
-        <a href={roomHref("mri")} onClick={event => enter(event, "mri")} className={styles.mriPath} data-scroll-reveal="figure"><span>Go left / Featured work</span><strong>Can a model<br />learn to see?</strong><p>Brain MRI, learned representations, and an honest look at what worked.</p><span className={styles.pathArrow} aria-hidden="true">←</span></a>
-        <a href={roomHref("etf")} onClick={event => enter(event, "etf")} className={styles.etfPath} data-scroll-reveal="figure"><span>Go right / More to explore</span><strong>Is there signal<br />in the noise?</strong><p>Frozen models, market data, and a hypothesis put to the test.</p><span className={styles.pathArrow} aria-hidden="true">→</span></a>
+      <div className={styles.introduction}>
+        <EntrancePortrait active={active} scrollRoot={scrollRoot} />
+        <div className={styles.introductionCopy}>
+          <h2 id="questions-heading">A little<br />about me.</h2>
+          <p className={styles.questionsLede}>I study Industrial Engineering at Georgia Tech and build projects in machine learning, computer vision, and data engineering.</p>
+          <div className={styles.introLinks}>
+            <a href={roomHref("profile")} onClick={event => enter(event, "profile")}>About Sameer</a>
+            <a href={roomHref("contact")} onClick={event => enter(event, "contact")}>Get in touch</a>
+          </div>
+        </div>
       </div>
-      <div className={styles.otherPaths} data-scroll-reveal="group"><a href={roomHref("profile")} onClick={event => enter(event, "profile")}>↑ The person behind the work</a><a href={roomHref("contact")} onClick={event => enter(event, "contact")}>↓ Start a conversation</a></div>
     </section>
   </div>;
 }

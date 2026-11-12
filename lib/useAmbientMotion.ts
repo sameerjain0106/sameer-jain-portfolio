@@ -5,13 +5,17 @@ import { createContext, useContext, useEffect, type RefObject } from "react";
 const AmbientMotionContext = createContext(true);
 export const AmbientMotionProvider = AmbientMotionContext.Provider;
 
+export function useAmbientMotionEnabled() {
+  return useContext(AmbientMotionContext);
+}
+
 /** CSS owns the animation clock. This hook only starts/stops visible room artwork. */
 export function useAmbientMotion(
   active: boolean,
   scrollRoot: HTMLElement | null | undefined,
   target: RefObject<HTMLElement | null>,
 ) {
-  const enabled = useContext(AmbientMotionContext);
+  const enabled = useAmbientMotionEnabled();
   useEffect(() => {
     const node = target.current;
     if (!node) return;
