@@ -1,5 +1,5 @@
 .controller { display: none; }
-.creature { position: absolute; left: 0; right: 0; top: 0; height: 100svh; z-index: -1; pointer-events: none; user-select: none; overflow: hidden; opacity: .2; --creature-scale: 1; --idle-strength: 1; --idle-duration: 1; }
+.creature { position: absolute; left: 0; right: 0; top: 0; height: 100svh; z-index: -1; pointer-events: none; user-select: none; overflow: hidden; opacity: .44; --creature-scale: 1; --idle-strength: 1; --idle-duration: 1; }
 .creature[data-paused="true"] { --idle-strength: .25; --idle-duration: 2.5; }
 .creature *, .creature svg { pointer-events: none; }
 .creature svg { display: block; width: 100%; height: 100%; overflow: visible; }
