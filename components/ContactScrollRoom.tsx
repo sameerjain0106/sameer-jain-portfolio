@@ -116,11 +116,9 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
     <section ref={root} className={styles.journey} data-contact-journey>
       <div ref={stage} className={styles.stage} data-contact-stage data-room-surface data-surface-positioned data-room-heading tabIndex={-1} aria-label="Contact Sameer Jain. Scroll to open the letter.">
         <div className={styles.opening} data-contact-opening>
-          <p className={styles.location}>{site.location} / Open a conversation</p>
           <h1>What are<br />you making?</h1>
-          <p className={styles.lede}>A machine-learning problem, a project, or an idea you want to talk through.</p>
-          <a className={styles.openingEmail} href={`mailto:${site.links.email}`}>{mailName}<br />@{mailDomain}<span aria-hidden="true">↗</span></a>
           <span className={styles.scrollCue}>Scroll to open the letter <span aria-hidden="true">↓</span></span>
+          <a className={styles.openingEmail} href={`mailto:${site.links.email}`}>Or send an email <span aria-hidden="true">↗</span></a>
         </div>
         <div className={styles.art} ref={art}>
           <div className={styles.bloom} data-ambient-art="contact" data-kinetic-occluded="false" aria-hidden="true"><KineticSculpture kind="bloom" active={active} scrollRoot={scrollRoot} /></div>
@@ -138,7 +136,7 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
       </div>
     </section>
     <section className={styles.connections} data-room-surface aria-labelledby="contact-elsewhere-title">
-      <div className={styles.connectionsTop}><p>Keep in touch</p><h2 id="contact-elsewhere-title">Pick up<br />a thread.</h2><span className={styles.postmark} aria-hidden="true">ATL<br /><i />SJ</span></div>
+      <div className={styles.connectionsTop}><h2 id="contact-elsewhere-title">Pick up<br />a thread.</h2><p>A machine-learning problem, a project, or an idea you want to talk through.</p></div>
       <div className={styles.links}>
         <a href={site.links.github} target="_blank" rel="noopener noreferrer"><span className={styles.linkName}>GitHub</span><span>Projects &amp; source code</span><span aria-hidden="true">↗</span></a>
         <a href={site.links.linkedin} target="_blank" rel="noopener noreferrer"><span className={styles.linkName}>LinkedIn</span><span>Professional profile</span><span aria-hidden="true">↗</span></a>

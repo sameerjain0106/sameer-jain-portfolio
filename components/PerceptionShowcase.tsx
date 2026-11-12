@@ -262,7 +262,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
 
   function resetPointer() { pointer.current.targetX = 0; pointer.current.targetY = 0; kick.current?.(); }
 
-  return <section id="work" className={`${styles.world} ${embedded ? styles.embedded : ""}`} data-embedded={embedded} data-active={isActive} ref={root} aria-label="Sameer Jain's featured MRI research" onPointerLeave={resetPointer} onPointerMove={(event) => {
+  return <><section id="work" className={`${styles.world} ${embedded ? styles.embedded : ""}`} data-embedded={embedded} data-active={isActive} ref={root} aria-label="Sameer Jain's featured MRI research" onPointerLeave={resetPointer} onPointerMove={(event) => {
     if (!isActive || event.pointerType !== "mouse") return;
     pointerMedia.current ??= window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
     if (!pointerMedia.current.matches) return;
@@ -282,13 +282,22 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       <div className={styles.copy} data-mri-copy data-scroll-reveal={embedded ? undefined : "copy"}>
         <p className={styles.label}>{beat.label}</p>
         {index === 0 ? <h1 data-room-heading tabIndex={-1}><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h1> : <h2><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h2>}
-        <p className={styles.body}>{beat.body}</p>
-        <p className={styles.finding}>{beat.finding}</p>
-        <p className={styles.note}>{beat.note}</p>
-        {index === 0 ? <div className={styles.heroActions}><Link href="/projects/brain-tumor-mri-classification">Explore the project <span aria-hidden="true">↗</span></Link><span>Scroll to look closer ↓</span></div> : index === story.length - 1 ? <Link className={styles.finalAction} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.source} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
+        <p className={styles.body}>{beat.body}{embedded && index === 2 ? " One curated dataset." : embedded && index === 3 ? " An exploratory score." : null}</p>
+        {!embedded && <><p className={styles.finding}>{beat.finding}</p><p className={styles.note}>{beat.note}</p></>}
+        {embedded ? index === 0 && <div className={styles.heroActions}><span>Scroll to look closer ↓</span></div> : index === 0 ? <div className={styles.heroActions}><Link href="/projects/brain-tumor-mri-classification">Explore the project <span aria-hidden="true">↗</span></Link><span>Scroll to look closer ↓</span></div> : index === story.length - 1 ? <Link className={styles.finalAction} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.source} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
       </div>
       <figure className={styles.inlineArt} data-scroll-reveal={embedded ? undefined : "figure"} ref={index === 0 ? firstArt : undefined}><SceneArt index={index} mobile /><figcaption>{beat.caption}</figcaption></figure>
     </article>)}</div>
     <p className={styles.integrity}>A visual journey through saved research artifacts. No live medical inference.</p>
-  </section>;
+  </section>
+  {embedded && <section className={styles.evidence} data-project-evidence="mri" data-room-surface aria-labelledby="mri-evidence-title">
+    <header className={styles.evidenceHead}><h2 id="mri-evidence-title">Evidence and<br />limitations.</h2><p>The recorded results, evaluation caveats, and original figures behind the images.</p></header>
+    <ol className={styles.evidenceList}>{story.map((beat, index) => <li key={beat.id}>
+      <div className={styles.evidenceStage}><span>{beat.word}</span><h3>{beat.title.join(" ")}</h3></div>
+      <div className={styles.evidenceCopy}><p className={styles.evidenceFinding}>{beat.finding}</p><p className={styles.evidenceCaveat}>{beat.note}</p><p className={styles.evidenceCaption}>{beat.caption}</p>
+        {index === 0 ? <Link className={styles.evidenceSource} href="/projects/brain-tumor-mri-classification">Explore the project <span aria-hidden="true">↗</span></Link> : index === story.length - 1 ? <Link className={styles.evidenceSource} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.evidenceSource} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
+      </div>
+    </li>)}</ol>
+  </section>}
+  </>;
 }

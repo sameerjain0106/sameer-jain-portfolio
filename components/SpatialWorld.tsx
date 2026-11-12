@@ -19,6 +19,7 @@ import styles from "./SpatialWorld.module.css";
 type Mode = { kind: "idle" } | { kind: "map" } | { kind: "travel"; from: RoomId; to: RoomId };
 type World = { room: RoomId; visited: RoomId[]; mode: Mode };
 const HOLD_MS = 1050;
+const sectionLabels: Record<RoomId, string> = { entrance: "Home", mri: "MRI", etf: "ETF", profile: "About", contact: "Contact" };
 const gatePaths: Record<Direction, string> = {
   left: "M8 10 Q164 150 8 290",
   right: "M92 10 Q-64 150 92 290",
@@ -235,7 +236,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
   }, [world.mode, world.room, focusRoom]);
 
   useEffect(() => {
-    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const fine = window.matchMedia("(min-width: 1001px) and (hover: hover) and (pointer: fine)");
     const tick = (now: number) => {
       const pending = hold.current;
       if (!pending) return;
@@ -274,6 +275,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const up = () => { pressed.current = false; };
     const blur = () => { armed.current = false; pressed.current = false; cancelHold(); };
     const leave = (event: PointerEvent) => { if (!event.relatedTarget) blur(); };
+    fine.addEventListener("change", cancelHold);
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerdown", down, { passive: true });
     window.addEventListener("pointerup", up, { passive: true });
@@ -286,6 +288,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     node?.addEventListener("wheel", scroll, { passive: true });
     return () => {
       cancelHold();
+      fine.removeEventListener("change", cancelHold);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointerup", up);
@@ -328,20 +331,29 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
   const current = rooms[world.room];
   return <AmbientMotionProvider value={!idlePaused}><div ref={root} className={styles.world} data-world-room={world.room} data-world-mode={world.mode.kind} data-reduced-motion={reduced} data-idle-paused={idlePaused}
     style={{ "--room-color": current.color } as CSSProperties}>
-    <a href="#room-navigation" className={styles.skip}>Skip to room navigation</a>
+    <a href="#room-navigation" className={styles.skip} onClick={event => {
+      event.preventDefault();
+      root.current?.querySelector<HTMLElement>("#room-navigation a")?.focus();
+    }}>Skip to room navigation</a>
     <header className={styles.header} data-no-dwell>
       <Link href="/" prefetch={false} onClick={event => followLink(event, "entrance")} className={styles.signature} aria-label="Sameer Jain, entrance">sj<span>↗</span></Link>
-      <span className={styles.location}><span className={styles.locationDot} />{current.label}</span>
       <button ref={mapButton} onClick={openMap} disabled={traveling} className={styles.mapButton} aria-haspopup="dialog" aria-label="Open portfolio map">
         <span className={styles.miniMap} aria-hidden="true">{roomIds.map(id => <i key={id} data-current={id === world.room} style={{ gridColumn: rooms[id].x + 2, gridRow: rooms[id].y + 2 }} />)}</span>
         Map <kbd>⇧ M</kbd>
       </button>
     </header>
+    <nav id="room-navigation" aria-label="Portfolio sections" tabIndex={-1} className={styles.sectionNav} data-primary-navigation data-no-dwell>
+      {roomIds.map(id => <Link key={id} href={roomHref(id)} prefetch={false} onClick={event => followLink(event, id)}
+        data-section-link={id} aria-current={id === world.room ? "page" : undefined}
+        aria-disabled={traveling ? "true" : undefined} tabIndex={traveling ? -1 : undefined}>
+        {sectionLabels[id]}
+      </Link>)}
+    </nav>
     <div className={styles.rooms}>
       {world.visited.map(id => <RoomPanel key={id} id={id} active={world.mode.kind === "idle" && world.room === id} visible={world.room === id || (world.mode.kind === "travel" && world.mode.to === id)} navigate={navigate} />)}
     </div>
     {dwell && neighbor(world.room, dwell) && <DestinationPreview room={neighbor(world.room, dwell)!} direction={dwell} progressRef={setPreview} />}
-    <nav id="room-navigation" aria-label="Adjacent rooms" className={styles.edges} aria-hidden={traveling} ref={node => { if (node) node.inert = traveling; }}>
+    <nav aria-label="Adjacent rooms" className={styles.edges} aria-hidden={traveling} ref={node => { if (node) node.inert = traveling; }}>
       {directions.map(direction => {
         const target = neighbor(world.room, direction);
         return target && <a key={direction} href={roomHref(target)} onClick={event => followLink(event, target)}
@@ -382,6 +394,6 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     </dialog>
     <RoomCreature room={world.room} active={world.mode.kind === "idle"} paused={idlePaused} />
     <LivingCursor room={world.room} active={world.mode.kind === "idle"} paused={idlePaused} />
-    <noscript><style>{`.${styles.mapButton}{display:none!important}`}</style><nav className={styles.noScript} aria-label="All rooms">{roomIds.map(id => <a key={id} href={roomHref(id)}>{rooms[id].label}</a>)}</nav></noscript>
+    <noscript><style>{`.${styles.mapButton}{display:none!important}`}</style></noscript>
   </div></AmbientMotionProvider>;
 }

@@ -158,7 +158,7 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
     };
   }, [active, scrollRoot]);
 
-  return <section ref={root} className={styles.journey} data-etf-journey data-vertical-story aria-label="From market features to sealed ETF evidence">
+  return <><section ref={root} className={styles.journey} data-etf-journey data-vertical-story aria-label="From market features to sealed ETF evidence">
     <noscript><style>{`.${styles.journey}{display:block!important}.${styles.stage}{display:none!important}.${styles.track}{grid-area:auto!important}.${styles.beat}{display:block!important;min-height:0!important;background:var(--beat-ground)!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}`}</style></noscript>
     <div ref={stage} className={styles.stage} data-etf-story-stage data-room-surface data-surface-positioned aria-hidden="true">
       {story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} style={{ transform: `translateY(${index * 100}%)` }}><div className={styles.art} data-etf-art><ResearchArt index={index} /></div></div>)}
@@ -169,12 +169,19 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
         <p className={styles.label}>{beat.label}</p>
         {index === 0 ? <h1 id={`${uid}-${beat.id}`} data-room-heading tabIndex={-1}>{beat.title.map(line => <span key={line}>{line}</span>)}</h1> : <h2 id={`${uid}-${beat.id}`}>{beat.title.map(line => <span key={line}>{line}</span>)}</h2>}
         <p className={styles.body}>{beat.body}</p>
-        <p className={styles.finding}>{beat.finding}</p>
-        <p className={styles.note}>{beat.note}</p>
         {index === 0 && <span className={styles.scrollCue}>Scroll to follow the experiment <span aria-hidden="true">↓</span></span>}
-        {index === story.length - 1 && <a className={styles.source} href={etfResearch.summaryUrl} target="_blank" rel="noopener noreferrer">Read the recorded results ↗</a>}
       </div>
       <figure className={styles.inlineArt}><ResearchArt index={index} /><figcaption>{beat.caption}</figcaption></figure>
     </article>)}</div>
-  </section>;
+  </section>
+  <section className={styles.evidence} data-project-evidence="etf" data-room-surface aria-labelledby={`${uid}-evidence-title`}>
+    <header className={styles.evidenceHead}><h2 id={`${uid}-evidence-title`}>Evidence and<br />limitations.</h2><p>The fitting choices, recorded intervals, and caveats behind each part of the experiment.</p></header>
+    <ol className={styles.evidenceList}>{story.map((beat, index) => <li key={beat.id}>
+      <div className={styles.evidenceStage}><span>{beat.word}</span><h3>{beat.title.join(" ")}</h3></div>
+      <div className={styles.evidenceCopy}><p className={styles.evidenceFinding}>{beat.finding}</p><p className={styles.evidenceCaveat}>{beat.note}</p><p className={styles.evidenceCaption}>{beat.caption}</p>
+        {index === story.length - 1 && <a className={styles.evidenceSource} href={etfResearch.summaryUrl} target="_blank" rel="noopener noreferrer">Read the recorded results ↗</a>}
+      </div>
+    </li>)}</ol>
+  </section>
+  </>;
 }
