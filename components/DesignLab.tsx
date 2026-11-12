@@ -10,7 +10,7 @@ import styles from "./DesignLab.module.css";
 
 type Direction = "lab" | "atlas" | "story";
 const directions = [
-  { id: "lab" as const, letter: "A", name: "Vision Lab", format: "An ML workspace", summary: "A quiet introduction, one working research explorer, and quick access to the engineering detail.", try: "Switch from images to feature groups to the classifier. Every view uses a recorded project artifact.", fit: "Best for an ML engineering portfolio. Clear, technical, and easy to inspect." },
+  { id: "lab" as const, letter: "A", name: "Data Lab", format: "A data science workspace", summary: "A quiet introduction, one working research explorer, and quick access to the engineering detail.", try: "Switch from images to feature groups to the classifier. Every view uses a recorded project artifact.", fit: "Best for a data science and ML portfolio. Clear, technical, and easy to inspect." },
   { id: "atlas" as const, letter: "B", name: "Visual Atlas", format: "An image-led gallery", summary: "A minimal dark gallery that lets the MRI imagery carry the first impression.", try: "Choose a cluster, browse its five published examples, then reveal the actual evaluation figure.", fit: "Best for visual impact. The sample explorer can also be used inside direction A." },
   { id: "story" as const, letter: "C", name: "Research in Motion", format: "A guided visual story", summary: "A restrained case study with an evidence panel that follows the research as you scroll.", try: "Scroll through the three chapters or select one directly. The corresponding figure stays beside the story.", fit: "Best for explaining how you think. Strong for a recruiter who wants the narrative quickly." },
 ];
@@ -26,13 +26,13 @@ const caseStudy = "/projects/brain-tumor-mri-classification";
 
 
 function PrototypeNav({ dark = false }: { dark?: boolean }) {
-  return <div className={`${styles.prototypeNav} ${dark ? styles.darkNav : ""}`}><strong>Sameer Jain<span>Machine learning &amp; computer vision</span></strong><div><a href={caseStudy}>Featured work ↗</a><a href="/resume.pdf" target="_blank" rel="noopener noreferrer">Résumé ↗</a></div></div>;
+  return <div className={`${styles.prototypeNav} ${dark ? styles.darkNav : ""}`}><strong>Sameer Jain<span>Data science &amp; machine learning</span></strong><div><a href={caseStudy}>Featured work ↗</a><a href="/resume.pdf" target="_blank" rel="noopener noreferrer">Résumé ↗</a></div></div>;
 }
 
 function WorkspacePreview() {
   return <div className={styles.workspace}>
     <PrototypeNav />
-    <div className={styles.workspaceIntro}><h2>Building systems<br />that learn to see.</h2><p>Georgia Tech Industrial Engineering.<br />Machine learning, computer vision, and the data systems that make them work.</p></div>
+    <div className={styles.workspaceIntro}><h2>Asking questions<br />with data.</h2><p>Georgia Tech Industrial Engineering.<br />Data science, statistics, and machine learning.</p></div>
     <MriShowcase />
     <div className={styles.supportingWork}><span>Also exploring</span><Link href="/projects/systematic-etf-research">Systematic ETF research <span aria-hidden="true">↗</span></Link><span>Supporting project</span></div>
   </div>;

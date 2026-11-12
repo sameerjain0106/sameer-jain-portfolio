@@ -78,7 +78,7 @@ export default function MriResearchStory({ motion = true, preview = false, showH
   const selected = mriChapters[active];
 
   return <section className={styles.walkthrough} data-preview={preview} data-motion={motion ? "on" : "off"} aria-label="Brain tumor MRI research walkthrough">
-    {showHeading && <div className={styles.heading}><span>Computer vision / A visual case study</span><h2>Three questions.<br />One MRI collection.</h2><p>Follow the images, the learned groups, and the result that needed a second look. Scroll to explore.</p></div>}
+    {showHeading && <div className={styles.heading}><span>Data science / An MRI case study</span><h2>Three questions.<br />One MRI collection.</h2><p>Follow the images, the learned groups, and the result that needed a second look. Scroll to explore.</p></div>}
     <div className={styles.storyGrid}>
       <div className={styles.chapters}>{mriChapters.map((chapter, index) => <article key={chapter.short} data-chapter={index} data-active={index === active} ref={(element) => { chapterRefs.current[index] = element; }}>
         <span className={styles.chapterNumber}>{String(index + 1).padStart(2, "0")} / {chapter.short}</span><h3>{chapter.title}</h3><p>{chapter.body}</p><strong>{chapter.finding}</strong><p className={styles.chapterNote}>{chapter.note}</p>

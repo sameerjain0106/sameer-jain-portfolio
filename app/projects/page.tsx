@@ -5,7 +5,7 @@ import styles from "@/components/Journal.module.css";
 
 export const metadata: Metadata = {
   title: "Projects | Sameer Jain",
-  description: "Technical projects in machine learning, computer vision, and quantitative research.",
+  description: "Technical projects in data science, statistics, machine learning, and quantitative research.",
 };
 
 export default function ProjectsPage() {

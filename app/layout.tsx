@@ -23,7 +23,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1731,
         height: 909,
-        alt: "Sameer Jain — Machine Learning, Computer Vision, and Data Engineering",
+        alt: "Sameer Jain — Data Science, Statistics, and Machine Learning",
       },
     ],
   },

@@ -22,7 +22,7 @@ export const detailedProjects: Project[] = [
     title: "Brain Tumor MRI Classification",
     oneLiner:
       "Classifying brain MRI scans across three tumor types using three different paradigms: supervised classification, unsupervised clustering, and anomaly detection.",
-    category: ["Machine Learning", "Computer Vision"],
+    category: ["Data Science", "Machine Learning"],
     technologies: [
       "PCA",
       "Random Forest",

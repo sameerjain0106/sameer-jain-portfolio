@@ -1,6 +1,5 @@
 export type ProjectCategory =
   | "Machine Learning"
-  | "Computer Vision"
   | "Statistical Modeling"
   | "Data Science"
   | "Quantitative Research";

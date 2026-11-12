@@ -38,7 +38,7 @@ export default function MriShowcase() {
   return (
     <section className={styles.showcase} aria-labelledby={titleId}>
       <div className={styles.topline}>
-        <span className={styles.projectLabel}><span className={styles.projectDot} aria-hidden="true" /><strong>Brain tumor MRI</strong><span>/ Computer vision</span></span>
+        <span className={styles.projectLabel}><span className={styles.projectDot} aria-hidden="true" /><strong>Brain tumor MRI</strong><span>/ Data science</span></span>
         <Link href="/projects/brain-tumor-mri-classification" className={styles.caseLink}>Read the case study <Arrow /></Link>
       </div>
 

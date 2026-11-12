@@ -3,7 +3,7 @@ import DesignLab from "@/components/DesignLab";
 
 export const metadata: Metadata = {
   title: "Portfolio directions | Sameer Jain",
-  description: "Three interactive directions for an ML and computer-vision portfolio.",
+  description: "Three interactive directions for a data science, statistics, and machine learning portfolio.",
   robots: { index: false, follow: false },
 };
 

@@ -94,9 +94,9 @@ export default function SpatialEntrance({ active, scrollRoot, navigate }: {
     <section ref={hero} className={styles.hero} aria-labelledby="entrance-heading" data-room-surface>
       <div className={styles.intro} data-scroll-reveal="copy">
         <h1 id="entrance-heading" data-room-heading tabIndex={-1}>Sameer<br /><span>Jain<span className={styles.period}>.</span></span></h1>
-        <div className={styles.byline}><span className={styles.asterisk} aria-hidden="true">✳</span><p>Machine learning.<br />Computer vision.</p></div>
+        <div className={styles.byline}><span className={styles.codexMark} role="img" aria-label="Built with Codex" title="Built with Codex" /><p>Data Science.<br />Statistics &amp; ML.</p></div>
         <div className={styles.explorePrompt} data-entrance-guide>
-          <p className={styles.mouseHint}>Scroll, or hover<br />at the sides.<small>Hold a moment to find out more.</small></p>
+          <p className={styles.mouseHint}>Scroll, or hover<br />at the sides.</p>
           <p className={styles.touchHint}>Scroll to<br />find out more.<small>Tap a side to explore another section.</small></p>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function SpatialEntrance({ active, scrollRoot, navigate }: {
         <EntrancePortrait active={active} scrollRoot={scrollRoot} />
         <div className={styles.introductionCopy}>
           <h2 id="questions-heading">A little<br />about me.</h2>
-          <p className={styles.questionsLede}>I study Industrial Engineering at Georgia Tech and build projects in machine learning, computer vision, and data engineering.</p>
+          <p className={styles.questionsLede}>I study Industrial Engineering at Georgia Tech and build projects in Data Science, Statistics, and Machine Learning.</p>
           <div className={styles.introLinks}>
             <a href={roomHref("profile")} onClick={event => enter(event, "profile")}>About Sameer</a>
             <a href={roomHref("contact")} onClick={event => enter(event, "contact")}>Get in touch</a>
