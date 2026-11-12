@@ -1,37 +1,14 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono, Bricolage_Grotesque } from "next/font/google";
+import "./fonts.css";
 import "./globals.css";
 import { site } from "@/data/site";
 import SiteFrame from "@/components/SiteFrame";
-
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-bricolage", display: "swap", adjustFontFallback: false, fallback: ["Arial", "sans-serif"] });
 
 const vercelHost =
   process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
 const metadataBase = new URL(
   vercelHost ? `https://${vercelHost}` : "https://musteermain.vercel.app",
 );
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-space-grotesk",
-  display: "swap",
-});
-
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plex-sans",
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-plex-mono",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase,
@@ -67,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${plexSans.variable} ${plexMono.variable} ${bricolage.variable}`}>
+    <html lang="en">
       <body className="bg-base text-ink font-body antialiased selection:bg-signal/20 selection:text-signal">
         <SiteFrame>{children}</SiteFrame>
       </body>

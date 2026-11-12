@@ -10,6 +10,10 @@ const nextConfig = {
         { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       ],
+    }, {
+      // Font filenames contain content hashes, so cached bytes never change.
+      source: "/fonts/:fontFile",
+      headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
     }];
   },
 };
