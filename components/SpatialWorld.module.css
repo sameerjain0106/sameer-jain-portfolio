@@ -1,4 +1,4 @@
-.world { --room-color: #cbc8f2; position: relative; width: 100%; height: 100svh; min-height: 360px; overflow: hidden; isolation: isolate; background: #171f53; color: #172456; font-family: var(--font-plex-sans), sans-serif; color-scheme: light; }
+.world { --room-color: #cbc8f2; position: relative; width: 100%; height: 100vh; height: 100svh; min-height: 0; overflow: hidden; isolation: isolate; background: #171f53; color: #172456; font-family: var(--font-plex-sans), sans-serif; color-scheme: light; }
 .world *, .world [id] { scroll-behavior: auto; scroll-margin-top: 90px; }
 .world ::selection { background: #ff8066; color: #172456; }
 .world a:focus-visible, .world button:focus-visible { outline: 3px solid currentColor; outline-offset: 5px; }

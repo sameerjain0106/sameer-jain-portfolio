@@ -69,6 +69,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     const pupils = Array.from(drawing.querySelectorAll<SVGGElement>("[data-creature-eye]"));
     const brows = Array.from(drawing.querySelectorAll<SVGPathElement>("[data-creature-brow]"));
     const eyelids = Array.from(drawing.querySelectorAll<SVGGElement>("[data-creature-click-eye]"));
+    const automaticEyes = Array.from(drawing.querySelectorAll<SVGGElement>("[data-creature-auto-eye]"));
     const subscribers = input.current.subscribers;
     let visible = false, enabled = false, disposed = false, needsMeasure = true;
     let focused = document.hasFocus();
@@ -76,6 +77,12 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     let renderedWidth = 0, renderedHeight = 0, renderedTop = Number.NaN;
     let lastGaze = "", lastBrow = "", lastHead = "";
     let blinkAnimations: Animation[] = [];
+    const automaticBlinkTimers = new Set<number>();
+    const automaticBlinkAnimations = new Set<Animation>();
+    const automaticBlinkPeriod = paused ? 26000 : 17300;
+    // Preserve the original linear 43/43.6/44.5% and 81/81.7/82.6% blinks.
+    const automaticBlinkWindows = [{ start: .43, end: .445, closeOffset: .4 }, { start: .81, end: .826, closeOffset: .4375 }];
+    let automaticBlinkEpoch: number | null = null, automaticBlinkGeneration = 0;
     let inverse: DOMMatrix | null = null;
     let target = { x: 0, y: 0, interest: 0 };
     let eyes = { x: 0, y: 0 }, head = { x: 0, y: 0, interest: 0 };
@@ -135,6 +142,53 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       blinkAnimations.forEach(animation => animation.cancel()); blinkAnimations = [];
       status("creatureBlinking", false);
     }
+    function cancelAutomaticBlink() {
+      automaticBlinkEpoch = null; automaticBlinkGeneration++;
+      automaticBlinkTimers.forEach(timer => window.clearTimeout(timer)); automaticBlinkTimers.clear();
+      automaticBlinkAnimations.forEach(animation => { animation.onfinish = null; animation.cancel(); }); automaticBlinkAnimations.clear();
+    }
+    function queueAutomaticBlink(eye: SVGGElement, delay: number, generation: number, after = performance.now()) {
+      const epoch = automaticBlinkEpoch;
+      if (disposed || !enabled || epoch === null || generation !== automaticBlinkGeneration) return;
+      const now = performance.now(), nextTime = Math.max(now, after);
+      const cycle = Math.max(0, Math.floor((nextTime - epoch - delay) / automaticBlinkPeriod));
+      let cycleStart = epoch + delay + cycle * automaticBlinkPeriod;
+      let segment = automaticBlinkWindows.find(candidate => cycleStart + candidate.end * automaticBlinkPeriod > nextTime);
+      if (!segment) { cycleStart += automaticBlinkPeriod; segment = automaticBlinkWindows[0]; }
+      const start = cycleStart + segment.start * automaticBlinkPeriod;
+      const end = cycleStart + segment.end * automaticBlinkPeriod;
+      const duration = end - start, closeOffset = segment.closeOffset;
+      const timer = window.setTimeout(() => {
+        automaticBlinkTimers.delete(timer);
+        if (disposed || !enabled || automaticBlinkEpoch === null || generation !== automaticBlinkGeneration) return;
+        const elapsed = performance.now() - start;
+        // A delayed timer joins the original phase or skips an already-finished blink.
+        if (elapsed < duration) {
+          const animation = eye.animate([
+            { transform: "scaleY(1)", offset: 0 },
+            { transform: "scaleY(.08)", offset: closeOffset },
+            { transform: "scaleY(1)", offset: 1 },
+          ], { duration, easing: "linear" });
+          animation.currentTime = Math.max(0, performance.now() - start);
+          automaticBlinkAnimations.add(animation);
+          animation.onfinish = () => {
+            animation.onfinish = null; automaticBlinkAnimations.delete(animation); animation.cancel();
+          };
+        }
+        queueAutomaticBlink(eye, delay, generation, end);
+      }, Math.max(0, start - now));
+      automaticBlinkTimers.add(timer);
+    }
+    function startAutomaticBlink() {
+      if (disposed || !enabled || automaticBlinkEpoch !== null) return;
+      automaticBlinkEpoch = performance.now();
+      const generation = ++automaticBlinkGeneration;
+      // Only the short closing/opening windows animate SVG; open eyes have no animation.
+      automaticEyes.forEach(eye => {
+        const delay = Number.parseFloat(eye.style.getPropertyValue("--blink-delay") || "0") * 1000;
+        queueAutomaticBlink(eye, delay, generation);
+      });
+    }
     function blink() {
       if (!enabled) return;
       cancelBlink(); status("creatureBlinking", true);
@@ -154,7 +208,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     function stop() {
       cancelAnimationFrame(frame); frame = 0; lastTime = 0;
       status("creatureRunning", false); status("creatureAwake", false); status("creatureIdleRunning", false);
-      cancelBlink();
+      cancelBlink(); cancelAutomaticBlink();
     }
     function reset() {
       stop(); target = { x: 0, y: 0, interest: 0 };
@@ -184,7 +238,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     function move() {
       if (!enabled) return;
       updateAim(); status("creatureAwake", true);
-      status("creatureIdleRunning", focused); schedule();
+      status("creatureIdleRunning", focused); startAutomaticBlink(); schedule();
     }
     const subscriber: CreatureSubscriber = { move, blink, reset };
     function configure() {
@@ -195,7 +249,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       if (enabled) subscribers.add(subscriber); else subscribers.delete(subscriber);
       needsMeasure = true;
       if (shown) { measure(); paint(); }
-      if (enabled && input.current.pointer.known) { status("creatureAwake", true); schedule(); }
+      if (enabled && input.current.pointer.known) { status("creatureAwake", true); startAutomaticBlink(); schedule(); }
     }
     function refresh() { needsMeasure = true; if (enabled) schedule(); else if (visible && active && fine.matches && !reduced.matches && !document.hidden) { measure(); paint(); } }
     function blur() { focused = false; configure(); }
@@ -244,7 +298,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
           {resident.eyes.map((eye, i) => <g key={i} transform={`translate(${eye.x} ${eye.y}) rotate(${eye.turn})`}>
             <path data-creature-brow d={`M${-eye.rx - 1} ${-eye.ry - 7}Q0 ${-eye.ry - 13} ${eye.rx + 1} ${-eye.ry - 7}`} stroke={resident.shade} strokeWidth="2.1" strokeLinecap="round" />
             <g className={styles.clickEye} data-creature-click-eye={i}>
-            <g className={styles.eye} style={{ "--blink-delay": `${i * -1.17}s` } as CSSProperties}>
+            <g className={styles.eye} data-creature-auto-eye={i} style={{ "--blink-delay": `${i * -1.17}s` } as CSSProperties}>
               <ellipse rx={eye.rx + 1.5} ry={eye.ry + 1.5} fill={resident.shade} fillOpacity=".6" />
               <ellipse rx={eye.rx} ry={eye.ry} fill="#fffbea" />
               <ellipse cx={-eye.rx * .28} cy={-eye.ry * .2} rx={eye.rx * .64} ry={eye.ry * .8} fill="#fff" fillOpacity=".65" />

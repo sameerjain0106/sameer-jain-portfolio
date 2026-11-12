@@ -23,7 +23,7 @@ export function useAmbientMotion(
     const observer = new IntersectionObserver(entries => {
       visible = entries.some(entry => entry.isIntersecting && entry.intersectionRatio > 0);
       update();
-    }, { root: scrollRoot ?? null, threshold: 0 });
+    }, { root: scrollRoot ?? null, threshold: [0, .001] });
     observer.observe(node);
     document.addEventListener("visibilitychange", update);
     reduced.addEventListener("change", update);
