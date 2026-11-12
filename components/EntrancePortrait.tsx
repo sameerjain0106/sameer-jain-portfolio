@@ -5,15 +5,13 @@ import Image from "next/image";
 import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
-const VIDEO = "/images/entrance-animation-v2.mp4";
+const VIDEO = "/images/entrance-animation-v3.mp4";
 
 export default function EntrancePortrait({ active, scrollRoot }: {
   active: boolean; scrollRoot: HTMLElement | null;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const ambientEnabled = useAmbientMotionEnabled();
-  const paused = useRef(false);
-  const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -22,18 +20,31 @@ export default function EntrancePortrait({ active, scrollRoot }: {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let visible = false;
     let disposed = false;
+    let retryAttached = false;
+    const retryEvents = ["pointerdown", "keydown", "touchend", "wheel"] as const;
+    const clearRetry = () => {
+      retryEvents.forEach(event => window.removeEventListener(event, update));
+      retryAttached = false;
+    };
+    const retryOnGesture = () => {
+      if (retryAttached || disposed || !visible || document.hidden) return;
+      retryEvents.forEach(event => window.addEventListener(event, update, { passive: true }));
+      retryAttached = true;
+    };
     const update = () => {
+      if (disposed) return;
       player.playbackRate = reduced.matches || !ambientEnabled ? .55 : 1;
-      if (!visible || document.hidden || paused.current) {
+      if (!visible || document.hidden) {
+        clearRetry();
         player.pause();
         return;
       }
       if (!player.hasAttribute("src")) {
         player.src = VIDEO;
-        player.muted = true;
       }
-      // Some embedded browsers reject autoplay. The poster and play button stay usable.
-      void player.play().catch(() => { if (!disposed) setPlaying(false); });
+      player.muted = true;
+      // Recover from restrictive autoplay policies on the next normal interaction.
+      void player.play().then(clearRetry).catch(retryOnGesture);
     };
     const observer = new IntersectionObserver(entries => {
       visible = entries.some(entry => entry.isIntersecting);
@@ -42,13 +53,14 @@ export default function EntrancePortrait({ active, scrollRoot }: {
     observer.observe(player);
     const resumeLoop = () => {
       // Some media engines pause while seeking back to the first loop frame.
-      if (player.loop && player.paused && player.currentTime < .1 && !paused.current) update();
+      if (player.loop && player.paused && player.currentTime < .1) update();
     };
     player.addEventListener("seeked", resumeLoop);
     document.addEventListener("visibilitychange", update);
     reduced.addEventListener("change", update);
     return () => {
       disposed = true;
+      clearRetry();
       observer.disconnect();
       player.removeEventListener("seeked", resumeLoop);
       document.removeEventListener("visibilitychange", update);
@@ -57,34 +69,13 @@ export default function EntrancePortrait({ active, scrollRoot }: {
     };
   }, [active, scrollRoot, ambientEnabled, failed]);
 
-  const toggle = () => {
-    const player = video.current;
-    if (!player) return;
-    if (playing) {
-      paused.current = true;
-      player.pause();
-    } else {
-      paused.current = false;
-      // Keep this call in the gesture for browsers that require explicit playback.
-      player.muted = true;
-      if (!player.hasAttribute("src")) player.src = VIDEO;
-      void player.play().catch(() => setPlaying(false));
-    }
-  };
-
-  return <figure className={styles.portrait} data-entrance-portrait>
-    <noscript><style>{`.${styles.portraitToggle}{display:none!important}`}</style></noscript>
+  return <figure className={styles.portrait} data-entrance-portrait data-scroll-reveal="portrait">
     <div className={styles.portraitFrame}>
-      {failed ? <Image src="/images/entrance-animation-v2.jpg" alt="Sameer in an edited portrait collage."
-        width={624} height={856} sizes="(max-width: 650px) 90vw, (max-width: 800px) 360px, 420px" /> : <video ref={video} width={624} height={856} muted loop playsInline preload="none"
-        poster="/images/entrance-animation-v2.jpg"
+      {failed ? <Image src="/images/entrance-animation-v3.jpg" alt="Sameer in an edited portrait collage."
+        width={624} height={856} sizes="(max-width: 650px) 90vw, (max-width: 800px) 360px, 420px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
+        poster="/images/entrance-animation-v3.jpg"
         aria-label="Animated portrait collage of Sameer, with moving wrists, swaying hair, and blinking eyes."
-        onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)}
-        onError={() => { setFailed(true); setPlaying(false); }} />}
-      {!failed && <button type="button" className={styles.portraitToggle} onClick={toggle}
-        aria-label={playing ? "Pause portrait animation" : "Play portrait animation"}>
-        <span aria-hidden="true">{playing ? "Ⅱ" : "▶"}</span>{playing ? "Pause" : "Play"}
-      </button>}
+        onError={() => setFailed(true)} />}
     </div>
   </figure>;
 }
