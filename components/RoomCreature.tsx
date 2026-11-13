@@ -52,6 +52,7 @@ type CreatureProps = { room: RoomId; active: boolean; paused: boolean };
 
 /** Each surface owns its resident beneath its content, above its painted background. */
 function BackgroundResident({ host, room, active, paused, input }: CreatureProps & { host: HTMLElement; input: MutableRefObject<CreatureInput> }) {
+  const pin = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
   const coordinates = useRef<SVGSVGElement>(null);
@@ -64,11 +65,9 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
   const cachedBody = room === "etf" && !bodyFailed;
 
   useEffect(() => {
-    const node = root.current, drawing = svg.current, coordinateSpace = coordinates.current;
+    const pinning = pin.current, node = root.current, drawing = svg.current, coordinateSpace = coordinates.current;
     const scroller = host.closest<HTMLElement>("[data-room-scroll]");
-    if (!node || !drawing || !coordinateSpace || !scroller) return;
-    // Keep the layout origin fixed when this effect replaces a previous placement.
-    node.style.removeProperty("top");
+    if (!pinning || !node || !drawing || !coordinateSpace || !scroller) return;
     const fine = matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const headNode = drawing.querySelector<SVGGElement>("[data-creature-head]")!;
@@ -81,7 +80,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     let visible = false, enabled = false, disposed = false, needsMeasure = true;
     let focused = document.hasFocus();
     let frame = 0, lastTime = 0, width = 1, height = 1;
-    let renderedWidth = 0, renderedHeight = 0, renderedTop = Number.NaN;
+    let renderedWidth = 0, renderedHeight = 0;
     let lastGaze = "", lastBrow = "", lastHead = "";
     let blinkAnimations: Animation[] = [];
     const automaticBlinkTimers = new Set<number>();
@@ -110,12 +109,14 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     }
     function measure() {
       needsMeasure = false;
-      const bounds = host.getBoundingClientRect(), viewport = scroller!.getBoundingClientRect();
       width = host.clientWidth; height = scroller!.clientHeight;
       if (!width || !height) { inverse = null; return; }
-      const top = viewport.top + scroller!.clientTop - bounds.top - host.clientTop;
-      if (top !== renderedTop) { node!.style.transform = `translateY(${top}px)`; renderedTop = top; }
-      if (height !== renderedHeight) node!.style.height = `${height}px`;
+      if (height !== renderedHeight) {
+        node!.style.height = `${height}px`;
+        // Extend the sticky travel range past both surface edges. The artwork
+        // stays viewport-aligned throughout a surface's visible, clipped area.
+        pinning!.style.setProperty("--resident-viewport-height", `${height}px`);
+      }
       if (width !== renderedWidth || height !== renderedHeight) {
         const viewBox = `0 0 ${width} ${height}`;
         drawing!.setAttribute("viewBox", viewBox); coordinateSpace!.setAttribute("viewBox", viewBox);
@@ -289,7 +290,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     };
   }, [host, room, active, paused, input]);
 
-  return <div ref={root} className={styles.creature} data-room-creature={room} data-active={active} data-paused={paused} data-creature-visible="false" aria-hidden="true"
+  return <div ref={pin} className={styles.pin} aria-hidden="true"><div ref={root} className={styles.creature} data-room-creature={room} data-active={active} data-paused={paused} data-creature-visible="false" aria-hidden="true"
     style={{ "--creature-ink": resident.shade } as CSSProperties}>
     <div className={styles.idle} data-creature-idle={room}>
     <svg ref={svg} data-creature-drawing data-creature-body-mode={bodyReady ? "cached" : "vector"} viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" focusable="false">
@@ -329,7 +330,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     </svg>
     </div>
     <svg ref={coordinates} data-creature-coordinate-space className={styles.coordinates} viewBox="0 0 1440 900" preserveAspectRatio="none" focusable="false" />
-  </div>;
+  </div></div>;
 }
 
 /** Portal into isolated backgrounds instead of placing artwork over the portfolio. */

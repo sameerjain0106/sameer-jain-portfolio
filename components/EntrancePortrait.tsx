@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
-const VIDEO = "/images/entrance-animation-v5.mp4";
+const VIDEO = "/images/entrance-animation-v6.mp4";
 
 export default function EntrancePortrait({ active, scrollRoot }: {
   active: boolean; scrollRoot: HTMLElement | null;
@@ -71,9 +71,9 @@ export default function EntrancePortrait({ active, scrollRoot }: {
 
   return <figure className={styles.portrait} data-entrance-portrait data-scroll-reveal="portrait">
     <div className={styles.portraitFrame}>
-      {failed ? <Image src="/images/entrance-animation-v5.jpg" alt="Codex-faced figure beside Sameer in an edited portrait collage."
+      {failed ? <Image src="/images/entrance-animation-v6.jpg" alt="Codex-faced figure beside Sameer in an edited portrait collage."
         width={624} height={856} sizes="(max-width: 650px) 90vw, (max-width: 800px) 360px, 420px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
-        poster="/images/entrance-animation-v5.jpg"
+        poster="/images/entrance-animation-v6.jpg"
         aria-label="Looping portrait of a Codex-faced figure and Sameer, with moving arms, swaying hair, and blinking eyes."
         onError={() => setFailed(true)} />}
     </div>
