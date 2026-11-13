@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reveal values belong to each animated element, not its entire subtree. */
+@property --scroll-opacity {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --scroll-lift {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-scale {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --scroll-turn {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 /* The scroll field belongs to each painted surface, not its content subtree. */
 @property --field-scroll {
   syntax: "<length>";

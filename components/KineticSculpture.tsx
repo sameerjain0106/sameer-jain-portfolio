@@ -166,7 +166,9 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
     const render = (now: number) => {
       frame=0;
       if (disposed || lost || node.dataset.ambientRunning !== "true") { previous=0; return; }
-      const delta = previous ? Math.min((now-previous)/1000,.05) : 0;
+      // The clock and exponential easing follow real time even on slower frames;
+      // sync() resets previous when resuming, so inactive time is never integrated.
+      const delta = previous ? Math.max(0,(now-previous)/1000) : 0;
       previous=now; elapsed+=delta;
       const ease=1-Math.exp(-delta*5);
       pointerX+=(targetX-pointerX)*ease; pointerY+=(targetY-pointerY)*ease;

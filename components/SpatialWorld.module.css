@@ -23,7 +23,8 @@
   .world [data-scroll-reveal] { opacity: 1; translate: none; scale: none; rotate: none; }
   .world [data-room-surface]::before { animation: none; translate: none; transform: none; }
 }
-.scroller { overflow: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #5d629a55 transparent; }
+/* Native scroll is the story clock; reveal transforms must not re-anchor it. */
+.scroller { overflow: auto; overflow-x: hidden; overflow-anchor: none; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #5d629a55 transparent; }
 .scroller::-webkit-scrollbar { width: 7px; }
 .scroller::-webkit-scrollbar-track { background: transparent; }
 .scroller::-webkit-scrollbar-thumb { background: #5d629a55; }

@@ -132,12 +132,14 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
     resize.observe(scrollRoot);
     reduced.addEventListener("change", schedule);
     document.addEventListener("visibilitychange", visibility);
+    scrollRoot.addEventListener("spatial:entered", visibility);
     void document.fonts.ready.then(() => { if (!disposed) { owned?.refresh(); if (owned) paint(owned.progress); } });
     configure();
     return () => {
       disposed = true; cancelAnimationFrame(frame); owned?.kill(); resize.disconnect();
       reduced.removeEventListener("change", schedule);
       document.removeEventListener("visibilitychange", visibility);
+      scrollRoot.removeEventListener("spatial:entered", visibility);
       // Keep the composed leaves and track height intact while Map is open.
     };
   }, [active, scrollRoot]);

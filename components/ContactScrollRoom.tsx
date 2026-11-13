@@ -103,11 +103,13 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
     reduced.addEventListener("change", schedule);
     const visibility = () => { if (!document.hidden) { owned?.refresh(); if (owned) paint(owned.progress); } };
     document.addEventListener("visibilitychange", visibility);
+    scrollRoot.addEventListener("spatial:entered", visibility);
     void document.fonts.ready.then(() => { if (!disposed) owned?.refresh(); });
     configure();
     return () => {
       disposed = true; cancelAnimationFrame(frame); owned?.kill(); observer.disconnect();
       reduced.removeEventListener("change", schedule); document.removeEventListener("visibilitychange", visibility);
+      scrollRoot.removeEventListener("spatial:entered", visibility);
       // Map overlays pause the room. Keep its current paper geometry and scroll range.
     };
   }, [active, scrollRoot]);

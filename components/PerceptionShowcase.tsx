@@ -245,6 +245,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
     resize();
     void document.fonts.ready.then(() => { if (!disposed) refresh(); });
     scrollTarget.addEventListener("scroll", updateProgress, { passive: true });
+    scrollRoot?.addEventListener("spatial:entered", resize);
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", visibility);
     enabled.addEventListener("change", motionMode);
@@ -254,6 +255,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       pause();
       observer?.disconnect();
       scrollTarget.removeEventListener("scroll", updateProgress);
+      scrollRoot?.removeEventListener("spatial:entered", resize);
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", visibility);
       enabled.removeEventListener("change", motionMode);

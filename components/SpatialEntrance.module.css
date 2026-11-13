@@ -10,7 +10,7 @@
 .explorePrompt { margin: 28px 0 0 8px; color: #172456; }
 .mouseHint, .touchHint { margin: 0; font: 550 clamp(29px, 2.8vw, 43px)/1.08 var(--font-bricolage), sans-serif; letter-spacing: -.045em; }
 .explorePrompt small { display: block; margin-top: 13px; font: 400 14px/1.5 var(--font-plex-sans), sans-serif; letter-spacing: 0; }
-.codexMark { display: inline-block; flex: 0 0 66px; width: 66px; height: 66px; border-radius: 22%; background: #000 url("/brand/codex-mark.png") center / 78% no-repeat; transform: rotate(calc(var(--look-turn) * 7)); }
+.codexMark { display: inline-block; flex: 0 0 66px; width: 66px; height: 66px; background: #000; -webkit-mask: url("/brand/codex-mark.png") center / contain no-repeat; mask: url("/brand/codex-mark.png") center / contain no-repeat; transform: rotate(calc(var(--look-turn) * 7)); }
 .previewWorld { position: absolute; width: 49vw; height: 49vw; max-width: 740px; max-height: 740px; right: 3vw; top: 9%; transform: translateY(var(--drift)); }
 .entranceSculpture { position: absolute; inset: -13%; opacity: .76; transform: rotate(-22deg); }
 .mriPreview { position: absolute; top: 16%; left: 38%; width: 43%; transform: translate3d(var(--look-x), var(--look-y), 0) rotate(calc(7deg + var(--look-turn))); background: #f2ef9b; padding: 9px; border-radius: 120px 120px 8px 8px; color: #172456; box-shadow: 15px 20px 0 #a5a5de55; }

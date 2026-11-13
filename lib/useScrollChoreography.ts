@@ -59,7 +59,8 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
       }
       beats.forEach(beat => {
         const travel = Math.min(height * .44, Math.max(height * .22, beat.height * .55 + height * .15));
-        const start = beat.top - height * .96;
+        // Let the portrait enter the viewport before its visible fade begins.
+        const start = beat.top - height * (beat.kind === "portrait" ? .76 : .96);
         const end = Math.min(start + travel, maxScroll);
         const progress = reduced || !beat.height ? 1 : end <= start ? Number(scrollTop >= end) : clamp((scrollTop - start) / (end - start));
         // Most reveals are fully before or after their short entrance window.

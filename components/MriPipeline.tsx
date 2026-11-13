@@ -99,6 +99,7 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
     chapters.forEach(node => resize.observe(node));
     inView.observe(section);
     scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    scrollRoot.addEventListener("spatial:entered", refresh);
     document.addEventListener("visibilitychange", visibility);
     motion.addEventListener("change", changeMotion);
     void document.fonts.ready.then(() => { if (!disposed) refresh(); });
@@ -110,6 +111,7 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
       inView.disconnect();
       resize.disconnect();
       scrollRoot.removeEventListener("scroll", schedule);
+      scrollRoot.removeEventListener("spatial:entered", refresh);
       document.removeEventListener("visibilitychange", visibility);
       motion.removeEventListener("change", changeMotion);
     };

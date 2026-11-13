@@ -147,6 +147,7 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
     observer.observe(section); observer.observe(scrollRoot);
     beats.current.forEach(beat => { if (beat) observer.observe(beat); });
     scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    scrollRoot.addEventListener("spatial:entered", refresh);
     enabled.addEventListener("change", refresh);
     document.addEventListener("visibilitychange", visibility);
     void document.fonts.ready.then(refresh);
@@ -154,6 +155,7 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
     return () => {
       disposed = true; cancelAnimationFrame(frame); observer.disconnect();
       scrollRoot.removeEventListener("scroll", schedule); enabled.removeEventListener("change", refresh);
+      scrollRoot.removeEventListener("spatial:entered", refresh);
       document.removeEventListener("visibilitychange", visibility);
     };
   }, [active, scrollRoot]);

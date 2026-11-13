@@ -57,11 +57,18 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
   const coordinates = useRef<SVGSVGElement>(null);
   const uid = useId().replace(/:/g, "");
   const resident = residents[room];
+  const [bodyReady, setBodyReady] = useState(false);
+  const [bodyFailed, setBodyFailed] = useState(false);
+  // The ETF body is static artwork. An image lets Firefox cache its gradients
+  // while the head, pupils, eyebrows and blink layers keep their live motion.
+  const cachedBody = room === "etf" && !bodyFailed;
 
   useEffect(() => {
     const node = root.current, drawing = svg.current, coordinateSpace = coordinates.current;
     const scroller = host.closest<HTMLElement>("[data-room-scroll]");
     if (!node || !drawing || !coordinateSpace || !scroller) return;
+    // Keep the layout origin fixed when this effect replaces a previous placement.
+    node.style.removeProperty("top");
     const fine = matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const headNode = drawing.querySelector<SVGGElement>("[data-creature-head]")!;
@@ -107,7 +114,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       width = host.clientWidth; height = scroller!.clientHeight;
       if (!width || !height) { inverse = null; return; }
       const top = viewport.top + scroller!.clientTop - bounds.top - host.clientTop;
-      if (top !== renderedTop) { node!.style.top = `${top}px`; renderedTop = top; }
+      if (top !== renderedTop) { node!.style.transform = `translateY(${top}px)`; renderedTop = top; }
       if (height !== renderedHeight) node!.style.height = `${height}px`;
       if (width !== renderedWidth || height !== renderedHeight) {
         const viewBox = `0 0 ${width} ${height}`;
@@ -219,7 +226,9 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       frame = 0;
       if (disposed || !enabled) return;
       if (needsMeasure) measure();
-      const dt = lastTime ? Math.min((time - lastTime) / 1000, 1 / 30) : 1 / 60;
+      // Exponential damping stays stable at any frame interval. Capping dt made
+      // a slow renderer prolong the gaze response instead of catching up in time.
+      const dt = lastTime ? Math.max(0, (time - lastTime) / 1000) : 1 / 60;
       lastTime = time;
       const quick = 1 - Math.pow(paused ? .85 : .73, dt * 60), slow = 1 - Math.pow(paused ? .95 : .91, dt * 60);
       eyes.x += (target.x - eyes.x) * quick; eyes.y += (target.y - eyes.y) * quick;
@@ -283,7 +292,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
   return <div ref={root} className={styles.creature} data-room-creature={room} data-active={active} data-paused={paused} data-creature-visible="false" aria-hidden="true"
     style={{ "--creature-ink": resident.shade } as CSSProperties}>
     <div className={styles.idle} data-creature-idle={room}>
-    <svg ref={svg} data-creature-drawing viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" focusable="false">
+    <svg ref={svg} data-creature-drawing data-creature-body-mode={bodyReady ? "cached" : "vector"} viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" focusable="false">
       <defs>
         <linearGradient id={`${uid}-body`} x1="48" y1="40" x2="189" y2="215" gradientUnits="userSpaceOnUse"><stop stopColor={resident.light} stopOpacity=".9" /><stop offset=".43" stopColor={resident.color} stopOpacity=".82" /><stop offset="1" stopColor={resident.shade} stopOpacity=".65" /></linearGradient>
         <linearGradient id={`${uid}-edge`} x1="50" y1="45" x2="185" y2="202" gradientUnits="userSpaceOnUse"><stop stopColor={resident.light} /><stop offset=".42" stopColor={resident.color} /><stop offset="1" stopColor={resident.shade} /></linearGradient>
@@ -291,10 +300,15 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       </defs>
       <g data-creature-art>
         <g data-creature-head>
+          {cachedBody && <image data-creature-body-image href="/creatures/etf-resident.svg" x="8" y="14" width="228" height="218.8000030517578"
+            preserveAspectRatio="none" opacity={bodyReady ? 1 : 0}
+            onLoad={() => setBodyReady(true)} onError={() => { setBodyFailed(true); setBodyReady(false); }} />}
+          <g data-creature-body-vector display={bodyReady ? "none" : undefined}>
           <path d={resident.body} transform="translate(4 6)" fill={resident.shade} opacity=".12" fillRule="evenodd" />
           <path d={resident.body} fill={`url(#${uid}-body)`} stroke={`url(#${uid}-edge)`} strokeWidth="2.4" fillRule="evenodd" />
           <path d={resident.seam} stroke={resident.shade} strokeOpacity=".5" strokeWidth="1.6" strokeLinecap="round" />
           <path d={resident.glint} stroke={resident.light} strokeWidth="3" strokeOpacity=".8" strokeLinecap="round" />
+          </g>
           {resident.eyes.map((eye, i) => <g key={i} transform={`translate(${eye.x} ${eye.y}) rotate(${eye.turn})`}>
             <path data-creature-brow d={`M${-eye.rx - 1} ${-eye.ry - 7}Q0 ${-eye.ry - 13} ${eye.rx + 1} ${-eye.ry - 7}`} stroke={resident.shade} strokeWidth="2.1" strokeLinecap="round" />
             <g className={styles.clickEye} data-creature-click-eye={i}>

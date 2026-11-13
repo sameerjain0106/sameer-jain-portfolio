@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { arrows, directions, neighbor, roomFromLocation, roomHref, roomIds, rooms, type Direction, type RoomId } from "@/data/spatialRooms";
@@ -36,23 +36,34 @@ function edgeAt(x: number, y: number): Direction | null {
   return null;
 }
 
-const RoomPanel = memo(function RoomPanel({ id, active, visible, navigate }: {
-  id: RoomId; active: boolean; visible: boolean; navigate: (id: RoomId) => void;
+const RoomPanel = memo(function RoomPanel({ id, active, entering, visible, navigate }: {
+  id: RoomId; active: boolean; entering: boolean; visible: boolean; navigate: (id: RoomId) => void;
 }) {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const panel = useRef<HTMLElement | null>(null);
+  const awaitingEntry = useRef(false);
   useAmbientMotion(active, undefined, panel);
   useRoomSmoothScroll(active, scrollRoot);
   useScrollChoreography(active, scrollRoot);
+  useLayoutEffect(() => { if (entering) awaitingEntry.current = true; }, [entering]);
+  useEffect(() => {
+    if (!active || !scrollRoot || !awaitingEntry.current) return;
+    awaitingEntry.current = false;
+    // Child listeners are installed and the travel transform has been cleared.
+    // Refresh before the world's deferred room/chapter focus runs.
+    scrollRoot.dispatchEvent(new Event("spatial:entered"));
+  }, [active, scrollRoot]);
+  // Prepare the incoming story at scroll zero while its panel remains inert.
+  const contentActive = active || entering;
   return <section data-panel={id} data-active={active} hidden={!visible} aria-hidden={!active}
     aria-label={rooms[id].label} className={styles.panel}
     ref={element => { panel.current = element; if (element) element.inert = !active; }}>
     <div ref={setScrollRoot} className={styles.scroller} data-room-scroll={id}>
-      {id === "entrance" && <SpatialEntrance active={active} scrollRoot={scrollRoot} navigate={navigate} />}
-      {id === "mri" && <MriScrollJourney active={active} scrollRoot={scrollRoot} />}
-      {id === "etf" && <SpatialEtfRoom active={active} scrollRoot={scrollRoot} />}
-      {id === "profile" && <ProfileRoom active={active} scrollRoot={scrollRoot} />}
-      {id === "contact" && <ContactRoom active={active} scrollRoot={scrollRoot} />}
+      {id === "entrance" && <SpatialEntrance active={contentActive} scrollRoot={scrollRoot} navigate={navigate} />}
+      {id === "mri" && <MriScrollJourney active={contentActive} scrollRoot={scrollRoot} />}
+      {id === "etf" && <SpatialEtfRoom active={contentActive} scrollRoot={scrollRoot} />}
+      {id === "profile" && <ProfileRoom active={contentActive} scrollRoot={scrollRoot} />}
+      {id === "contact" && <ContactRoom active={contentActive} scrollRoot={scrollRoot} />}
     </div>
   </section>;
 });
@@ -75,6 +86,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
   const pressed = useRef(false);
   const finishTravel = useRef<(() => void) | null>(null);
   const pendingRoomFocus = useRef<RoomId | null>(null);
+  const pendingRoomFragment = useRef("");
   worldRef.current = world;
 
   useEffect(() => {
@@ -104,7 +116,8 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
 
   const focusRoom = useCallback((id: RoomId) => {
     const panel = root.current?.querySelector<HTMLElement>(`[data-panel="${id}"]`);
-    const fragment = window.location.hash;
+    const fragment = pendingRoomFragment.current;
+    pendingRoomFragment.current = "";
     const destination = id === "profile" && (fragment === "#education" || fragment === "#about") ? panel?.querySelector<HTMLElement>(fragment) : null;
     const stage = panel?.querySelector<HTMLElement>("[data-room-heading]");
     const book = panel?.querySelector<HTMLElement>('[data-profile-enhanced="true"] [data-profile-book]');
@@ -123,17 +136,13 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     }
   }, []);
 
-  const navigate = useCallback((to: RoomId, fromHistory = false) => {
+  const navigate = useCallback((to: RoomId, fromHistory = false, initialFragment = "") => {
     const current = worldRef.current;
     if (current.mode.kind === "travel" && !fromHistory) return;
     cancelHold();
+    pendingRoomFragment.current = initialFragment;
     armed.current = false;
     const from = current.mode.kind === "travel" ? current.mode.to : current.room;
-    if (to === from && current.mode.kind !== "travel") {
-      pendingRoomFocus.current = to;
-      setWorld({ ...current, mode: { kind: "idle" } });
-      return;
-    }
     const next: World = {
       room: from,
       visited: current.visited.includes(to) ? current.visited : [...current.visited, to],
@@ -141,7 +150,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     };
     worldRef.current = next;
     setWorld(next);
-    if (!fromHistory) window.history.pushState(null, "", roomHref(to));
+    if (!fromHistory && (to !== from || window.location.hash)) window.history.pushState(null, "", roomHref(to));
   }, [cancelHold]);
 
   const followLink = (event: MouseEvent<HTMLAnchorElement>, id: RoomId) => {
@@ -160,7 +169,9 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const onHistory = () => navigate(roomFromLocation(), true);
     window.addEventListener("popstate", onHistory);
     window.addEventListener("hashchange", onHistory);
-    if (roomFromLocation() !== worldRef.current.room || window.location.hash === "#education" || window.location.hash === "#about") onHistory();
+    if (roomFromLocation() !== worldRef.current.room || window.location.hash === "#education" || window.location.hash === "#about") {
+      navigate(roomFromLocation(), true, window.location.hash);
+    }
     return () => {
       media.removeEventListener("change", change);
       window.removeEventListener("popstate", onHistory);
@@ -169,11 +180,14 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     };
   }, [navigate]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (world.mode.kind !== "travel") return;
     const trip = world.mode;
     const outgoing = root.current?.querySelector<HTMLElement>(`[data-panel="${trip.from}"]`);
     const incoming = root.current?.querySelector<HTMLElement>(`[data-panel="${trip.to}"]`);
+    const incomingScroll = incoming?.querySelector<HTMLElement>("[data-room-scroll]");
+    // Reset after the hidden panel is mounted, before its first transition paint.
+    if (incomingScroll) { incomingScroll.scrollTop = 0; incomingScroll.scrollLeft = 0; }
     let live = true;
     const complete = () => {
       if (!live) return;
@@ -338,7 +352,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       </button>
     </header>
     <div className={styles.rooms}>
-      {world.visited.map(id => <RoomPanel key={id} id={id} active={world.mode.kind === "idle" && world.room === id} visible={world.room === id || (world.mode.kind === "travel" && world.mode.to === id)} navigate={navigate} />)}
+      {world.visited.map(id => <RoomPanel key={id} id={id} active={world.mode.kind === "idle" && world.room === id} entering={world.mode.kind === "travel" && world.mode.to === id} visible={world.room === id || (world.mode.kind === "travel" && world.mode.to === id)} navigate={navigate} />)}
     </div>
     {dwell && neighbor(world.room, dwell) && <DestinationPreview room={neighbor(world.room, dwell)!} direction={dwell} progressRef={setPreview} />}
     <nav id="room-navigation" aria-label="Adjacent rooms" className={styles.edges} aria-hidden={traveling} ref={node => { if (node) node.inert = traveling; }}>
