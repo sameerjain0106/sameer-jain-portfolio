@@ -14,7 +14,7 @@ export default function Navbar() {
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
       <nav className={`site-shell ${styles.nav}`} aria-label="Main navigation">
         <Link href="/" className={styles.identity} aria-label="Sameer Jain, home">
-          <span className={styles.identityName}>Sameer Jain<span>ML / Vision / Data</span></span>
+          <span className={styles.identityName}>Sameer Jain<span>Data Science / Statistics / ML</span></span>
         </Link>
         <ul className={styles.navLinks}>
           {navLinks.map((link) => (
