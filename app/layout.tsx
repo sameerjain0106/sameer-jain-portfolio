@@ -3,7 +3,12 @@ import "./fonts.css";
 import "./globals.css";
 import { site } from "@/data/site";
 import SiteFrame from "@/components/SiteFrame";
-import { metadataBase, shareImages } from "@/lib/metadata";
+
+const vercelHost =
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+const metadataBase = new URL(
+  vercelHost ? `https://${vercelHost}` : "https://musteermain.vercel.app",
+);
 
 export const metadata: Metadata = {
   metadataBase,
@@ -12,13 +17,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: site.seo.title,
     description: site.seo.description,
-    siteName: site.name,
     type: "website",
     images: [
       {
-        ...shareImages.entrance,
-        width: 1200,
-        height: 630,
+        url: "/og.png",
+        width: 1731,
+        height: 909,
+        alt: "Sameer Jain — Data Science, Statistics, and Machine Learning",
       },
     ],
   },
@@ -26,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: site.seo.title,
     description: site.seo.description,
-    images: [shareImages.entrance],
+    images: ["/og.png"],
   },
   icons: {
     icon: [{ url: "/favicon.svg?v=sj-1", type: "image/svg+xml", sizes: "any" }],

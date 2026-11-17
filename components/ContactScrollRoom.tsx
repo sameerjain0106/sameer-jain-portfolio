@@ -139,7 +139,7 @@ export default function ContactScrollRoom({ active, scrollRoot }: { active: bool
         </div>
       </div>
     </section>
-    <section className={styles.connections} data-room-surface data-reading-zone aria-labelledby="contact-elsewhere-title">
+    <section className={styles.connections} data-room-surface aria-labelledby="contact-elsewhere-title">
       <div className={styles.connectionsTop}><p>Keep in touch</p><h2 id="contact-elsewhere-title">Pick up<br />a thread.</h2><span className={styles.postmark} aria-hidden="true">ATL<br /><i />SJ</span></div>
       <div className={styles.links}>
         <a href={site.links.github} target="_blank" rel="noopener noreferrer"><span className={styles.linkName}>GitHub</span><span>Projects &amp; source code</span><span aria-hidden="true">↗</span></a>

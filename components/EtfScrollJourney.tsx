@@ -4,7 +4,6 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { etfResearch, phase7Summary } from "@/data/etfResearch";
 import { etfFeatureFamilies, etfStory as story } from "@/data/etfStory";
 import { perceptionMotion as scrollMotion } from "@/data/perceptionStory";
-import StoryChapters, { etfChapters } from "./StoryChapters";
 import styles from "./EtfScrollJourney.module.css";
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
@@ -163,19 +162,18 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
 
   return <section ref={root} className={styles.journey} data-etf-journey data-vertical-story aria-label="From market features to sealed ETF evidence">
     <noscript><style>{`.${styles.journey}{display:block!important}.${styles.stage}{display:none!important}.${styles.track}{grid-area:auto!important}.${styles.beat}{display:block!important;min-height:0!important;background:var(--beat-ground)!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}`}</style></noscript>
-    <div ref={stage} className={styles.stage} data-etf-story-stage data-room-surface data-surface-positioned>
-      {story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} aria-hidden={index !== current} style={{ transform: `translateY(${index * 100}%)` }}><div className={styles.art} data-etf-art><ResearchArt index={index} /></div></div>)}
-      <div className={styles.progress} aria-hidden="true"><span>{story[current].word}</span><i><b data-etf-progress-bar /></i><span>{String(current + 1).padStart(2, "0")} / 05</span></div>
+    <div ref={stage} className={styles.stage} data-etf-story-stage data-room-surface data-surface-positioned aria-hidden="true">
+      {story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} style={{ transform: `translateY(${index * 100}%)` }}><div className={styles.art} data-etf-art><ResearchArt index={index} /></div></div>)}
+      <div className={styles.progress}><span>{story[current].word}</span><i><b data-etf-progress-bar /></i><span>{String(current + 1).padStart(2, "0")} / 05</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} ref={el => { beats.current[index] = el; }} className={styles.beat} data-journey-scene={index} data-room-surface data-surface-flow aria-labelledby={`${uid}-${beat.id}`} style={{ "--beat-ground": beat.ground } as CSSProperties}>
       <div className={styles.copy} data-etf-copy>
         <p className={styles.label}>{beat.label}</p>
         {index === 0 ? <h1 id={`${uid}-${beat.id}`} data-room-heading tabIndex={-1}>{beat.title.map(line => <span key={line}>{line}</span>)}</h1> : <h2 id={`${uid}-${beat.id}`}>{beat.title.map(line => <span key={line}>{line}</span>)}</h2>}
-        <p className={styles.body} data-reading-zone>{beat.body}</p>
+        <p className={styles.body}>{beat.body}</p>
         <p className={styles.finding}>{beat.finding}</p>
         <p className={styles.note}>{beat.note}</p>
         {index === 0 && <span className={styles.scrollCue}>Scroll to follow the experiment <span aria-hidden="true">↓</span></span>}
-        {index === 0 && <StoryChapters chapters={etfChapters} scroller={scrollRoot} current={current} label="ETF" />}
         {index === story.length - 1 && <a className={styles.source} href={etfResearch.summaryUrl} target="_blank" rel="noopener noreferrer">Read the recorded results ↗</a>}
       </div>
       <figure className={styles.inlineArt}><ResearchArt index={index} /><figcaption>{beat.caption}</figcaption></figure>
