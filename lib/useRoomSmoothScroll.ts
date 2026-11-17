@@ -105,6 +105,7 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     document.addEventListener("visibilitychange", configure);
     scroller.addEventListener("keydown", onKey, true);
     scroller.addEventListener("pointerdown", onPointer, { passive: true });
+    scroller.addEventListener("spatial:jump", cancelInertia);
 
     return () => {
       disposed = true;
@@ -114,6 +115,7 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
       document.removeEventListener("visibilitychange", configure);
       scroller.removeEventListener("keydown", onKey, true);
       scroller.removeEventListener("pointerdown", onPointer);
+      scroller.removeEventListener("spatial:jump", cancelInertia);
     };
   }, [active, scroller]);
 }

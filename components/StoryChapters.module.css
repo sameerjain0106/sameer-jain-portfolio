@@ -1,0 +1,5 @@
+.chapters { display: flex; flex-wrap: wrap; gap: 3px; width: fit-content; max-width: 100%; margin-top: 20px; color: #172456; background: #f5f4d9f5; border: 1px solid #17245638; border-radius: 20px; padding: 4px; pointer-events: auto; }
+.chapters button { min-height: 32px; padding: 5px 10px; border: 0; border-radius: 16px; background: transparent; color: inherit; font: 500 11px/1.2 var(--font-plex-sans), sans-serif; }
+.chapters button:hover, .chapters button[aria-current] { background: #172456; color: #f5f4d9; }
+.chapters button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+@media (pointer: coarse) { .chapters button { min-height: 44px; } }

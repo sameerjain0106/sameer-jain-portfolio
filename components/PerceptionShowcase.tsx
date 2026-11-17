@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import StoryChapters, { jumpToChapter, mriChapters } from "./StoryChapters";
 import { perceptionStory as story, perceptionMotion as config } from "@/data/perceptionStory";
 import { useAmbientMotion } from "@/lib/useAmbientMotion";
+import MriInspectionLens from "./MriInspectionLens";
 import styles from "./PerceptionShowcase.module.css";
 
 const imageRoot = "/projects/brain-tumor-mri/images/";
@@ -38,24 +40,24 @@ function readableInk(ground: string, preferred: string) {
   return contrast(ground, "#000000") > contrast(ground, "#ffffff") ? "#000000" : "#ffffff";
 }
 
-function ScanCrop({ file, label, priority = false }: { file: string; label: string; priority?: boolean }) {
-  return <div className={styles.scanCrop}><Image src={imageRoot + file} width={2250} height={480} alt={`Visual crop of one published ${label} MRI example`} sizes="(min-width: 1100px) 190vw, (min-width: 900px) 240vw, 500vw" priority={priority} /></div>;
+function ScanCrop({ file, label, priority = false, isActive = true }: { file: string; label: string; priority?: boolean; isActive?: boolean }) {
+  return <MriInspectionLens className={styles.scanCrop} active={isActive}><Image src={imageRoot + file} width={2250} height={480} alt={`Visual crop of one published ${label} MRI example`} sizes="(min-width: 1100px) 190vw, (min-width: 900px) 240vw, 500vw" priority={priority} /></MriInspectionLens>;
 }
 
-function SceneArt({ index, mobile = false }: { index: number; mobile?: boolean }) {
+function SceneArt({ index, mobile = false, isActive = true }: { index: number; mobile?: boolean; isActive?: boolean }) {
   const beat = story[index];
   if (index === 0 || index === story.length - 1) return <div className={styles.constellation}>
     <FrameArchitecture />
-    <div className={`${styles.scanPlate} ${styles.sideOne}`}><ScanCrop file={samples[0].file} label={samples[0].label} /><span>Menin / Published example</span></div>
-    <div className={`${styles.scanPlate} ${styles.mainPlate}`}><ScanCrop file={samples[2].file} label={samples[2].label} priority={index === 0} /><span>Brain tumor MRI <span aria-hidden="true">↗</span></span></div>
-    <div className={`${styles.scanPlate} ${styles.sideTwo}`}><ScanCrop file={samples[1].file} label={samples[1].label} /><span>Tumor / Published example</span></div>
+    <div className={`${styles.scanPlate} ${styles.sideOne}`}><ScanCrop file={samples[0].file} label={samples[0].label} isActive={isActive} /><span>Menin / Published example</span></div>
+    <div className={`${styles.scanPlate} ${styles.mainPlate}`}><ScanCrop file={samples[2].file} label={samples[2].label} priority={index === 0} isActive={isActive} /><span>Brain tumor MRI <span aria-hidden="true">↗</span></span></div>
+    <div className={`${styles.scanPlate} ${styles.sideTwo}`}><ScanCrop file={samples[1].file} label={samples[1].label} isActive={isActive} /><span>Tumor / Published example</span></div>
   </div>;
   if (index === 1) return <figure className={styles.sampleSpread}>
-    {samples.map((sample) => <div key={sample.file} className={styles.sheet}><Image src={imageRoot + sample.file} width={2250} height={480} alt={`Original five-example ${sample.label} MRI contact sheet`} sizes="(min-width: 900px) 60vw, 95vw" /></div>)}
+    {samples.map((sample) => <MriInspectionLens key={sample.file} className={styles.sheet} active={isActive}><Image src={imageRoot + sample.file} width={2250} height={480} alt={`Original five-example ${sample.label} MRI contact sheet`} sizes="(min-width: 900px) 60vw, 95vw" /></MriInspectionLens>)}
     <figcaption>Original sample sheets / Three source groups</figcaption>
   </figure>;
   return <figure className={`${styles.plotPlate} ${mobile ? styles.mobilePlot : ""}`}>
-    <Image src={imageRoot + beat.figure} width={index === 3 ? 547 : 960} height={index === 3 ? 432 : 720} alt={beat.caption} sizes="(min-width: 1100px) 54vw, (min-width: 900px) 60vw, 95vw" loading={mobile ? "lazy" : "eager"} />
+    <MriInspectionLens active={isActive}><Image src={imageRoot + beat.figure} width={index === 3 ? 547 : 960} height={index === 3 ? 432 : 720} alt={beat.caption} sizes="(min-width: 1100px) 54vw, (min-width: 900px) 60vw, 95vw" loading={mobile ? "lazy" : "eager"} /></MriInspectionLens>
     <figcaption>{index === 2 ? "Features → groups → evaluation" : index === 3 ? "Pixels → PCA → Random Forest" : "Train → hold out → evaluate"}</figcaption>
   </figure>;
 }
@@ -277,19 +279,20 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
     <noscript><style>{`.${styles.stage}{display:none!important}.${styles.beat}{background:var(--beat-ground)!important;color:var(--beat-ink)!important;display:block!important;min-height:0!important;padding-block:${embedded ? "92px 60px" : "50px"}!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}.${styles.copy},.${styles.inlineArt}{opacity:1!important;translate:none!important;scale:none!important;rotate:none!important}.${styles.track}{grid-area:auto!important}`}</style></noscript>
     <div className={styles.stage} ref={stage} data-room-surface data-surface-positioned role="group" aria-label="Recorded MRI research figures">
       <div className={styles.orbit} data-mri-orbit="primary" aria-hidden="true" /><div className={styles.orbitSmall} data-mri-orbit="secondary" aria-hidden="true" />
-      {story.map((beat, index) => <div key={beat.id} data-mri-evidence={index} className={`${styles.scene} ${styles[`scene${index}`]}`} aria-hidden={index !== active} style={embedded ? { transform: `translateY(var(--scene-${index}-y, ${index * 100}%))` } : { opacity: `var(--scene-${index}-opacity, ${index === 0 ? 1 : 0})`, transform: `translateY(var(--scene-${index}-y, 0px)) rotate(var(--scene-${index}-rotate, 0deg)) scale(var(--scene-${index}-scale, 1))` }}><SceneArt index={index} /></div>)}
+      {story.map((beat, index) => <div key={beat.id} data-mri-evidence={index} className={`${styles.scene} ${styles[`scene${index}`]}`} aria-hidden={index !== active} style={embedded ? { transform: `translateY(var(--scene-${index}-y, ${index * 100}%))` } : { opacity: `var(--scene-${index}-opacity, ${index === 0 ? 1 : 0})`, transform: `translateY(var(--scene-${index}-y, 0px)) rotate(var(--scene-${index}-rotate, 0deg)) scale(var(--scene-${index}-scale, 1))` }}><SceneArt index={index} isActive={isActive && index === active} /></div>)}
       <div className={styles.worldMark} aria-hidden="true"><span>{story[active].word}</span><span className={styles.worldProgress}><span data-mri-progress-bar /></span><span>{String(active + 1).padStart(2, "0")} / 06</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} data-world-beat={index} data-scene={beat.id} data-room-surface data-surface-flow ref={(element) => { beats.current[index] = element; }} className={`${styles.beat} ${styles[`beat${index}`]}`} style={{ "--beat-ground": beat.ground, "--beat-ink": beat.ink } as CSSProperties}>
       <div className={styles.copy} data-mri-copy data-scroll-reveal={embedded ? undefined : "copy"}>
         <p className={styles.label}>{beat.label}</p>
         {index === 0 ? <h1 data-room-heading tabIndex={-1}><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h1> : <h2><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h2>}
-        <p className={styles.body}>{beat.body}</p>
+        <p className={styles.body} data-reading-zone>{beat.body}</p>
         <p className={styles.finding}>{beat.finding}</p>
         <p className={styles.note}>{beat.note}</p>
-        {index === 0 ? <div className={styles.heroActions}><Link href="/projects/brain-tumor-mri-classification">Explore the project <span aria-hidden="true">↗</span></Link><span>Scroll to look closer ↓</span></div> : index === story.length - 1 ? <Link className={styles.finalAction} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.source} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
+        {index === 0 ? <div className={styles.heroActions}><Link href="/projects/brain-tumor-mri-classification">Explore the project <span aria-hidden="true">↗</span></Link><span>Scroll to look closer ↓</span></div> : index === story.length - 1 ? embedded ? <a className={styles.finalAction} href="#mri-pipeline" onClick={event => { event.preventDefault(); jumpToChapter(scrollRoot, "[data-mri-pipeline]"); }}>Next: build the pipeline <span aria-hidden="true">↓</span></a> : <Link className={styles.finalAction} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.source} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
+        {index === 0 && embedded && <StoryChapters chapters={mriChapters} scroller={scrollRoot} current={active} label="MRI" />}
       </div>
-      <figure className={styles.inlineArt} data-scroll-reveal={embedded ? undefined : "figure"} ref={index === 0 ? firstArt : undefined}><SceneArt index={index} mobile /><figcaption>{beat.caption}</figcaption></figure>
+      <figure className={styles.inlineArt} data-scroll-reveal={embedded ? undefined : "figure"} ref={index === 0 ? firstArt : undefined}><SceneArt index={index} mobile isActive={isActive} /><figcaption>{beat.caption}</figcaption></figure>
     </article>)}</div>
     <p className={styles.integrity}>A visual journey through saved research artifacts. No live medical inference.</p>
   </section>;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { ProjectApproach } from "@/lib/types";
 import StatusBadge from "@/components/StatusBadge";
 import ResultsChart from "@/components/ResultsChart";
@@ -9,22 +10,46 @@ import MethodologyPipeline from "@/components/MethodologyPipeline";
 import TechnicalMetric from "@/components/TechnicalMetric";
 
 export default function ApproachTabs({ approaches }: { approaches: ProjectApproach[] }) {
+  const id = useId();
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const [activeId, setActiveId] = useState(approaches[0]?.id);
   const active = approaches.find((a) => a.id === activeId) ?? approaches[0];
 
   if (!active) return null;
 
+  function handleTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let nextIndex: number;
+    switch (event.key) {
+      case "ArrowRight": nextIndex = (index + 1) % approaches.length; break;
+      case "ArrowLeft": nextIndex = (index - 1 + approaches.length) % approaches.length; break;
+      case "Home": nextIndex = 0; break;
+      case "End": nextIndex = approaches.length - 1; break;
+      default: return;
+    }
+    event.preventDefault();
+    setActiveId(approaches[nextIndex].id);
+    tabs.current[nextIndex]?.focus();
+  }
+
   return (
     <div>
-      <div className="flex flex-wrap gap-2 border-b border-base-border pb-4">
-        {approaches.map((a) => (
+      <div className="flex flex-wrap gap-2 border-b border-base-border pb-4" role="tablist" aria-label="Research approaches">
+        {approaches.map((a, index) => (
           <button
             key={a.id}
+            ref={(element) => { tabs.current[index] = element; }}
+            id={`${id}-${a.id}-tab`}
+            type="button"
+            role="tab"
+            aria-selected={a.id === active.id}
+            aria-controls={`${id}-panel`}
+            tabIndex={a.id === active.id ? 0 : -1}
             onClick={() => setActiveId(a.id)}
+            onKeyDown={(event) => handleTabKey(event, index)}
             className={
               a.id === active.id
-                ? "rounded-md bg-signal/10 border border-signal/40 px-4 py-2 text-sm font-medium text-signal transition-colors"
-                : "rounded-md border border-transparent px-4 py-2 text-sm text-ink-muted transition-colors hover:text-ink"
+                ? "rounded-md bg-signal/10 border border-signal/40 px-4 py-2 text-sm font-medium text-signal transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal"
+                : "rounded-md border border-transparent px-4 py-2 text-sm text-ink-muted transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal"
             }
           >
             {a.label}
@@ -32,7 +57,7 @@ export default function ApproachTabs({ approaches }: { approaches: ProjectApproa
         ))}
       </div>
 
-      <div className="mt-6 space-y-8">
+      <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${active.id}-tab`} tabIndex={0} className="mt-6 space-y-8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal">
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={active.status} />
         </div>
@@ -66,19 +91,32 @@ export default function ApproachTabs({ approaches }: { approaches: ProjectApproa
           </div>
         )}
 
-        {/* Quantitative results (supervised) */}
+        {/* Recorded metrics for the active approach */}
         {active.models && (
           <div>
             <h3 className="mono-label mb-4 text-xs text-ink-muted">Results</h3>
             <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {active.models.map((m) => (
+              {active.models.flatMap((m, index, models) => m.kind === "clustering" ? [
+                <TechnicalMetric
+                  key={`${m.name}-ari`}
+                  label="Adjusted Rand Index (ARI)"
+                  value={m.adjustedRandIndex.toFixed(3)}
+                  highlight={index === models.length - 1}
+                />,
+                <TechnicalMetric
+                  key={`${m.name}-purity`}
+                  label="Cluster purity"
+                  value={m.purity.toFixed(3)}
+                  highlight={index === models.length - 1}
+                />,
+              ] : [
                 <TechnicalMetric
                   key={m.name}
-                  label={m.name}
+                  label={`${m.name} · Accuracy`}
                   value={`${(m.accuracy * 100).toFixed(1)}%`}
-                  highlight={m === active.models![active.models!.length - 1]}
-                />
-              ))}
+                  highlight={index === models.length - 1}
+                />,
+              ])}
             </div>
             <ResultsChart models={active.models} />
           </div>

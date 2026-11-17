@@ -1,6 +1,7 @@
 .controller { display: none; }
 .pin { position: absolute; left: 0; right: 0; top: calc(-1 * var(--resident-viewport-height, 100svh)); bottom: calc(-1 * var(--resident-viewport-height, 100svh)); z-index: -1; pointer-events: none; }
-.creature { position: sticky; top: 0; width: 100%; height: 100svh; pointer-events: none; user-select: none; overflow: hidden; opacity: .44; --creature-scale: 1; --idle-strength: 1; --idle-duration: 1; }
+.creature { position: sticky; top: 0; width: 100%; height: 100svh; pointer-events: none; user-select: none; overflow: hidden; opacity: .44; transition: opacity .45s ease; --creature-scale: 1; --idle-strength: 1; --idle-duration: 1; }
+:global([data-reading-focus="true"]) .creature { opacity: .28; }
 /* Notebook leaves already sit in a pinned stage; retain their local artwork origin. */
 :global([data-profile-enhanced="true"] article[data-profile-leaf]) > .pin { top: 0; bottom: 0; }
 :global([data-profile-enhanced="true"] article[data-profile-leaf]) > .pin > .creature { position: absolute; }

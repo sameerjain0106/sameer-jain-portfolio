@@ -5,6 +5,8 @@
 .methodNotes dl > div { display: grid; grid-template-columns: .45fr 1fr; gap: 32px; padding: 25px 0; border-bottom: 1px solid #14275633; }
 .methodNotes dt { font-size: 15px; font-weight: 600; }
 .methodNotes dd { margin: 0; max-width: 70ch; font-size: 14px; line-height: 1.8; }
+.finalLinks { display: flex; flex-wrap: wrap; gap: 16px 28px; margin-top: 32px; }
+.finalLinks a { display: inline-flex; align-items: center; gap: 16px; min-height: 44px; font-size: 14px; text-decoration: underline; text-underline-offset: 5px; }
 @media (max-width: 759px) {
   .methodNotes { padding: 50px 35px 70px; }
   .methodNotes > h2 { font-size: 32px; }

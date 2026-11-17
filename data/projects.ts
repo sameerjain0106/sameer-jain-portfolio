@@ -1,5 +1,6 @@
 import { Project, ProjectSummary } from "@/lib/types";
 import { etfResearch } from "@/data/etfResearch";
+import mriResults from "@/public/projects/brain-tumor-mri/results/metrics.json";
 
 // ============================================================
 // PROJECT DATA
@@ -9,11 +10,9 @@ import { etfResearch } from "@/data/etfResearch";
 // give it a unique `slug` — the site will pick it up automatically
 // on the homepage and at /projects/[slug].
 //
-// All numbers in this file for "brain-tumor-mri-classification"
-// were extracted directly from the executed notebook outputs
-// (project_code_sami.ipynb, KMeans.ipynb) — none are invented.
-// Where a script had no captured output (AD.py), results are
-// marked as pending rather than filled in.
+// MRI results are recorded project outputs. Supervised scores are
+// exploratory; clustering reports ARI/purity, and anomaly detection
+// reports its separate binary evaluation after the split was corrected.
 // ============================================================
 
 export const detailedProjects: Project[] = [
@@ -21,7 +20,7 @@ export const detailedProjects: Project[] = [
     slug: "brain-tumor-mri-classification",
     title: "Brain Tumor MRI Classification",
     oneLiner:
-      "Classifying brain MRI scans across three tumor types using three different paradigms: supervised classification, unsupervised clustering, and anomaly detection.",
+      "An exploratory team project comparing supervised classification, ResNet50 clustering, and anomaly detection on a three-label MRI dataset.",
     category: ["Data Science", "Machine Learning"],
     technologies: [
       "PCA",
@@ -34,7 +33,7 @@ export const detailedProjects: Project[] = [
       "Mahalanobis Distance",
     ],
     featured: true,
-    githubUrl: "https://github.com/sameerjain0106/brain-cancer-ml", // TODO: add the GitHub repo URL for this project
+    githubUrl: "https://github.com/sameerjain0106/brain-cancer-ml",
     // Inferred from local file paths in the uploaded notebooks (Windows path
     // referenced "Student", notebook filename referenced "sami", and AD.py's
     // path referenced "diyamannacherry"). Confirm/correct spelling and add
@@ -42,13 +41,13 @@ export const detailedProjects: Project[] = [
     collaborators: ["Samantha Matthew (smathew67@gatech.edu)", "Diya Mannacherry (dmannacherry3@gatech.edu)"], // TODO: confirm names/spelling and add links
 
     problem:
-      "Differentiate between three brain tumor types — glioma, meningioma, and a third tumor class — from MRI scans, and compare how well different ML paradigms (supervised, unsupervised, anomaly-detection) handle the same classification problem.",
+      "Compare three machine learning approaches on MRI images labeled brain_glioma, brain_menin, and brain_tumor, keeping the three-class prediction, cluster alignment, and binary anomaly tasks distinct.",
 
     data: {
       description:
         "Grayscale/RGB brain MRI images across three classes (brain_glioma, brain_menin, brain_tumor) — glioma and menin have 2,004 images each, tumor has 2,048.",
       classes: ["brain_glioma", "brain_menin", "brain_tumor"],
-      imagesPerClass: 2004,
+      imagesPerClass: mriResults.dataset.imagesPerClass,
       totalImages: 6056,
       imageSize: "512×512",
     },
@@ -62,14 +61,14 @@ export const detailedProjects: Project[] = [
         label: "Supervised Classification",
         status: "complete",
         summary:
-          "Raw pixel intensities reduced via PCA, then classified with three progressively stronger models — Logistic Regression, KNN, and Random Forest.",
+          "An exploratory comparison of Logistic Regression, KNN, and Random Forest on PCA-reduced pixels. PCA fitting and model selection used test-set information, which limits the reported scores.",
         methodology: [
           "Images converted to grayscale and flattened to raw pixel vectors (512×512 = 262,144 features per image).",
-          "PCA applied to the full 6,012-image dataset; 1,000 components retained, capturing ~90.3% of total variance.",
+          "PCA fitted on the full 6,012-image dataset before the train/test split; 1,000 components retained, capturing ~90.3% of total variance.",
           "Data split into train/test sets (75/25, random_state=42).",
           "Logistic Regression trained as a linear baseline (max_iter=10,000).",
           "KNN swept across k=1–499 on the test set to select the best-performing neighborhood size (k=3).",
-          "Random Forest swept across n_estimators=100–1,000 in steps of 100; best configuration used 900 trees.",
+          "Random Forest swept across n_estimators=100–1,000 in steps of 100 using test results; the selected configuration used 900 trees.",
         ],
         models: [
           { name: "Logistic Regression", accuracy: 0.5955, f1: 0.5962 },
@@ -100,13 +99,17 @@ export const detailedProjects: Project[] = [
           {
             src: "/projects/brain-tumor-mri/images/rf_confusion_matrix.png",
             alt: "Random Forest confusion matrix",
-            caption: "Random Forest (900 trees) — confusion matrix (test set), best-performing model",
+            caption: "Random Forest (900 trees) — exploratory test confusion matrix (72.72% accuracy)",
           },
+        ],
+        notes: [
+          "These are exploratory test-set scores. Fitting PCA before splitting exposes the representation to test-set information, and selecting KNN and Random Forest configurations from test results adds selection bias. There is no untouched final evaluation in this recorded comparison.",
+          "The supervised branch used 6,012 of the 6,056 available images. Its loading loop omitted 44 brain_tumor images; correcting that gap and the evaluation procedure requires a new run.",
         ],
       },
 
       // ------------------------------------------------------
-      // 2. UNSUPERVISED CLUSTERING — real quantitative results
+      // 2. UNSUPERVISED CLUSTERING — recorded ARI/purity
       // ------------------------------------------------------
       {
         id: "clustering",
@@ -122,7 +125,7 @@ export const detailedProjects: Project[] = [
           "Cluster assignments evaluated against true labels using Adjusted Rand Index and cluster purity (best 1-to-1 cluster-to-class alignment via the Hungarian algorithm) — the quantitative check that was missing from the initial pass, when only a manual, image-by-image inspection of all 603 scans had been done.",
         ],
         models: [
-          { name: "K-Means (k=3) vs. true labels", accuracy: 1.0, f1: 1.0 },
+          { name: "K-Means (k=3) vs. true labels", kind: "clustering", adjustedRandIndex: 1.0, purity: 1.0 },
         ],
         images: [
           {
@@ -152,8 +155,8 @@ export const detailedProjects: Project[] = [
           },
         ],
         notes: [
-          "ARI = 1.0 and purity = 1.0 (603/603) confirm, with a formal metric, what a full manual check of every image in every cluster had already suggested: on this dataset, ResNet50 features plus K-Means separate the three tumor types with zero overlap.",
-          "This should be read with the right scope: it shows generic ImageNet-pretrained features are highly discriminative on this specific, curated, single-source, class-balanced dataset — not that the pipeline is a validated diagnostic tool. Stability across random seeds and generalization to new scanners/hospitals haven't been tested.",
+          "ARI = 1.0 and purity = 1.0 (603/603) record perfect cluster-to-source-label agreement for this run. These values measure clustering alignment.",
+          "K-Means was fitted and evaluated on the same 603 grouped feature vectors from one curated, single-source, class-balanced dataset. Stability across random seeds and generalization to new scanners or hospitals remain untested.",
         ],
       },
 
@@ -205,19 +208,21 @@ export const detailedProjects: Project[] = [
           },
         ],
         notes: [
-          "The original version of this script evaluated on the same images it trained on, which would have overstated performance. With that leak fixed, real accuracy on the held-out set is 50% — close to chance — with the model strongly biased toward calling scans \"glioma-like\" (0.14 precision / 0.89 recall on that class; 0.98 precision / 0.46 recall on anomaly).",
-          "This is reported as a genuine, weaker finding rather than smoothed over: a single Gaussian fit over a 100-dim PCA of a small autoencoder's latent space isn't a strong enough anomaly detector to separate glioma from other tumor types on this dataset. It's a useful, honest contrast against the much stronger supervised and clustering results on the same underlying data.",
+          "The original script evaluated on its training images. After separating training data from held-out evaluation, recorded accuracy is 50%, with the model biased toward calling scans \"glioma-like\" (0.14 precision / 0.89 recall on that class; 0.98 precision / 0.46 recall on anomaly).",
+          "A single Gaussian over the autoencoder's 100-dimensional PCA latent space did not produce strong separation in this run. This is a binary glioma-like/anomaly task; its accuracy and F1 answer a different question from the three-class supervised scores and clustering alignment metrics.",
         ],
       },
     ],
 
     limitations: [
+      "The supervised scores are exploratory: PCA was fitted before the train/test split, and KNN/Random Forest configurations were chosen using test results. A new evaluation with training-only preprocessing and validation-based model selection is needed to estimate generalization.",
       "Supervised models were trained directly on raw/PCA-reduced pixel intensities rather than learned convolutional features, which likely caps achievable accuracy compared to a CNN-based approach — the clustering approach's ResNet50 features separate classes far more cleanly on the same data.",
       "The supervised classification notebook loads 2,004 of the 2,048 available brain_tumor images (a pre-existing gap in the original loading loop, not yet corrected since fixing it requires re-running the full pipeline).",
       "The clustering result (ARI = 1.0) hasn't been tested for stability across random seeds, and comes from one curated, single-source dataset — it demonstrates strong feature separability here, not generalization to new hospitals or scanners.",
-      "The anomaly detection approach substantially underperforms the other two methods (50% accuracy) — a single Gaussian over PCA-reduced latent space isn't expressive enough for this task on this data.",
+      "The anomaly branch records 50% accuracy on a separate binary task. Its score cannot be ranked directly against three-class accuracy or clustering ARI/purity, and this run does not establish which anomaly detector would generalize best.",
     ],
     futureWork: [
+      "Fit PCA on training images only, select hyperparameters on validation data, and reserve an untouched test set for final evaluation.",
       "Train a CNN classifier directly on the images to compare against the PCA + classical ML pipeline.",
       "Fix the 2,004-vs-2,048 image count gap in the supervised notebook and re-run the full pipeline.",
       "Check clustering stability across multiple random seeds/initializations.",
@@ -227,7 +232,7 @@ export const detailedProjects: Project[] = [
     cardImage: {
       src: "/projects/brain-tumor-mri/images/rf_confusion_matrix.png",
       alt: "Random Forest confusion matrix for brain tumor MRI classification",
-      caption: "Random Forest confusion matrix — best-performing model (72.7% accuracy)",
+      caption: "Random Forest confusion matrix — exploratory test accuracy of 72.7%",
     },
   },
 ];

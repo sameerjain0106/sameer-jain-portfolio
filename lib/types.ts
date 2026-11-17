@@ -6,11 +6,10 @@ export type ProjectCategory =
 
 export type ApproachStatus = "complete" | "methodology-only" | "in-progress";
 
-export interface ModelResult {
-  name: string;
-  accuracy: number;
-  f1: number;
-}
+export type ModelResult = { name: string } & (
+  | { kind?: "classification"; accuracy: number; f1: number }
+  | { kind: "clustering"; adjustedRandIndex: number; purity: number }
+);
 
 export interface PipelineStage {
   id: string;
@@ -60,7 +59,7 @@ export interface Project extends ProjectSummary {
   data: {
     description: string;
     classes: string[];
-    imagesPerClass: number;
+    imagesPerClass: Record<string, number>;
     totalImages: number;
     imageSize: string;
   };

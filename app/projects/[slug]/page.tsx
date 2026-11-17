@@ -4,6 +4,7 @@ import Link from "next/link";
 import { detailedProjects } from "@/data/projects";
 import TechPill from "@/components/TechPill";
 import ApproachTabs from "@/components/ApproachTabs";
+import { createPageMetadata, shareImages } from "@/lib/metadata";
 
 export function generateStaticParams() {
   return detailedProjects.map((p) => ({ slug: p.slug }));
@@ -17,28 +18,26 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = detailedProjects.find((p) => p.slug === slug);
   if (!project) return {};
-  return {
+  return createPageMetadata({
     title: `${project.title} | Sameer Jain`,
     description: project.oneLiner,
-    openGraph: {
-      title: `${project.title} | Sameer Jain`,
-      description: project.oneLiner,
-      type: "article",
-      images: [],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${project.title} | Sameer Jain`,
-      description: project.oneLiner,
-      images: [],
-    },
-  };
+    path: `/projects/${project.slug}`,
+    image: project.slug === "brain-tumor-mri-classification" ? shareImages.mri : shareImages.entrance,
+    type: "article",
+  });
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = detailedProjects.find((p) => p.slug === slug);
   if (!project) notFound();
+
+  const classCounts = Object.values(project.data.imagesPerClass);
+  const smallestClass = Math.min(...classCounts);
+  const largestClass = Math.max(...classCounts);
+  const imagesPerClass = !classCounts.length ? "Not recorded" : smallestClass === largestClass
+    ? smallestClass.toLocaleString("en-US")
+    : `${smallestClass.toLocaleString("en-US")}–${largestClass.toLocaleString("en-US")}`;
 
   return (
     <article>
@@ -131,7 +130,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               <div>
                 <dt className="text-ink-faint">Images / class</dt>
                 <dd className="mt-1 font-mono text-ink">
-                  {project.data.imagesPerClass.toLocaleString()}
+                  {imagesPerClass}
                 </dd>
               </div>
               <div>

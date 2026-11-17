@@ -28,7 +28,7 @@ export default function SpatialEtfRoom({ active, scrollRoot }: { active: boolean
           <p>The frozen model, its confirmation period, and the comparison that keeps the result in perspective.</p>
         </div>
         <ol className={styles.researchRoute} aria-label="Research pipeline">{etfResearch.pipeline.map((stage, index) => <li key={stage}><span>{String(index + 1).padStart(2, "0")}</span><strong>{stage}</strong><span aria-hidden="true">↗</span></li>)}</ol>
-        <dl className={styles.methodNotes} data-project-methods="etf">
+        <dl className={styles.methodNotes} data-project-methods="etf" data-reading-zone>
           <div><dt>Predict a relative rank</dt><dd>One observation is an ETF at a weekly decision date. The target ranks its next {phase7Summary.research_design.target_horizon_spy_sessions} SPY-session adjusted total return against the other ETFs.</dd></div>
           <div><dt>Freeze the fitting recipe</dt><dd>Training-median imputation and a training-only StandardScaler feed the 18-feature Elastic Net. The frozen model uses α = {phase7Summary.model.configuration.alpha} and l1_ratio = {phase7Summary.model.configuration.l1_ratio}.</dd></div>
           <div><dt>Account for overlapping targets</dt><dd>{result.weekly_decisions} weekly decisions produce {result.prediction_rows.toLocaleString("en-US")} ETF/date predictions. The reported inference uses HAC lag {result.hac_lag} and a moving-block bootstrap to account for serial dependence.</dd></div>
@@ -57,7 +57,7 @@ export default function SpatialEtfRoom({ active, scrollRoot }: { active: boolean
 
       <section className={styles.conclusion} aria-labelledby={`${titleId}-limits`} data-room-surface="conclusion">
         <div><p className={styles.kicker}>03 / Keep the claim in focus</p><h2 id={`${titleId}-limits`}>A SIGNAL.<br /><span>WITH LIMITS.</span></h2></div>
-        <div className={styles.limitSpread}><p>Finding structure in the data is one result. Understanding the conditions around it is part of the work.</p><ul>{etfResearch.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></div>
+        <div className={styles.limitSpread} data-reading-zone><p>Finding structure in the data is one result. Understanding the conditions around it is part of the work.</p><ul>{etfResearch.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></div>
         <div className={styles.finalLinks}><Link href={`/projects/${etfResearch.slug}`}>The complete case study <span aria-hidden="true">↗</span></Link><a href={etfResearch.releaseUrl} target="_blank" rel="noopener noreferrer">Explore the frozen research source ↗</a></div>
         <p className={styles.disclaimer}>Historical research; not investment advice.</p>
       </section>

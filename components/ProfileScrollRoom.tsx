@@ -88,6 +88,7 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
       if (leaf !== previousLeaf) {
         previousLeaf = leaf;
         section!.dataset.profileLeaf = String(leaf);
+        section!.dataset.readingFocus = String(leaf > 0);
         if (counter) counter.textContent = `${String(leaf + 1).padStart(2, "0")} / 03 · ${leafNames[leaf]}`;
       }
     }
@@ -102,6 +103,7 @@ export default function ProfileScrollRoom({ active, scrollRoot }: Props) {
       previousProgress = Number.NaN;
       const enhanced = !reduced.matches && lastHeight >= 620;
       section!.dataset.profileEnhanced = String(enhanced);
+      if (!enhanced) delete section!.dataset.readingFocus;
       section!.style.setProperty("--profile-height", `${lastHeight}px`);
       leaves.forEach(leaf => {
         leaf.inert = enhanced;

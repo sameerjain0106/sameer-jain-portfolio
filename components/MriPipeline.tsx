@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type CSSProperties } from "react";
-import Link from "next/link";
+import { jumpToChapter } from "./StoryChapters";
 import results from "@/public/projects/brain-tumor-mri/results/metrics.json";
 import styles from "./MriPipeline.module.css";
 
@@ -117,7 +117,7 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
     };
   }, [active, scrollRoot]);
 
-  return <section ref={root} className={styles.chapter} data-mri-pipeline data-room-surface data-surface-positioned aria-labelledby={`${id}-title`}>
+  return <section id="mri-pipeline" ref={root} className={styles.chapter} data-mri-pipeline data-room-surface data-surface-positioned aria-labelledby={`${id}-title`}>
     <header className={styles.intro}>
       <p className={styles.eyebrow}>Inside one experiment / The clustering branch</p>
       <h2 id={`${id}-title`}>Build the<br /><span>pathway.</span></h2>
@@ -183,10 +183,10 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
       <ol className={styles.steps}>
         {steps.map((step, index) => <li key={step.label} className={styles.step} data-pipeline-step={index}>
           <div className={styles.stepLabel}><span>{String(index + 1).padStart(2, "0")}</span><span>{step.label}</span></div>
-          <h3>{step.title}</h3><p>{step.detail}</p><p className={styles.stepNote}>{step.note}</p>
+          <h3>{step.title}</h3><p data-reading-zone>{step.detail}</p><p className={styles.stepNote}>{step.note}</p>
         </li>)}
       </ol>
     </div>
-    <footer className={styles.ending}><p>A strong pattern in one dataset.<br /><strong>Still a question for the next one.</strong></p><Link href="/projects/brain-tumor-mri-classification" prefetch={false}>Read the methods &amp; limitations <span aria-hidden="true">↗</span></Link></footer>
+    <footer className={styles.ending}><p>A strong pattern in one dataset.<br /><strong>Still a question for the next one.</strong></p><a href="#mri-method-notes" onClick={event => { event.preventDefault(); jumpToChapter(scrollRoot, '[data-project-methods="mri"]'); }}>Continue to the method notes <span aria-hidden="true">↓</span></a></footer>
   </section>;
 }

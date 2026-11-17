@@ -1,6 +1,7 @@
 "use client";
 
 import results from "@/public/projects/brain-tumor-mri/results/metrics.json";
+import Link from "next/link";
 import PerceptionShowcase from "./PerceptionShowcase";
 import MriPipeline from "./MriPipeline";
 import styles from "./MriScrollJourney.module.css";
@@ -10,13 +11,17 @@ export default function MriScrollJourney({ active, scrollRoot }: { active: boole
   return <div className={styles.room} data-mri-journey data-story-axis="vertical">
     <PerceptionShowcase scrollRoot={scrollRoot} isActive={active} embedded />
     <MriPipeline active={active} scrollRoot={scrollRoot} />
-    <section className={styles.methodNotes} data-project-methods="mri" data-room-surface aria-labelledby="mri-method-notes-title">
+    <section id="mri-method-notes" className={styles.methodNotes} data-project-methods="mri" data-room-surface data-reading-zone aria-labelledby="mri-method-notes-title">
       <h2 id="mri-method-notes-title">Under the methods</h2>
       <dl>
         <div><dt>Pixel baseline</dt><dd>Each 512 × 512 grayscale image becomes 262,144 pixel features. PCA retains {results.pca.components.toLocaleString("en-US")} components and {(results.pca.explainedVarianceRatio * 100).toFixed(2)}% of variance. It was fitted before splitting, so the baseline remains exploratory.</dd></div>
         <div><dt>Transfer features</dt><dd>ImageNet-pretrained ResNet50 runs without its classification head. Global average pooling produces {results.kmeans.featureDim.toLocaleString("en-US")} features per image; batched extraction keeps memory use bounded.</dd></div>
         <div><dt>Anomaly rule</dt><dd>Glioma scans split into 1,604 training and 400 held-out images. Encoder features reduce to 100 PCA components; Mahalanobis distance is compared with the training-set 90th percentile, a recorded cutoff of {results.anomalyDetection.thresholdValue.toFixed(2)}.</dd></div>
       </dl>
+      <div className={styles.finalLinks}>
+        <Link href="/projects/brain-tumor-mri-classification">The complete case study <span aria-hidden="true">↗</span></Link>
+        <a href="https://github.com/sameerjain0106/brain-cancer-ml" target="_blank" rel="noopener noreferrer">Source code <span aria-hidden="true">↗</span></a>
+      </div>
     </section>
   </div>;
 }
