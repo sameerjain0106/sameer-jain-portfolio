@@ -6,7 +6,7 @@
 .panel { overflow: hidden; background: #cbc8f2; }
 .panel[hidden] { display: none; }
 .panel { --field-pattern: repeating-radial-gradient(ellipse at 22% 40%, transparent 0 82px, currentColor 83px 84px, transparent 85px 160px); --field-size: 850px 650px; --field-speed: 34s; --field-opacity: .065; }
-.panel[data-panel="mri"] { --field-pattern: repeating-radial-gradient(ellipse at 90% 55%, transparent 0 50px, currentColor 51px 52px, transparent 53px 110px); --field-size: 1000px 720px; --field-speed: 29s; --field-opacity: .055; }
+.panel[data-panel="mri"] { --field-pattern: repeating-radial-gradient(ellipse at 90% 55%, transparent 0 50px, currentColor 51px 52px, transparent 53px 110px); --field-size: 1000px 720px; --field-speed: 29s; --field-opacity: .09; }
 .panel[data-panel="etf"] { --field-pattern: repeating-linear-gradient(118deg, transparent 0 94px, currentColor 95px 96px, transparent 97px 190px), repeating-linear-gradient(62deg, transparent 0 189px, currentColor 190px 191px, transparent 192px 380px); --field-size: 900px 750px; --field-speed: 38s; --field-opacity: .045; }
 .panel[data-panel="profile"] { --field-pattern: repeating-radial-gradient(ellipse at 0% 80%, transparent 0 110px, currentColor 111px 113px, transparent 114px 205px); --field-size: 1100px 800px; --field-speed: 42s; --field-opacity: .065; }
 .panel[data-panel="contact"] { --field-pattern: repeating-radial-gradient(circle at 90% 20%, transparent 0 68px, currentColor 69px 70px, transparent 71px 140px); --field-size: 950px 800px; --field-speed: 31s; --field-opacity: .075; }
