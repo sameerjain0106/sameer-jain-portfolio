@@ -83,10 +83,10 @@ html[data-portfolio-framed], [data-portfolio-framed] body { overflow: hidden; }
 }
 
 [data-portfolio-framed] .projection {
-  --ink: #fff9ed;
-  --sea: #fff9ed;
-  --muted: #fff9ed;
-  --accent-ink: #fff1df;
+  --ink: var(--mri-explorer-ink, #fff9ed);
+  --sea: var(--mri-explorer-accent, var(--ink));
+  --muted: var(--mri-explorer-muted, #fff9ed);
+  --accent-ink: var(--mri-explorer-warm-ink, var(--mri-explorer-ink, #fff1df));
   background: transparent;
   color: var(--ink);
 }
@@ -162,7 +162,7 @@ html[data-portfolio-framed], [data-portfolio-framed] body { overflow: hidden; }
     --map-reveal: var(--explorer-map-reveal, 1);
     --map-inset: calc((1 - var(--map-reveal)) * 13%);
     clip-path: inset(0 var(--map-inset));
-    opacity: calc(.66 + var(--map-reveal) * .34);
+    opacity: calc(.18 + var(--map-reveal) * .82);
     transform: translate3d(0, calc((1 - var(--map-reveal)) * 72px), 0);
   }
 

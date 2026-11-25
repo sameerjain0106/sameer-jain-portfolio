@@ -1,5 +1,5 @@
 .world { --world-ground: #173bd3; --world-ink: #f2ef9b; --world-inset: 82px; --room-height: 100svh; --blue: #173bd3; --butter: #f2ef9b; --coral: #ff8066; --ink: #111b39; position: relative; display: grid; background: var(--blue); color: var(--butter); isolation: isolate; }
-.embedded { --world-inset: 0px; --world-ground: var(--butter); --world-ink: var(--blue); min-height: var(--room-height); background: var(--butter); color: var(--blue); }
+.embedded { --world-inset: 0px; --world-ground: var(--mri-entry-ground, var(--butter)); --world-ink: var(--mri-entry-ink, var(--blue)); min-height: var(--room-height); background: var(--world-ground); color: var(--world-ink); }
 .embedded .beat { padding: 92px clamp(52px, 4.5vw, 80px) 60px; }
 @media (min-width: 900px) { .embedded .beat { padding-inline: max(92px, 6vw); } }
 .world[data-active="false"] .scene { will-change: auto; }

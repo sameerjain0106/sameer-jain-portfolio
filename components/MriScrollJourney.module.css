@@ -1,4 +1,9 @@
-.room { font-family: var(--font-plex-sans), sans-serif; }
+.room {
+  --mri-entry-ground: #4965dc;
+  --mri-entry-ink: #fff9ed;
+  background: var(--mri-entry-ground);
+  font-family: var(--font-plex-sans), sans-serif;
+}
 .methodNotes { padding: 70px max(7vw, 62px) 90px; color: #142756; background: #fff6e8; }
 .methodNotes > h2 { margin: 0; font: 500 clamp(32px, 4vw, 54px)/1.1 var(--font-bricolage), sans-serif; letter-spacing: -.035em; }
 .methodNotes dl { margin: 28px 0 0; }

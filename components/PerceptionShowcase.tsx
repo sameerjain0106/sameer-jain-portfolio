@@ -17,7 +17,7 @@ const samples = [
   { file: "cluster_2_samples.png", label: "Glioma" },
 ];
 const clamp = (value: number, low = 0, high = 1) => Math.max(low, Math.min(high, value));
-const mix = (a: string, b: string, amount: number) => {
+export const mix = (a: string, b: string, amount: number) => {
   const channels = [1, 3, 5].map((offset) => Math.round(parseInt(a.slice(offset, offset + 2), 16) * (1 - amount) + parseInt(b.slice(offset, offset + 2), 16) * amount));
   return `rgb(${channels.join(",")})`;
 };
@@ -34,7 +34,7 @@ const contrast = (a: string, b: string) => {
   const light = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (light[0] + .05) / (light[1] + .05);
 };
-function readableInk(ground: string, preferred: string) {
+export function readableInk(ground: string, preferred: string) {
   if (contrast(ground, preferred) >= 4.5) return preferred;
   const paletteInk = contrast(ground, "#111b39") > contrast(ground, "#f2ef9b") ? "#111b39" : "#f2ef9b";
   if (contrast(ground, paletteInk) >= 4.5) return paletteInk;
@@ -194,8 +194,9 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
           if (activeRef.current !== next) { activeRef.current = next; setActive(next); }
           const ground = mix(story[base].ground, story[Math.min(base + 1, story.length - 1)].ground, blend);
           const ink = readableInk(ground, story[next].ink);
-          setStyle(scene, "--world-ground", ground);
-          setStyle(root.current, "--world-ink", ink);
+          const useEntryPalette = embedded && base === 0 && blend === 0;
+          setStyle(scene, "--world-ground", useEntryPalette ? "var(--mri-entry-ground, #f2ef9b)" : ground);
+          setStyle(root.current, "--world-ink", useEntryPalette ? "var(--mri-entry-ink, #173bd3)" : ink);
           setStyle(root.current, "--world-accent", contrast(ground, "#ff8066") >= 3 ? "#ff8066" : ink);
           // These three transforms do not need to invalidate the evidence below them.
           const orbitAngle = `${progress * 21}deg`;
@@ -292,7 +293,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
     <div className={styles.track}>{story.map((beat, index) => {
       const sceneIndex = firstScene + index;
       const studyOpening = embedded && index === 0;
-      return <article key={beat.id} data-world-beat={index} data-scene={beat.id} data-room-surface data-surface-flow ref={(element) => { beats.current[index] = element; }} className={`${styles.beat} ${styles[`beat${sceneIndex}`]}${studyOpening ? ` ${styles.studyOpening}` : ""}`} style={{ "--beat-ground": beat.ground, "--beat-ink": beat.ink } as CSSProperties}>
+      return <article key={beat.id} data-world-beat={index} data-scene={beat.id} data-room-surface data-surface-flow ref={(element) => { beats.current[index] = element; }} className={`${styles.beat} ${styles[`beat${sceneIndex}`]}${studyOpening ? ` ${styles.studyOpening}` : ""}`} style={{ "--beat-ground": studyOpening ? "var(--mri-entry-ground, #f2ef9b)" : beat.ground, "--beat-ink": studyOpening ? "var(--mri-entry-ink, #173bd3)" : beat.ink } as CSSProperties}>
         <div className={styles.copy} data-mri-copy data-scroll-reveal={embedded && index !== 0 ? undefined : "copy"}>
           {studyOpening ? <>
             <h1 data-room-heading tabIndex={-1}>Study results</h1>

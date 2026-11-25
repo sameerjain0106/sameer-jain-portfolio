@@ -1,8 +1,7 @@
 .explorer {
   position: relative;
   padding-top: 82px;
-  background: #4965dc;
-  color: #fff9ed;
+  color: var(--mri-entry-ink, #fff9ed);
 }
 
 .floatingFrames {
@@ -89,7 +88,6 @@
 .studyTransition {
   position: relative;
   padding: 3px max(7vw, 22px) 42px;
-  background: linear-gradient(to bottom, transparent calc(100% - 24px), #f2ef9b);
 }
 
 .studyRail {

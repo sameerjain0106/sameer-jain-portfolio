@@ -1,11 +1,15 @@
 const frame = window.frameElement;
 const room = frame?.closest("[data-room-scroll]");
+const roomWindow = room?.ownerDocument.defaultView;
 
-if (room) {
+if (room && roomWindow) {
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const stage = document.querySelector(".scan-stage");
   const map = document.querySelector("[data-map-reveal]");
-  const beats = Array.from(document.querySelectorAll("[data-explorer-reveal]"), node => ({ node }));
+  const beats = Array.from(document.querySelectorAll("[data-explorer-reveal]"), node =>
+    node.matches(".figure-heading")
+      ? { node, entryStart: .79, entryEnd: .55, minimumOpacity: .10 }
+      : { node, entryStart: .98, entryEnd: .69, minimumOpacity: .22 });
   let frameRequest = 0;
   let dirty = true;
   let viewportHeight = 0;
@@ -48,8 +52,8 @@ if (room) {
     const scroll = room.scrollTop;
     const departure = smooth((scroll - stageTop + viewportHeight * .095) /
       Math.max(1, Math.min(viewportHeight, stageHeight) * .59)).toFixed(3);
-    const mapReveal = smooth((viewportHeight * .96 - (mapTop - scroll)) /
-      (viewportHeight * .55)).toFixed(3);
+    const mapReveal = smooth((viewportHeight * .78 - (mapTop - scroll)) /
+      (viewportHeight * .29)).toFixed(3);
     if (lastDeparture !== departure) {
       stage.style.setProperty("--scan-departure", departure);
       lastDeparture = departure;
@@ -62,9 +66,11 @@ if (room) {
     for (const beat of beats) {
       if (!beat.height) continue;
       const top = beat.top - scroll;
-      const entry = smooth((viewportHeight * .98 - top) / (viewportHeight * .29));
+      const entry = smooth((viewportHeight * beat.entryStart - top) /
+        (viewportHeight * (beat.entryStart - beat.entryEnd)));
       const exit = smooth((top + beat.height) / (viewportHeight * .22));
-      const opacity = ((.22 + .78 * entry) * (.56 + .44 * exit)).toFixed(3);
+      const opacity = ((beat.minimumOpacity + (1 - beat.minimumOpacity) * entry) *
+        (.56 + .44 * exit)).toFixed(3);
       const rise = `${((1 - entry) * 22).toFixed(1)}px`;
       if (beat.opacity !== opacity) {
         beat.opacity = opacity;
@@ -78,7 +84,7 @@ if (room) {
   }
 
   function schedule() {
-    if (!frameRequest && !motion.matches && !document.hidden) frameRequest = requestAnimationFrame(render);
+    if (!frameRequest && !motion.matches && !document.hidden) frameRequest = roomWindow.requestAnimationFrame(render);
   }
 
   function refresh() {
@@ -97,7 +103,7 @@ if (room) {
   motion.addEventListener("change", refresh);
   document.addEventListener("visibilitychange", refresh);
   window.addEventListener("pagehide", () => {
-    cancelAnimationFrame(frameRequest);
+    roomWindow.cancelAnimationFrame(frameRequest);
     frameRequest = 0;
   });
   window.addEventListener("pageshow", refresh);
