@@ -116,6 +116,18 @@ html[data-portfolio-framed], [data-portfolio-framed] body { overflow: hidden; }
 [data-portfolio-embed] .model-input-switch input:checked + span { background: #dce6fa; }
 [data-portfolio-embed] .research-use { margin-top: 16px; color: var(--muted); font-size: .83rem; }
 
+@media (prefers-reduced-motion: no-preference) {
+  [data-portfolio-framed] [data-explorer-reveal] {
+    opacity: var(--explorer-opacity, 1);
+    transform: translateY(var(--explorer-rise, 0px));
+  }
+
+  [data-portfolio-framed] [data-explorer-reveal]:focus-within {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 [data-portfolio-framed] .map-shell {
   --sea: #173bd3;
   background: var(--paper);

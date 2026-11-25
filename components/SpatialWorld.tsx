@@ -289,6 +289,13 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const up = () => { pressed.current = false; };
     const blur = () => { armed.current = false; pressed.current = false; cancelHold(); };
     const leave = (event: PointerEvent) => { if (!event.relatedTarget) blur(); };
+    const enterFrame = (event: PointerEvent) => {
+      // The parent receives pointerover at the frame boundary; moves inside it belong to the child document.
+      if (!event.isTrusted || event.pointerType !== "mouse" || !fine.matches ||
+          !(event.target instanceof HTMLIFrameElement) || !event.target.hasAttribute("data-no-dwell")) return;
+      armed.current = true;
+      cancelHold();
+    };
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerdown", down, { passive: true });
     window.addEventListener("pointerup", up, { passive: true });
@@ -297,6 +304,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     document.addEventListener("visibilitychange", blur);
     document.addEventListener("selectionchange", cancelHold);
     const node = root.current;
+    node?.addEventListener("pointerover", enterFrame, { passive: true });
     node?.addEventListener("scroll", scroll, { capture: true, passive: true });
     node?.addEventListener("wheel", scroll, { passive: true });
     return () => {
@@ -308,6 +316,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       window.removeEventListener("blur", blur);
       document.removeEventListener("visibilitychange", blur);
       document.removeEventListener("selectionchange", cancelHold);
+      node?.removeEventListener("pointerover", enterFrame);
       node?.removeEventListener("scroll", scroll, true);
       node?.removeEventListener("wheel", scroll);
     };

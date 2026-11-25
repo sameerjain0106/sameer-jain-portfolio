@@ -58,7 +58,8 @@
 .framePlane { --frame-beam: clamp(10px, 1.2vw, 20px); position: absolute; inset: 0; border: var(--frame-beam) solid var(--frame-face); border-right-color: var(--frame-side); border-bottom-color: var(--frame-side); border-radius: 5px; transform: rotateX(var(--frame-pitch)) rotateY(var(--frame-yaw)) rotateZ(var(--frame-roll)); transform-style: preserve-3d; box-shadow: 9px 12px 0 #111b393b; }
 .framePlane::before { content: ""; position: absolute; inset: calc(var(--frame-beam) * -1); border: var(--frame-beam) solid var(--frame-side); border-radius: inherit; transform: translate3d(11px, 13px, -18px); }
 .framePlane::after { content: ""; position: absolute; inset: calc(var(--frame-beam) * -1); border: 1px solid #fff6e88c; border-radius: inherit; transform: translateZ(1px); }
-.stage[data-ambient-running="true"] .frameFloat, .inlineArt[data-ambient-running="true"] .frameFloat { animation-play-state: running; }
+.stage[data-ambient-running="true"] .frameFloat, .inlineArt[data-ambient-running="true"] .frameFloat,
+[data-mri-explorer-frames][data-ambient-running="true"] .frameFloat { animation-play-state: running; }
 .scene[aria-hidden="true"] .frameFloat, .world[data-active="false"] .frameFloat { animation-play-state: paused; }
 @keyframes frameDrift {
   0%, 100% { transform: translate3d(0, 10px, 0) rotateY(-4deg); }

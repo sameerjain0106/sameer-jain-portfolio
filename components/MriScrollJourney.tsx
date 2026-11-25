@@ -9,7 +9,7 @@ import styles from "./MriScrollJourney.module.css";
 /** The original vertical research story, followed by its scroll-built method. */
 export default function MriScrollJourney({ active, scrollRoot }: { active: boolean; scrollRoot: HTMLElement | null }) {
   return <div className={styles.room} data-mri-journey data-story-axis="vertical">
-    <MriExplorerFrame scrollRoot={scrollRoot} />
+    <MriExplorerFrame active={active} scrollRoot={scrollRoot} />
     <PerceptionShowcase scrollRoot={scrollRoot} isActive={active} embedded />
     <MriPipeline active={active} scrollRoot={scrollRoot} />
     <section className={styles.methodNotes} data-project-methods="mri" data-room-surface aria-labelledby="mri-method-notes-title">

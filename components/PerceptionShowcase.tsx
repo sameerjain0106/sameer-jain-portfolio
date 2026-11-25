@@ -61,7 +61,7 @@ function SceneArt({ index, mobile = false }: { index: number; mobile?: boolean }
   </figure>;
 }
 
-function FrameArchitecture() {
+export function FrameArchitecture() {
   return <div className={styles.frameSculpture} aria-hidden="true">
     <div className={`${styles.frameFloat} ${styles.frameOne}`}><span className={styles.framePlane} /></div>
     <div className={`${styles.frameFloat} ${styles.frameTwo}`}><span className={styles.framePlane} /></div>
@@ -282,7 +282,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       <div className={styles.worldMark} aria-hidden="true"><span>{story[active].word}</span><span className={styles.worldProgress}><span data-mri-progress-bar /></span><span>{String(active + 1).padStart(2, "0")} / 06</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} data-world-beat={index} data-scene={beat.id} data-room-surface data-surface-flow ref={(element) => { beats.current[index] = element; }} className={`${styles.beat} ${styles[`beat${index}`]}`} style={{ "--beat-ground": beat.ground, "--beat-ink": beat.ink } as CSSProperties}>
-      <div className={styles.copy} data-mri-copy data-scroll-reveal={embedded ? undefined : "copy"}>
+      <div className={styles.copy} data-mri-copy data-scroll-reveal={embedded && index !== 0 ? undefined : "copy"}>
         <p className={styles.label}>{beat.label}</p>
         {index === 0 ? <h1 data-room-heading tabIndex={-1}><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h1> : <h2><span>{beat.title[0]}</span><span>{beat.title[1]}</span></h2>}
         <p className={styles.body}>{beat.body}</p>

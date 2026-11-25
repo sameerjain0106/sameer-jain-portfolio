@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { mriExplorerUrl } from "@/data/mriStory";
+import { useAmbientMotion } from "@/lib/useAmbientMotion";
+import { FrameArchitecture } from "./PerceptionShowcase";
 import styles from "./MriExplorerFrame.module.css";
 
 const maxFrameHeight = 16000;
 
-export default function MriExplorerFrame({ scrollRoot }: { scrollRoot: HTMLElement | null }) {
+export default function MriExplorerFrame({ active, scrollRoot }: { active: boolean; scrollRoot: HTMLElement | null }) {
   const frame = useRef<HTMLIFrameElement>(null);
+  const floatingFrames = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  useAmbientMotion(active, scrollRoot, floatingFrames);
 
   useEffect(() => {
     if (!scrollRoot) return;
@@ -56,10 +60,24 @@ export default function MriExplorerFrame({ scrollRoot }: { scrollRoot: HTMLEleme
     if (height !== null) scrollRoot?.dispatchEvent(new Event("spatial:entered"));
   }, [height, scrollRoot]);
 
+  function goToStudy(event: MouseEvent<HTMLAnchorElement>) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const study = scrollRoot?.querySelector<HTMLElement>("#work");
+    if (!scrollRoot || !study) return;
+    event.preventDefault();
+    const top = scrollRoot.scrollTop + study.getBoundingClientRect().top - scrollRoot.getBoundingClientRect().top;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    study.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
+    scrollRoot.scrollTo({ top, behavior: reducedMotion ? "instant" : "smooth" });
+  }
+
   return (
     <section className={styles.explorer} aria-labelledby="mri-explorer-heading" data-room-surface data-surface-positioned>
+      <div ref={floatingFrames} className={styles.floatingFrames} data-mri-explorer-frames aria-hidden="true">
+        <FrameArchitecture />
+      </div>
       <h2 id="mri-explorer-heading" data-room-heading tabIndex={-1} className={styles.srOnly}>Brain tumor MRI explorer</h2>
-      <a className={styles.skipLink} href="#work">Skip to the MRI study</a>
+      <a className={styles.skipLink} href="#work" onClick={goToStudy}>Skip to the MRI study</a>
       <div className={styles.frameSlot} data-ready={height !== null}>
         {height === null && (
           <div className={styles.placeholder}>
@@ -77,6 +95,9 @@ export default function MriExplorerFrame({ scrollRoot }: { scrollRoot: HTMLEleme
           height={height ?? 400}
           onLoad={() => frame.current?.contentWindow?.postMessage({ type: "mri-explorer:measure" }, window.location.origin)}
         />
+      </div>
+      <div className={styles.studyTransition}>
+        <a href="#work" onClick={goToStudy}>Read the study <span aria-hidden="true">↓</span></a>
       </div>
     </section>
   );
