@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 
 const scrollKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown", "Home", "End", " ", "Enter", "Escape"]);
+const wheelLerp = .19;
 
 /** Light wheel easing; the actual element scrollTop remains the animation clock. */
 export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | null) {
@@ -14,6 +15,9 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     let instance: Lenis | null = null;
     let frame = 0;
     let disposed = false;
+    let lastWheelTime = 0;
+    let wheelDirection = 0;
+    let recentTravel = 0;
 
     function stopFrames() {
       cancelAnimationFrame(frame);
@@ -23,6 +27,7 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
 
     function cancelInertia() {
       stopFrames();
+      lastWheelTime = wheelDirection = recentTravel = 0;
       // stop/start rebases the target on the browser's current position without
       // writing scrollTop. Keys, scrollbar dragging and anchors then stay native.
       instance?.stop();
@@ -65,8 +70,8 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
         eventsTarget: scroller!,
         smoothWheel: true,
         syncTouch: false,
-        lerp: .18,
-        wheelMultiplier: 1,
+        lerp: wheelLerp,
+        wheelMultiplier: 1.08,
         autoRaf: false,
         autoResize: true,
         anchors: false,
@@ -77,7 +82,8 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
           if (native) cancelInertia();
           return native;
         },
-        virtualScroll: ({ event, deltaY }) => {
+        virtualScroll: data => {
+          const { event, deltaY } = data;
           if (!(event instanceof WheelEvent) || event.ctrlKey || event.metaKey || event.shiftKey || !event.cancelable) {
             cancelInertia();
             return false;
@@ -89,6 +95,22 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
             cancelInertia();
             return false;
           }
+          const direction = Math.sign(deltaY);
+          if (wheelDirection && direction !== wheelDirection) cancelInertia();
+          wheelDirection = direction;
+          const elapsed = event.timeStamp - lastWheelTime;
+          lastWheelTime = event.timeStamp;
+          current.options.lerp = wheelLerp;
+          if (event.target instanceof Element && event.target.closest("#timeline[data-animated]") && event.deltaMode !== WheelEvent.DOM_DELTA_PAGE) {
+            // Extra travel comes from several quick wheel inputs. A lone notch
+            // and the tiny trailing deltas from a trackpad stay precise.
+            recentTravel = elapsed >= 0 && elapsed < 160 ? recentTravel * Math.exp(-elapsed / 150) : 0;
+            const pixels = Math.abs(deltaY);
+            const burst = Math.min(1, Math.max(0, (recentTravel - 85) / 305)) * Math.min(1, pixels / 45);
+            data.deltaY *= 1 + 2.4 * burst;
+            current.options.lerp = wheelLerp - .105 * burst;
+            recentTravel += Math.min(180, pixels);
+          } else recentTravel = 0;
           wake();
           return true;
         },
@@ -103,6 +125,8 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     finePointer.addEventListener("change", configure);
     reduced.addEventListener("change", configure);
     document.addEventListener("visibilitychange", configure);
+    window.addEventListener("popstate", cancelInertia);
+    window.addEventListener("hashchange", cancelInertia);
     scroller.addEventListener("keydown", onKey, true);
     scroller.addEventListener("pointerdown", onPointer, { passive: true });
 
@@ -112,6 +136,8 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
       finePointer.removeEventListener("change", configure);
       reduced.removeEventListener("change", configure);
       document.removeEventListener("visibilitychange", configure);
+      window.removeEventListener("popstate", cancelInertia);
+      window.removeEventListener("hashchange", cancelInertia);
       scroller.removeEventListener("keydown", onKey, true);
       scroller.removeEventListener("pointerdown", onPointer);
     };

@@ -61,6 +61,9 @@
   --stage-top: clamp(98px, 13svh, 134px);
   --journey-length: clamp(6200px, 1030svh, 11200px);
 }
+@media (hover: hover) and (pointer: fine) {
+  .timeline[data-animated] { --journey-length: clamp(5750px, 955svh, 10400px); }
+}
 .timeline[data-animated] .track::after { display: block; height: var(--journey-length); content: ""; }
 .timeline[data-animated] .stage { position: sticky; top: var(--stage-top); }
 .timeline[data-animated] .stops { display: grid; }

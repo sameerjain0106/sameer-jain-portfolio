@@ -1,4 +1,4 @@
-.entrance { overflow-wrap: break-word; }
+.entrance { position: relative; isolation: isolate; overflow-wrap: break-word; }
 .hero {
   position: relative;
   display: grid;
@@ -95,20 +95,16 @@
 .scrollCue span { font-size: 22px; }
 .about {
   position: relative;
-  margin-top: calc(-1 * clamp(74px, 10svh, 112px));
   display: grid; grid-template-columns: minmax(6rem, 1fr) minmax(0, 3.7fr); gap: 5vw;
-  align-content: start; padding: 0 max(10vw, 92px) clamp(80px, 14svh, 175px);
+  align-content: start; padding: clamp(18px, 3svh, 38px) max(10vw, 92px) clamp(80px, 14svh, 175px);
   color: #242d57;
-  /* The original hero's bottom link remains usable before this copy arrives. */
-  pointer-events: none;
 }
-.about [data-scene-reveal] { pointer-events: auto; }
-.about [data-scene-hidden] { pointer-events: none; }
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
   .about [data-scene-reveal="first"] { opacity: 0; }
 }
 .about h2, .contact h2 { margin: 0; font: 600 clamp(20px, 2.25vw, 36px)/1.1 var(--font-bricolage), sans-serif; letter-spacing: -.04em; }
 .about h2 { padding-top: .45em; }
+.about h2[id] { scroll-margin-top: clamp(122px, 20svh, 210px); }
 .aboutCopy > p:first-child {
   margin: 0; max-width: 24ch; font: 550 clamp(29px, 3.8vw, 67px)/1.08 var(--font-bricolage), sans-serif;
   letter-spacing: -.05em; text-wrap: pretty;
@@ -148,5 +144,5 @@
   .postmark { top: -12px; }
 }
 @media (prefers-reduced-motion: reduce), (scripting: none) {
-  .about { margin-top: 0; padding-top: clamp(60px, 9svh, 110px); }
+  .about { padding-top: clamp(60px, 9svh, 110px); }
 }

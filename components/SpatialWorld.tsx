@@ -34,7 +34,7 @@ const RoomPanel = memo(function RoomPanel({ id, active, entering, visible }: {
   const panel = useRef<HTMLElement | null>(null);
   const awaitingEntry = useRef(false);
   useAmbientMotion(active, undefined, panel);
-  useRoomSmoothScroll(active, id === "entrance" ? null : scrollRoot);
+  useRoomSmoothScroll(active, scrollRoot);
   useScrollChoreography(active, scrollRoot);
   useSceneBackdrop((id === "entrance" || id === "granted") && (active || entering), scrollRoot);
   useLayoutEffect(() => { if (entering) awaitingEntry.current = true; }, [entering]);

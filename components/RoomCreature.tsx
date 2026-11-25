@@ -51,6 +51,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
   const coordinates = useRef<SVGSVGElement>(null);
   const uid = useId().replace(/:/g, "");
   const resident = residents[room];
+  const continuous = host.hasAttribute("data-creature-host");
   const [bodyReady, setBodyReady] = useState(false);
   const [bodyFailed, setBodyFailed] = useState(false);
   // The ETF body is static artwork. An image lets Firefox cache its gradients
@@ -113,7 +114,8 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       if (width !== renderedWidth || height !== renderedHeight) {
         const viewBox = `0 0 ${width} ${height}`;
         drawing!.setAttribute("viewBox", viewBox); coordinateSpace!.setAttribute("viewBox", viewBox);
-        const scale = Math.max(width / 240, height / 220) * .96;
+        const fillScale = Math.max(width / 240, height / 220) * .96;
+        const scale = continuous ? Math.min(fillScale, width / 180) : fillScale;
         const offsetX = width * .5 - 120 * scale, offsetY = height * .52 - 110 * scale;
         artNode.setAttribute("transform", `translate(${offsetX} ${offsetY}) scale(${scale})`);
         node!.style.setProperty("--creature-scale", String(scale));
@@ -246,15 +248,16 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     const subscriber: CreatureSubscriber = { move, blink, reset };
     function configure() {
       reset();
-      const shown = visible && active && fine.matches && !reduced.matches && !document.hidden;
-      enabled = shown && focused;
+      const interactive = fine.matches && !reduced.matches;
+      const shown = visible && active && (continuous || interactive) && !document.hidden;
+      enabled = shown && interactive && focused;
       status("creatureVisible", shown); status("creatureEnabled", enabled); status("creatureIdleRunning", enabled);
       if (enabled) subscribers.add(subscriber); else subscribers.delete(subscriber);
       needsMeasure = true;
       if (shown) { measure(); paint(); }
       if (enabled && input.current.pointer.known) { status("creatureAwake", true); startAutomaticBlink(); schedule(); }
     }
-    function refresh() { needsMeasure = true; if (enabled) schedule(); else if (visible && active && fine.matches && !reduced.matches && !document.hidden) { measure(); paint(); } }
+    function refresh() { needsMeasure = true; if (enabled) schedule(); else if (visible && active && (continuous || (fine.matches && !reduced.matches)) && !document.hidden) measure(); }
     function blur() {
       // A control in the MRI frame can take focus while this tab stays focused.
       focused = room === "mri" && document.hasFocus();
@@ -274,7 +277,8 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     window.addEventListener("blur", blur);
     window.addEventListener("focus", focus);
     window.addEventListener("resize", refresh, { passive: true });
-    scroller.addEventListener("scroll", refresh, { passive: true });
+    // A whole-room pin stays in viewport coordinates as the content scrolls.
+    if (!continuous) scroller.addEventListener("scroll", refresh, { passive: true });
     document.addEventListener("visibilitychange", configure);
     fine.addEventListener("change", configure); reduced.addEventListener("change", configure);
     return () => {
@@ -285,9 +289,9 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       document.removeEventListener("visibilitychange", configure);
       fine.removeEventListener("change", configure); reduced.removeEventListener("change", configure);
     };
-  }, [host, room, active, paused, input]);
+  }, [host, room, active, paused, input, continuous]);
 
-  return <div ref={pin} className={styles.pin} aria-hidden="true"><div ref={root} className={styles.creature} data-room-creature={room} data-active={active} data-paused={paused} data-creature-visible="false" aria-hidden="true"
+  return <div ref={pin} className={styles.pin} data-continuous={continuous || undefined} aria-hidden="true"><div ref={root} className={styles.creature} data-room-creature={room} data-active={active} data-paused={paused} data-creature-visible="false" aria-hidden="true"
     style={{ "--creature-ink": resident.shade } as CSSProperties}>
     <div className={styles.idle} data-creature-idle={room}>
     <svg ref={svg} data-creature-drawing data-creature-body-mode={bodyReady ? "cached" : "vector"} viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" focusable="false">
@@ -342,7 +346,8 @@ export default function RoomCreature({ room, active, paused }: CreatureProps) {
     const discover = () => {
       const panel = world.querySelector<HTMLElement>(`[data-panel="${room}"]`);
       if (!panel) return false;
-      const hosts = Array.from(panel.querySelectorAll<HTMLElement>("[data-room-surface]"))
+      const continuous = panel.querySelector<HTMLElement>("[data-creature-host]");
+      const hosts = continuous ? [continuous] : Array.from(panel.querySelectorAll<HTMLElement>("[data-room-surface]"))
         .filter(host => !host.hasAttribute("data-surface-flow"));
       if (!hosts.length) return false;
       setPlacement({ room, hosts }); return true;

@@ -83,7 +83,6 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
         const value = String(Number(amount.toFixed(3)));
         if (node.style.opacity === value) return;
         node.style.opacity = value;
-        node.toggleAttribute("data-scene-hidden", amount < .05);
         node.style.translate = amount === 1 ? "none" : `0 ${((1 - amount) * 22).toFixed(2)}px`;
       });
     }

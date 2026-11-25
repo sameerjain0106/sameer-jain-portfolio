@@ -176,7 +176,7 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
     scrollRoot.scrollTo({ top, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }
 
-  return <div ref={room} className={styles.room}>
+  return <div ref={room} className={styles.room} data-creature-host>
     <section className={styles.hero} data-granted-hero data-scene-color="#ff987f" data-scene-ink="#282136" data-room-surface aria-labelledby="granted-title">
       <header className={styles.heroCopy}>
         <div className={styles.heroTitle}>

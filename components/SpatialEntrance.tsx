@@ -100,7 +100,7 @@ export default function SpatialEntrance({ active, scrollRoot }: {
     };
   }, [active, ambientEnabled, scrollRoot]);
 
-  return <div className={styles.entrance}>
+  return <div className={styles.entrance} data-creature-host>
     <section ref={hero} className={styles.hero} aria-labelledby="entrance-heading" data-room-surface data-scene-color="#cbc8f2">
     <noscript><style>{`.${styles.explorePrompt}{display:none!important}`}</style></noscript>
     <div ref={intro} className={styles.intro} data-entrance-intro data-scene-depart>

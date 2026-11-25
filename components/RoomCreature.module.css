@@ -1,5 +1,6 @@
 .controller { display: none; }
 .pin { position: absolute; left: 0; right: 0; top: calc(-1 * var(--resident-viewport-height, 100svh)); bottom: calc(-1 * var(--resident-viewport-height, 100svh)); z-index: -1; pointer-events: none; }
+.pin[data-continuous] { inset: 0; }
 .creature { position: sticky; top: 0; width: 100%; height: 100svh; pointer-events: none; user-select: none; overflow: hidden; opacity: .44; --creature-scale: 1; --idle-strength: 1; --idle-duration: 1; }
 .creature[data-paused="true"] { --idle-strength: .25; --idle-duration: 2.5; }
 .creature *, .creature svg { pointer-events: none; }
@@ -17,4 +18,8 @@
 @keyframes cerebralBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(calc(1 + .004 * var(--idle-strength)), calc(1 + .005 * var(--idle-strength))); } }
 @keyframes tickerRipple { 0%, 100% { transform: skewY(calc(-.07deg * var(--idle-strength))); } 50% { transform: translateY(calc(-.2px * var(--creature-scale) * var(--idle-strength))) skewY(calc(.13deg * var(--idle-strength))); } }
 @keyframes folderLift { 0%, 100% { transform: rotate(calc(-.1deg * var(--idle-strength))); } 50% { transform: translateY(calc(-.2px * var(--creature-scale) * var(--idle-strength))) rotate(calc(.15deg * var(--idle-strength))); } }
-@media (max-width: 899px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .creature { display: none; } .idle { animation: none; } }
+@media (max-width: 899px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .pin:not([data-continuous]) .creature { display: none; }
+  .pin[data-continuous] .creature { opacity: .30; }
+  .idle { animation: none; }
+}
