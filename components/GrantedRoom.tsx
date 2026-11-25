@@ -104,7 +104,7 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
         <h1 id="granted-title" tabIndex={-1} data-room-heading>Granted</h1>
         <p className={styles.intro}>I co-built a grant research and editing tool for AnnieCannons. It helps nonprofit teams find opportunities and check a proposed edit against the source document.</p>
         <div className={styles.roomLinks}>
-          <a className={styles.fileLink} href="https://granted-workspace-sj.vercel.app/" target="_blank" rel="noreferrer">Try Granted <span aria-hidden="true">↗</span></a>
+          <a className={styles.fileLink} href="https://granted-workspace-sj.vercel.app/" target="_blank" rel="noreferrer">Try Granted with fictional data <span aria-hidden="true">↗</span></a>
           <a className={styles.fileLink} href="#granted-file" onClick={openFile}>Follow a grant file <span aria-hidden="true">↓</span></a>
         </div>
       </header>
