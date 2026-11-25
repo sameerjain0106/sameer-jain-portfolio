@@ -43,7 +43,7 @@ const RoomPanel = memo(function RoomPanel({ id, active, entering, visible, navig
   const panel = useRef<HTMLElement | null>(null);
   const awaitingEntry = useRef(false);
   useAmbientMotion(active, undefined, panel);
-  useRoomSmoothScroll(active, scrollRoot);
+  useRoomSmoothScroll(active, id === "entrance" ? null : scrollRoot);
   useScrollChoreography(active, scrollRoot);
   useLayoutEffect(() => { if (entering) awaitingEntry.current = true; }, [entering]);
   useEffect(() => {
@@ -59,7 +59,7 @@ const RoomPanel = memo(function RoomPanel({ id, active, entering, visible, navig
     aria-label={rooms[id].label} className={styles.panel}
     ref={element => { panel.current = element; if (element) element.inert = !active; }}>
     <div ref={setScrollRoot} className={styles.scroller} data-room-scroll={id}>
-      {id === "entrance" && <SpatialEntrance active={contentActive} scrollRoot={scrollRoot} navigate={navigate} />}
+      {id === "entrance" && <SpatialEntrance active={contentActive} scrollRoot={scrollRoot} />}
       {id === "mri" && <MriScrollJourney active={contentActive} scrollRoot={scrollRoot} />}
       {id === "etf" && <SpatialEtfRoom active={contentActive} scrollRoot={scrollRoot} />}
       {id === "profile" && <ProfileRoom active={contentActive} scrollRoot={scrollRoot} />}
@@ -369,7 +369,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
         </a>;
       })}
     </nav>
-    <p className={styles.srOnly} role="status" aria-live="polite">{!traveling ? `${current.label}. Scroll to explore this room.` : ""}</p>
+    <p className={styles.srOnly} role="status" aria-live="polite">{!traveling && (world.room === "entrance" ? "Entrance. Choose an adjacent room." : `${current.label}. Scroll to explore this room.`)}</p>
     <dialog ref={dialog} className={styles.map} aria-labelledby="map-title" onCancel={event => { event.preventDefault(); closeMap(); }} onClick={event => { if (event.target === event.currentTarget) closeMap(); }} onKeyDown={event => {
       if (event.key !== "Tab") return;
       const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button:not([disabled]), a[href]"));
@@ -388,7 +388,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
             <span>{id === world.room ? "You are here" : rooms[id].short}</span><strong>{rooms[id].label}</strong><span aria-hidden="true">{id === "entrance" ? "⊙" : "↗"}</span>
           </a>)}
         </div>
-        <p className={styles.mapFoot}>Move to an edge and hold to travel. Or use the room links.<br />Scroll vertically inside each room. <kbd>Esc</kbd> closes this map.</p>
+        <p className={styles.mapFoot}>Move to an edge and hold to travel, or use the room links.<br /><kbd>Esc</kbd> closes this map.</p>
         <button className={styles.motionToggle} onClick={toggleIdle} disabled={reduced} aria-pressed={idlePaused}>
           {reduced ? "Idle motion off · reduced-motion preference" : idlePaused ? "Full background motion" : "Calmer background motion"}
         </button>

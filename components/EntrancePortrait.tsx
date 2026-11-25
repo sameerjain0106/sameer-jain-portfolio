@@ -33,15 +33,17 @@ export default function EntrancePortrait({ active, scrollRoot }: {
     };
     const update = () => {
       if (disposed) return;
-      player.playbackRate = reduced.matches || !ambientEnabled ? .55 : 1;
       if (!visible || document.hidden) {
         clearRetry();
         player.pause();
         return;
       }
+      const rate = reduced.matches || !ambientEnabled ? .55 : 1;
+      player.defaultPlaybackRate = rate;
       if (!player.hasAttribute("src")) {
         player.src = VIDEO;
       }
+      player.playbackRate = rate;
       player.muted = true;
       // Recover from restrictive autoplay policies on the next normal interaction.
       void player.play().then(clearRetry).catch(retryOnGesture);
@@ -69,10 +71,10 @@ export default function EntrancePortrait({ active, scrollRoot }: {
     };
   }, [active, scrollRoot, ambientEnabled, failed]);
 
-  return <figure className={styles.portrait} data-entrance-portrait data-scroll-reveal="portrait">
+  return <figure className={styles.portrait} data-entrance-portrait>
     <div className={styles.portraitFrame}>
       {failed ? <Image src="/images/entrance-animation-v6.jpg" alt="Codex-faced figure beside Sameer in an edited portrait collage."
-        width={624} height={856} sizes="(max-width: 650px) 90vw, (max-width: 800px) 360px, 420px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
+        width={624} height={856} sizes="(max-width: 650px) calc(100vw - 94px), 448px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
         poster="/images/entrance-animation-v6.jpg"
         aria-label="Looping portrait of a Codex-faced figure and Sameer, with moving arms, swaying hair, and blinking eyes."
         onError={() => setFailed(true)} />}

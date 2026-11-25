@@ -28,6 +28,7 @@
 .scroller::-webkit-scrollbar { width: 7px; }
 .scroller::-webkit-scrollbar-track { background: transparent; }
 .scroller::-webkit-scrollbar-thumb { background: #5d629a55; }
+.scroller[data-room-scroll="entrance"] { overflow: clip; }
 .header { position: absolute; z-index: 20; inset: 22px 30px auto; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
 .header > * { pointer-events: auto; }
 .signature { display: flex; align-items: flex-start; gap: 4px; height: 44px; width: 60px; color: #172456; background: #f5f4d9; border-radius: 14px 3px 14px 3px; padding: 0 11px; font: 800 30px/.95 var(--font-bricolage), sans-serif; text-decoration: none; transform: rotate(-5deg); }
