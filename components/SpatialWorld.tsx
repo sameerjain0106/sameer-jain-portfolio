@@ -267,7 +267,8 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       } else holdFrame.current = requestAnimationFrame(tick);
     };
     const move = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse" || !fine.matches) return;
+      // Only native pointer motion can arm or cancel edge travel.
+      if (!event.isTrusted || event.pointerType !== "mouse" || !fine.matches) return;
       const gate = (event.target as Element)?.closest<HTMLElement>("[data-edge]");
       const edge = (gate?.dataset.edge as Direction | undefined) ?? edgeAt(event.clientX, event.clientY);
       if (!edge) { armed.current = true; cancelHold(); return; }
