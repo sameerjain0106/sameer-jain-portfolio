@@ -4,25 +4,33 @@ import { useEffect, useRef } from "react";
 import styles from "./EntranceTimeline.module.css";
 
 const stops = [
-  { date: "College", title: "Georgia Tech", description: "I started studying Industrial Engineering at Georgia Tech, with an interest in statistics and how people make decisions with data.", landmark: "campus", x: 265 },
-  { date: "Spring 2025", title: "CS 2316", description: "I took Data Manipulation for Science and Industry and learned to work through a dataset from the raw input to the result.", landmark: "course", x: 580 },
-  { date: "Summer 2025", title: "Back in CS 2316 as a TA", description: "I came back to the same course to help students debug assignments and understand why their code behaved the way it did.", landmark: "teaching", x: 840 },
-  { date: "Fall 2025", title: "Databases", description: "I studied relational databases and how data models and queries shape the systems that use them.", landmark: "database", x: 1140 },
-  { date: "Spring 2026", title: "Machine learning coursework", description: "My coursework included 4600, 3803, and other classes in machine learning and language models. My brain tumor MRI project explored classification, clustering, and anomaly detection.", landmark: "research", x: 1445, href: "/?room=mri", link: "Brain tumor MRI project" },
-  { date: "Summer 2026", title: "AT&T", description: "I automated ingestion of more than 25 million financial records from Azure SQL into Snowflake and built forecasting workflows.", landmark: "network", x: 1745 },
-  { date: "Fall 2026", title: "Senior design and Granted", description: "I started senior design and co-built Granted, a grant research tool that won first place in the AnnieCannons challenge at JPMorgan Chase’s Data for Good hackathon.", landmark: "workshop", x: 2045, href: "/?room=granted", link: "Granted case study" },
-  { date: "Spring 2027", title: "Delta Air Lines", description: "I’m planning to join Delta for the spring term.", landmark: "terminal", x: 2340, upcoming: true },
-  { date: "Summer 2027", title: "JPMorgan Chase", description: "I’m planning to join JPMorgan Chase for the summer.", landmark: "tower", x: 2630, upcoming: true },
-  { date: "Fall 2027", title: "Return to Delta", description: "I’m planning to return to Delta in the fall.", landmark: "terminalReturn", x: 2920, upcoming: true },
+  { date: "College", title: "Georgia Tech", description: "I started studying Industrial Engineering at Georgia Tech, with an interest in statistics and how people make decisions with data.", landmark: "campus", x: 880 },
+  { date: "Spring 2025", title: "CS 2316", description: "I took Data Manipulation for Science and Industry and learned to work through a dataset from the raw input to the result.", landmark: "course", x: 1557 },
+  { date: "Summer 2025", title: "Back in CS 2316 as a TA", description: "I came back to the same course to help students debug assignments and understand why their code behaved the way it did.", landmark: "teaching", x: 2116 },
+  { date: "Fall 2025", title: "Databases", description: "I studied relational databases and how data models and queries shape the systems that use them.", landmark: "database", x: 2761 },
+  { date: "Spring 2026", title: "Machine learning coursework", description: "My coursework included 4600, 3803, and other classes in machine learning and language models. My brain tumor MRI project explored classification, clustering, and anomaly detection.", landmark: "research", x: 3417, href: "/?room=mri", link: "Brain tumor MRI project" },
+  { date: "Summer 2026", title: "AT&T", description: "I automated ingestion of more than 25 million financial records from Azure SQL into Snowflake and built forecasting workflows.", landmark: "network", x: 4062 },
+  { date: "Fall 2026", title: "Senior design and Granted", description: "I started senior design and co-built Granted, a grant research tool that won first place in the AnnieCannons challenge at JPMorgan Chase’s Data for Good hackathon.", landmark: "workshop", x: 4707, href: "/?room=granted", link: "Granted case study" },
+  { date: "Spring 2027", title: "Delta Air Lines", description: "I’m planning to join Delta for the spring term.", landmark: "terminal", x: 5341, upcoming: true },
+  { date: "Summer 2027", title: "JPMorgan Chase", description: "I’m planning to join JPMorgan Chase for the summer.", landmark: "tower", x: 5965, upcoming: true },
+  { date: "Fall 2027", title: "Return to Delta", description: "I’m planning to return to Delta in the fall.", landmark: "terminalReturn", x: 6588, upcoming: true },
 ] as const;
 
 type Landmark = (typeof stops)[number]["landmark"];
 type TimelineStop = (typeof stops)[number];
 
-const worldWidth = 3250;
-const viewWidth = 760;
-const viewHeight = 500;
-const walkStep = 42;
+const worldWidth = stops[stops.length - 1].x + 880;
+const roadHeight = [350, 334, 350, 335, 354, 340, 354, 333, 349, 338];
+const viewHeight = 340;
+const walkStep = 182;
+const lastStop = stops.length - 1;
+const clamp = (value: number, low = 0, high = 1) => Math.max(low, Math.min(high, value));
+const ease = (t: number) => t * t * (3 - 2 * t);
+const road = stops.slice(1).reduce((path, stop, i) => {
+  const start = stops[i].x;
+  const third = (stop.x - start) / 3;
+  return `${path} C${start + third} ${roadHeight[i]}, ${stop.x - third} ${roadHeight[i+1]}, ${stop.x} ${roadHeight[i+1]}`;
+}, `M0 ${roadHeight[0]} H${stops[0].x}`) + ` H${worldWidth}`;
 
 function LandmarkArt({ kind }: { kind: Landmark }) {
   switch (kind) {
@@ -136,15 +144,13 @@ function LandmarkArt({ kind }: { kind: Landmark }) {
 }
 
 function EntranceMap() {
-  const road = "M 128,350 C 243,332 304,374 411,356 S 593,321 706,345 S 900,372 1013,341 S 1227,325 1347,353 S 1565,368 1691,341 S 1897,329 2028,351 S 2252,358 2365,331 S 2578,327 2697,350 S 2893,365 3082,328";
-
-  return <svg className={styles.art} data-timeline-map viewBox={`0 0 ${viewWidth} ${viewHeight}`} aria-hidden="true" focusable="false">
+  return <svg className={styles.art} data-timeline-map viewBox={`${stops[0].x - 500} 112 1000 ${viewHeight}`} aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id="timeline-sky" x2="0" y2="1"><stop stopColor="#faf1dc" /><stop offset="1" stopColor="#e7e5f3" /></linearGradient>
+      {stops.map(stop => <g id={`timeline-icon-${stop.landmark}`} key={stop.landmark}><LandmarkArt kind={stop.landmark} /></g>)}
       <pattern id="timeline-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0v24" fill="none" stroke="#747da3" strokeOpacity=".23" /></pattern>
       <pattern id="timeline-cut" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0v9" stroke="#8b8098" strokeOpacity=".23" strokeWidth="2" /></pattern>
     </defs>
-    <path d={`M0 0H${worldWidth}V500H0Z`} fill="url(#timeline-sky)" />
+    <g transform={`scale(${worldWidth / 3250} 1)`}>
     <g fill="none" stroke="#b8b3cf" strokeWidth="1.3" opacity=".71">
       <path d="M0 168c190-14 270-108 417-30S626 173 738 126s181-53 257 5 238 58 364-12 182-4 286 30 213 50 302-7 211-70 358-13 213 21 365-34 372-1 580 38" />
       <path d="M0 181c191-22 260-96 419-28s209 37 322-12 168-41 252 12 223 63 369-13 184-3 285 27 217 41 305-13 215-59 354-5 208 15 363-39 375 4 581 40" />
@@ -157,17 +163,25 @@ function EntranceMap() {
     <path d="M-45 341 72 238l3023 1 170 73-142 90H75Z" fill="url(#timeline-grid)" />
     <path d="M0 380 77 417h3048l125-50M0 399l81 33h3043l126-48" fill="none" stroke="#a098b4" strokeWidth="1.1" />
     <path d="M75 448h3051" stroke="#a49bb7" strokeWidth="1" strokeDasharray="2 22" />
-    {stops.map((stop, index) => <g key={stop.landmark} transform={`translate(${stop.x} ${index % 3 === 1 ? 282 : 292})`}>
+    </g>
+    {stops.slice(1).map((stop, index) => <g key={stop.landmark} transform={`translate(${(stop.x + stops[index].x) / 2} ${266 + index % 3 * 7})`} aria-hidden="true">
+      <path d="m-46 11 34-13 45 2 16 9-31 11z" fill="#c3c9c4" />
+      <g fill="#89a48f" stroke="#587d72" strokeWidth="1.4">
+        <path d="m-16 5 12-36 10 35z" /><path d="m0 8 15-47 12 45z" />
+        <path d="M-4-5V9M14-6v17" stroke="#6b6279" strokeWidth="2.4" />
+      </g>
+    </g>)}
+    {stops.map((stop, index) => <g key={stop.landmark} data-timeline-landmark={stop.landmark} transform={`translate(${stop.x} ${index % 3 === 1 ? 282 : 292})`}>
       <path d="m-118 37 55-43H81l49 21-45 28H-97Z" fill={index < 3 ? "#c8c9df" : index < 7 ? "#b9cec6" : "#c9c9db"} stroke="#7e82a2" strokeWidth="1" />
       <path d="m-114 38 21 10H86l44-28v-5L85 43H-97Z" fill="#8586ac" />
       <path d="M-112-9v36m-6-6h12m226-25v33m-6-6h12" stroke="#8a83a9" strokeWidth="1.4" />
-      <LandmarkArt kind={stop.landmark} />
+      <use href={`#timeline-icon-${stop.landmark}`} />
     </g>)}
     <path d={road} stroke="#fcf4e1" strokeWidth="15" fill="none" strokeLinecap="round" />
     <path d={road} stroke="#8f89a7" strokeWidth="2" fill="none" strokeLinecap="round" strokeDasharray="1 7" />
     <path d={road} data-timeline-road pathLength="1" stroke="#4c60b5" strokeWidth="3" strokeDasharray="1" strokeDashoffset="1" fill="none" strokeLinecap="round" />
     <g data-timeline-pins fill="#fff3db" stroke="#6c6d9d" strokeWidth="1.5">
-      {stops.map(stop => <circle key={stop.landmark} cx={stop.x} cy="350" r="4" />)}
+      {stops.map((stop, i) => <circle key={stop.landmark} cx={stop.x} cy={roadHeight[i]} r="4" />)}
     </g>
     <g data-timeline-walker transform={`translate(${stops[0].x} 345)`}>
       <ellipse cx="0" cy="1" rx="18" ry="4.5" fill="#222751" opacity=".21" />
@@ -182,164 +196,181 @@ function EntranceMap() {
         <path d="M8-46h2m3 0h2" stroke="#30284a" strokeWidth="1.7" strokeLinecap="round" />
       </g>
     </g>
-    <g fill="#887697" opacity=".92">
-      <path d="m659 356 4 21 7 3-5-26m7 0 4 20 5 2-4-23m1251-8 3 20 7 2-4-24m12 0 4 19 5 2-4-22m409-1 3 24 6 1-3-25m8 0 4 22 5 1-4-23" />
-    </g>
+    {stops.slice(1).map((stop,i) => <path key={stop.landmark} transform={`translate(${stop.x - 210} ${365 + i % 3 * 3})`} d="m0 0 4 17 6 2-4-20m6-1 3 15 5 2-3-17" fill="#887697" />)}
   </svg>;
-}
-
-function getProgress(offset: number, points: number[]) {
-  const last = points.length - 1;
-  if (offset >= points[last]) return last;
-  const next = points.findIndex(point => point > offset);
-  if (next <= 0) return 0;
-  return next - 1 + (offset - points[next - 1]) / (points[next] - points[next - 1]);
 }
 
 export default function EntranceTimeline({ active, scrollRoot }: { active: boolean; scrollRoot: HTMLElement | null }) {
   const section = useRef<HTMLElement>(null);
-  const plate = useRef<HTMLDivElement>(null);
-  const list = useRef<HTMLOListElement>(null);
-  const caption = useRef<HTMLSpanElement>(null);
-  const date = useRef<HTMLSpanElement>(null);
+  const track = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const navigate = useRef<(stop: number) => void>(() => {});
 
   useEffect(() => {
-    const journey = section.current;
-    const stage = plate.current;
-    const text = list.current;
-    if (!active || !scrollRoot || !journey || !stage || !text) return;
+    const root = scrollRoot;
+    const timeline = section.current;
+    const runway = track.current;
+    const scene = stage.current;
+    if (!active || !root || !timeline || !runway || !scene) return;
 
-    const map = stage.querySelector<SVGSVGElement>("[data-timeline-map]")!;
-    const road = map.querySelector<SVGPathElement>("[data-timeline-road]")!;
+    const map = scene.querySelector<SVGSVGElement>("[data-timeline-map]")!;
+    const route = map.querySelector<SVGPathElement>("[data-timeline-road]")!;
     const walker = map.querySelector<SVGGElement>("[data-timeline-walker]")!;
     const figure = map.querySelector<SVGGElement>("[data-timeline-person]")!;
-    const nearLeg = figure.querySelector<SVGPathElement>("[data-timeline-near-leg]")!;
-    const farLeg = figure.querySelector<SVGPathElement>("[data-timeline-far-leg]")!;
+    const near = figure.querySelector<SVGPathElement>("[data-timeline-near-leg]")!;
+    const far = figure.querySelector<SVGPathElement>("[data-timeline-far-leg]")!;
     const arm = figure.querySelector<SVGPathElement>("[data-timeline-arm]")!;
-    const pins = map.querySelectorAll<SVGCircleElement>("[data-timeline-pins] circle");
-    const moments = Array.from(text.querySelectorAll<HTMLElement>("[data-timeline-stop]"));
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    const compact = matchMedia("(max-width: 860px)");
-    const length = road.getTotalLength();
-    const landmarkDistances = stops.map(stop => {
-      let left = 0, right = length;
-      for (let i = 0; i < 14; i++) {
-        const middle = (left + right) / 2;
-        if (road.getPointAtLength(middle).x < stop.x) left = middle;
-        else right = middle;
-      }
-      return (left + right) / 2;
-    });
-    pins.forEach((pin, index) => pin.setAttribute("cy", road.getPointAtLength(landmarkDistances[index]).y.toFixed(2)));
-    let frame = 0;
+    const labels = Array.from(scene.querySelectorAll<HTMLElement>("[data-timeline-stop]"));
+    const buttons = Array.from(scene.querySelectorAll<HTMLButtonElement>("[data-timeline-jump]"));
+    // Short windows and reduced motion use the printed edition of the same illustrated stops.
+    const animated = matchMedia("(min-height: 551px) and (prefers-reduced-motion: no-preference)");
     let visible = false;
     let dirty = true;
-    let priorProgress = -1;
-    let priorIndex = -1;
-    let points: number[] = [];
+    let instant = true;
+    let raf = 0;
+    let lastTime = 0;
+    let visual = 0;
+    let lastPaint = -1;
+    let selected = -1;
+    let start = 0;
+    let span = 1;
+    let width = 900;
 
     function measure() {
-      const viewport = scrollRoot!.getBoundingClientRect();
-      const cue = compact.matches ? viewport.height * .7 : viewport.height * .54;
-      const documentTop = viewport.top - scrollRoot!.scrollTop;
-      points = moments.map(moment => moment.getBoundingClientRect().top - documentTop + moment.offsetHeight * .5 - cue);
+      const pinTop = parseFloat(getComputedStyle(scene!).top) || 0;
+      start = root!.scrollTop + runway!.getBoundingClientRect().top - root!.getBoundingClientRect().top - pinTop;
+      span = Math.max(1, runway!.offsetHeight - scene!.offsetHeight);
+      width = viewHeight * map.clientWidth / Math.max(1, map.clientHeight);
       dirty = false;
+      lastPaint = -1;
     }
 
-    function draw() {
-      frame = 0;
-      if (!visible || document.hidden) return;
+    function draw(now: number) {
+      raf = 0;
+      if (!visible || document.hidden || !animated.matches) return;
       if (dirty) measure();
-      const progress = motion.matches ? 0 : getProgress(scrollRoot!.scrollTop, points);
-      if (progress === priorProgress) return;
-      priorProgress = progress;
-      const from = Math.floor(progress);
-      const fraction = progress - from;
-      const distance = landmarkDistances[from] + ((landmarkDistances[from + 1] ?? landmarkDistances[from]) - landmarkDistances[from]) * fraction;
-      const point = road.getPointAtLength(distance);
-      const width = compact.matches ? 520 : viewWidth;
-      const height = compact.matches ? 345 : viewHeight;
-      const camera = Math.max(0, Math.min(worldWidth - width, point.x - width * .43));
-      const swing = Math.sin((distance - landmarkDistances[0]) * 2 * Math.PI / walkStep);
-      const rise = Math.abs(swing) * 2;
-      map.setAttribute("viewBox", `${camera.toFixed(2)} ${compact.matches ? 111 : 0} ${width} ${height}`);
-      road.setAttribute("stroke-dashoffset", (1 - distance / length).toFixed(4));
-      walker.setAttribute("transform", `translate(${point.x.toFixed(2)} ${point.y.toFixed(2)})`);
-      figure.setAttribute("transform", `translate(0 ${(-rise).toFixed(2)})`);
-      nearLeg.setAttribute("transform", `rotate(${(swing * 24).toFixed(2)} 4 -23)`);
-      farLeg.setAttribute("transform", `rotate(${(-swing * 24).toFixed(2)} 0 -23)`);
-      arm.setAttribute("transform", `rotate(${(-swing * 18).toFixed(2)} 3 -37)`);
+      // A small hold at either end lets both the first and the last sign settle before the stage unpins.
+      const target = clamp((root!.scrollTop - start) / span * (lastStop + .6) - .3, 0, lastStop);
+      const delta = target - visual;
+      const dt = lastTime ? clamp(now - lastTime, 1, 40) : 16;
+      lastTime = now;
+      if (instant || Math.abs(delta) > 1.15 || Math.abs(delta) < .00015) visual = target;
+      else visual += delta * (1 - Math.exp(-dt / 105));
+      instant = false;
+      if (visual !== lastPaint) {
+        const from = Math.min(lastStop - 1, Math.floor(visual));
+        const local = visual - from;
+        const travel = ease(clamp((local - .07) / .86));
+        const x = stops[from].x + (stops[from+1].x - stops[from].x) * travel;
+        const y = roadHeight[from] + (roadHeight[from+1] - roadHeight[from]) * ease(travel);
+        const camera = clamp(x - width * .5, 0, Math.max(0, worldWidth - width));
+        map!.setAttribute("viewBox", `${camera.toFixed(2)} 112 ${width.toFixed(2)} ${viewHeight}`);
+        route!.setAttribute("stroke-dashoffset", (1 - x / worldWidth).toFixed(5));
+        walker!.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+        const swing = Math.sin((x - stops[from].x) * Math.PI * 2 / walkStep) * Math.min(1, travel * 12, (1 - travel) * 12);
+        figure!.setAttribute("transform", `translate(0 ${(-Math.abs(swing) * 1.2).toFixed(2)})`);
+        near!.setAttribute("transform", `rotate(${(swing * 21).toFixed(2)} 4 -23)`);
+        far!.setAttribute("transform", `rotate(${(-swing * 21).toFixed(2)} 0 -23)`);
+        arm!.setAttribute("transform", `rotate(${(-swing * 14).toFixed(2)} 3 -37)`);
 
-      const current = Math.round(progress);
-      if (current === priorIndex) return;
-      if (priorIndex >= 0) moments[priorIndex].removeAttribute("data-current");
-      moments[current].setAttribute("data-current", "true");
-      stage!.setAttribute("data-timeline-chapter", stops[current].landmark);
-      caption.current!.textContent = stops[current].title;
-      date.current!.textContent = stops[current].date;
-      priorIndex = current;
+        const next = Math.round(visual);
+        if (selected !== next) {
+          if (selected >= 0) {
+            labels[selected].removeAttribute("data-current");
+            labels[selected].inert = true;
+            buttons[selected].removeAttribute("aria-current");
+          }
+          selected = next;
+          labels[next].dataset.current = "true";
+          labels[next].inert = false;
+          buttons[next].setAttribute("aria-current", "step");
+          scene!.dataset.timelineChapter = stops[next].landmark;
+        }
+        // Fade the old sign away before the incoming chapter can show through.
+        const opacity = ease(clamp((.5 - Math.abs(visual - next)) / .19));
+        labels[next].style.opacity = opacity.toFixed(3);
+        lastPaint = visual;
+      }
+      if (visual !== target) schedule();
+      else lastTime = 0;
     }
-
     function schedule() {
-      if (visible && !frame && !document.hidden) frame = requestAnimationFrame(draw);
+      if (visible && !raf && !document.hidden && animated.matches) raf = requestAnimationFrame(draw);
     }
     function refresh() {
       dirty = true;
-      priorProgress = -1;
+      instant = true;
       schedule();
     }
-
-    const observer = new IntersectionObserver(entries => {
-      visible = entries[0].isIntersecting;
+    function configure() {
+      timeline!.toggleAttribute("data-animated", animated.matches);
+      selected = animated.matches ? 0 : -1;
+      labels.forEach((label, index) => {
+        label.inert = animated.matches && index !== 0;
+        label.toggleAttribute("data-current", index === 0);
+        label.style.removeProperty("opacity");
+      });
+      buttons.forEach(button => button.removeAttribute("aria-current"));
+      if (animated.matches) buttons[0].setAttribute("aria-current", "step");
+      scene!.dataset.timelineChapter = stops[0].landmark;
+      refresh();
+    }
+    navigate.current = index => {
+      if (!animated.matches) return;
+      if (dirty) measure();
+      instant = true;
+      root.scrollTo({ top: start + span * (index + .3) / (lastStop + .6), behavior: "instant" });
+      schedule();
+    };
+    configure();
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
       if (visible) refresh();
-      else {
-        cancelAnimationFrame(frame);
-        frame = 0;
-      }
-    }, { root: scrollRoot, rootMargin: "100px 0px" });
-    observer.observe(journey);
+      else { cancelAnimationFrame(raf); raf = lastTime = 0; }
+    }, { root, rootMargin: "96px 0px" });
+    observer.observe(runway);
     const resize = new ResizeObserver(refresh);
-    resize.observe(text);
-    resize.observe(stage);
-    resize.observe(scrollRoot);
-    scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    resize.observe(root);
+    resize.observe(scene);
+    resize.observe(runway);
+    root.addEventListener("scroll", schedule, { passive: true });
     document.addEventListener("visibilitychange", refresh);
-    motion.addEventListener("change", refresh);
-    compact.addEventListener("change", refresh);
-
+    animated.addEventListener("change", configure);
     return () => {
-      cancelAnimationFrame(frame);
       observer.disconnect();
       resize.disconnect();
-      scrollRoot.removeEventListener("scroll", schedule);
+      root.removeEventListener("scroll", schedule);
       document.removeEventListener("visibilitychange", refresh);
-      motion.removeEventListener("change", refresh);
-      compact.removeEventListener("change", refresh);
+      animated.removeEventListener("change", configure);
+      cancelAnimationFrame(raf);
+      navigate.current = () => {};
+      // Retain the rendered scene during the outgoing room slide.
     };
   }, [active, scrollRoot]);
 
-  return <section className={styles.timeline} id="timeline" tabIndex={-1} ref={section} aria-labelledby="entrance-timeline-title">
-    <div className={styles.heading}>
-      <h2 id="entrance-timeline-title">Experience</h2>
-      <p>Classes, research, and internships from Georgia Tech onward.</p>
-    </div>
-    <div className={styles.layout}>
-      <div className={styles.sticky} aria-hidden="true">
-        <div className={styles.plate} ref={plate}>
-          <div className={styles.viewport}><EntranceMap /></div>
-          <div className={styles.caption}><span ref={date}>{stops[0].date}</span><span ref={caption}>{stops[0].title}</span></div>
-        </div>
-      </div>
-      <ol ref={list} className={styles.stops}>
-        {stops.map((stop: TimelineStop) => <li className={styles.stop} key={stop.landmark} data-timeline-stop={stop.landmark}>
-          <div className={styles.stopCopy}>
-            <span className={styles.date}>{stop.date}{"upcoming" in stop && <span className={styles.upcoming}>Upcoming</span>}</span>
+  return <section className={styles.timeline} id="timeline" tabIndex={-1} ref={section} data-scene-color="#ebe2ef" aria-labelledby="entrance-timeline-title">
+    <h2 id="entrance-timeline-title" data-scene-reveal className={styles.heading}>Experience</h2>
+    <div ref={track} className={styles.track}>
+      <div className={styles.stage} ref={stage} data-timeline-chapter={stops[0].landmark}>
+        <ol className={styles.stops}>
+          {stops.map((stop: TimelineStop) => <li className={styles.stop} key={stop.landmark} data-timeline-stop={stop.landmark}>
+            <svg className={styles.still} viewBox="-135 -166 270 218" aria-hidden="true" focusable="false">
+              <path d="m-127 32 67-34H79l49 22-56 27H-87Z" fill="#d5cfdf"/>
+              <use href={`#timeline-icon-${stop.landmark}`}/>
+            </svg>
+            <div className={styles.date}>{stop.date}{"upcoming" in stop && <span>Upcoming</span>}</div>
             <h3>{stop.title}</h3>
             <p>{stop.description}</p>
-            {"href" in stop && <a href={stop.href}>{stop.link}</a>}
-          </div>
-        </li>)}
-      </ol>
+            {"href" in stop && <a href={stop.href}>{stop.link}<span aria-hidden="true">&nbsp;↗</span></a>}
+          </li>)}
+        </ol>
+        <div className={styles.viewport}><EntranceMap /></div>
+        <nav className={styles.markers} aria-label="Experience timeline milestones">
+          {stops.map((stop, index) => <button type="button" key={stop.landmark} data-timeline-jump={stop.landmark}
+            aria-label={`${stop.date} · ${stop.title}`} title={`${stop.date} · ${stop.title}`}
+            onClick={() => navigate.current(index)}><i aria-hidden="true"/></button>)}
+        </nav>
+      </div>
     </div>
   </section>;
 }

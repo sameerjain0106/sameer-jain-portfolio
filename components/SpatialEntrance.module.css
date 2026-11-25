@@ -10,7 +10,6 @@
   height: 100svh;
   padding: clamp(48px, 8svh, 88px) max(8vw, 82px);
   overflow: clip;
-  background: #cbc8f2;
   color: #1d35a3;
 }
 
@@ -95,9 +94,18 @@
 }
 .scrollCue span { font-size: 22px; }
 .about {
+  position: relative;
+  margin-top: calc(-1 * clamp(74px, 10svh, 112px));
   display: grid; grid-template-columns: minmax(6rem, 1fr) minmax(0, 3.7fr); gap: 5vw;
-  align-content: center; padding: clamp(76px, 13vh, 162px) max(10vw, 92px);
-  background: #fff3db; color: #242d57; border-top: 1px solid #242d57;
+  align-content: start; padding: 0 max(10vw, 92px) clamp(80px, 14svh, 175px);
+  color: #242d57;
+  /* The original hero's bottom link remains usable before this copy arrives. */
+  pointer-events: none;
+}
+.about [data-scene-reveal] { pointer-events: auto; }
+.about [data-scene-hidden] { pointer-events: none; }
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .about [data-scene-reveal="first"] { opacity: 0; }
 }
 .about h2, .contact h2 { margin: 0; font: 600 clamp(20px, 2.25vw, 36px)/1.1 var(--font-bricolage), sans-serif; letter-spacing: -.04em; }
 .about h2 { padding-top: .45em; }
@@ -109,7 +117,7 @@
 .aboutCopy > p + p { margin: 24px 0 0; max-width: 54ch; font-size: clamp(16px, 1.28vw, 20px); line-height: 1.6; }
 .contact {
   position: relative; padding: clamp(75px, 14vh, 170px) max(10vw, 92px) clamp(75px, 12vh, 150px);
-  color: #183744; background: #bdebd7; border-top: 1px solid #54897d;
+  color: #183744;
 }
 .contactInner { position: relative; max-width: 1440px; margin-inline: auto; }
 .contact h2 { padding-top: 12px; }
@@ -138,4 +146,7 @@
   .contactLinks { gap: 12px 22px; flex-wrap: wrap; }
   .email { max-width: 100%; font-size: clamp(26px, 6.9vw, 49px); }
   .postmark { top: -12px; }
+}
+@media (prefers-reduced-motion: reduce), (scripting: none) {
+  .about { margin-top: 0; padding-top: clamp(60px, 9svh, 110px); }
 }

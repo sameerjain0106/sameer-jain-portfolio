@@ -101,9 +101,9 @@ export default function SpatialEntrance({ active, scrollRoot }: {
   }, [active, ambientEnabled, scrollRoot]);
 
   return <div className={styles.entrance}>
-    <section ref={hero} className={styles.hero} aria-labelledby="entrance-heading" data-room-surface>
+    <section ref={hero} className={styles.hero} aria-labelledby="entrance-heading" data-room-surface data-scene-color="#cbc8f2">
     <noscript><style>{`.${styles.explorePrompt}{display:none!important}`}</style></noscript>
-    <div ref={intro} className={styles.intro} data-entrance-intro>
+    <div ref={intro} className={styles.intro} data-entrance-intro data-scene-depart>
       <h1 id="entrance-heading" data-room-heading tabIndex={-1}>Sameer<br /><span>Jain<span className={styles.period}>.</span></span></h1>
       <div className={styles.byline}>
         <span ref={codex} className={styles.codexMark} role="img" aria-label="Built with Codex" title="Built with Codex" />
@@ -114,16 +114,16 @@ export default function SpatialEntrance({ active, scrollRoot }: {
         <p className={styles.touchHint}>Tap a side</p>
       </div>
     </div>
-    <div className={styles.portraitStage}>
+    <div className={styles.portraitStage} data-scene-depart>
       <div className={styles.entranceSculpture} aria-hidden="true"><KineticSculpture kind="ribbon" active={active} scrollRoot={scrollRoot} /></div>
       <EntrancePortrait active={active} scrollRoot={scrollRoot} portraitRef={portrait} />
     </div>
-      <a className={styles.scrollCue} href="#about">About me <span aria-hidden="true">↓</span></a>
+      <a className={styles.scrollCue} href="#about" data-scene-depart="cue">About me <span aria-hidden="true">↓</span></a>
     </section>
 
-    <section className={styles.about} aria-labelledby="about">
-      <h2 id="about" tabIndex={-1}>About me</h2>
-      <div className={styles.aboutCopy} data-scroll-reveal="copy">
+    <section className={styles.about} aria-labelledby="about" data-scene-color="#fff3db" data-reveal-anchor>
+      <h2 id="about" tabIndex={-1} data-scene-reveal="first">About me</h2>
+      <div className={styles.aboutCopy} data-scene-reveal="first">
         <p>I study industrial engineering at <em>Georgia Tech</em>, with a focus on statistics and machine learning.</p>
         <p>I took CS 2316 in spring 2025 and came back that summer as a teaching assistant. Since then I’ve helped students learn Python and SQL, worked with brain MRI scans, and built forecasting tools at AT&amp;T.</p>
       </div>
@@ -131,8 +131,8 @@ export default function SpatialEntrance({ active, scrollRoot }: {
 
     <EntranceTimeline active={active} scrollRoot={scrollRoot} />
 
-    <footer className={styles.contact} aria-labelledby="contact">
-      <div className={styles.contactInner}>
+    <footer className={styles.contact} aria-labelledby="contact" data-scene-color="#bdebd7" data-reveal-anchor>
+      <div className={styles.contactInner} data-scene-reveal="contact">
         <div className={styles.postmark} aria-hidden="true"><span>Atlanta</span><b>sj.</b><span>Georgia</span></div>
         <h2 id="contact" tabIndex={-1}>Contact</h2>
         <a className={styles.email} href={`mailto:${site.links.email}`}>{site.links.email.split("@")[0]}<wbr />@{site.links.email.split("@")[1]}<span aria-hidden="true"> ↗</span></a>

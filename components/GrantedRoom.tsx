@@ -51,90 +51,139 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
   const frame = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
+    if (!active || !room.current || !chapter.current || !scrollRoot || !frame.current) return;
     const root = room.current;
     const section = chapter.current;
-    if (!active || !root || !scrollRoot || !section) return;
+    const panel = scrollRoot;
+    const embedded = frame.current;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const steps = [...section.querySelectorAll<HTMLElement>("[data-file-step]")];
+    const hero = root.querySelector<HTMLElement>("[data-granted-hero]")!;
+    const arrivals = [...root.querySelectorAll<HTMLElement>("[data-granted-arrival]")];
+    let arrivalTops: number[] = [];
     let midpoints: number[] = [];
     let demoStart = Infinity;
+    let heroEnd = 0;
+    let frameStart = Infinity;
     let panelHeight = 0;
-    let frame = 0;
+    let raf = 0;
+    let previousTop = NaN;
+    let previousHeight = 0;
+    let wasVisible: boolean | undefined;
 
+    function sendViewport(top: number, height: number) {
+      const localTop = top - frameStart;
+      const visible = localTop < Number(embedded.height) && localTop + height > 0;
+      if ((visible && (previousTop !== localTop || previousHeight !== height)) || visible !== wasVisible) {
+        embedded.contentWindow?.postMessage({ type: "granted:viewport", top: localTop, height, inset: 76, visible }, "*");
+        wasVisible = visible;
+        previousTop = localTop;
+        previousHeight = height;
+      }
+    }
+    function progress(element: HTMLElement, property: string, raw: number) {
+      const value = Math.min(1, Math.max(0, raw)).toFixed(3);
+      if (element.style.getPropertyValue(property) !== value) element.style.setProperty(property, value);
+    }
     function draw() {
-      frame = 0;
-      const readingLine = scrollRoot!.scrollTop + scrollRoot!.clientHeight * .52;
+      raf = 0;
+      const top = panel.scrollTop;
+      const height = panel.clientHeight;
+      const readingLine = top + height * .52;
       // Use the outer panel height so reserving space for the return gate cannot
       // change this threshold and repeatedly open and close the bottom strip.
-      scrollRoot!.toggleAttribute("data-granted-demo-reading", scrollRoot!.scrollTop + panelHeight * .85 >= demoStart);
+      panel.toggleAttribute("data-granted-demo-reading", top + panelHeight * .85 >= demoStart);
+      sendViewport(top, height);
+      if (panelHeight && !motion.matches) {
+        progress(hero, "--granted-depart", top / (panelHeight * .78));
+        // On a short phone the folder can begin below the fold.
+        progress(hero, "--granted-folder-exit", (top - Math.max(0, heroEnd - panelHeight)) / (panelHeight * .76));
+        for (let i = 0; i < arrivals.length; i++) {
+          const start = Math.max(0, arrivalTops[i] - panelHeight * .98);
+          progress(arrivals[i], "--granted-arrive", (top - start) / (panelHeight * .38));
+        }
+      }
       let current = 0;
       for (let i = 1; i < midpoints.length; i++) {
         if (readingLine >= (midpoints[i - 1] + midpoints[i]) / 2) current = i;
       }
       const step = String(current);
-      if (root!.dataset.step !== step) root!.dataset.step = step;
+      if (root.dataset.step !== step) root.dataset.step = step;
     }
-    function schedule() { if (!frame) frame = requestAnimationFrame(draw); }
+    function schedule() { if (!raf) raf = requestAnimationFrame(draw); }
     function measure() {
-      const origin = scrollRoot!.scrollTop - scrollRoot!.getBoundingClientRect().top;
+      const origin = panel.scrollTop - panel.getBoundingClientRect().top;
       demoStart = demo.current ? origin + demo.current.getBoundingClientRect().top : Infinity;
-      panelHeight = scrollRoot!.parentElement?.clientHeight ?? scrollRoot!.clientHeight;
+      heroEnd = origin + hero.getBoundingClientRect().bottom;
+      frameStart = origin + embedded.getBoundingClientRect().top;
+      panelHeight = panel.parentElement?.clientHeight ?? panel.clientHeight;
+      arrivalTops = arrivals.map(element => origin + element.getBoundingClientRect().top);
       midpoints = steps.map(element => {
         const box = element.getBoundingClientRect();
         return origin + box.top + box.height / 2;
       });
       schedule();
     }
+    function receive(event: MessageEvent) {
+      // Without allow-same-origin the browser gives this exact frame an opaque origin.
+      if (event.origin !== "null" || event.source !== embedded.contentWindow || !event.data) return;
+      const message = event.data;
+      if (message.type === "granted:viewport-request") {
+        wasVisible = undefined;
+        schedule();
+      } else if (message.type === "granted:resize" && Number.isFinite(message.height) && message.height > 0) {
+        const height = Math.max(240, Math.min(100000, Math.ceil(message.height)));
+        if (embedded.height !== String(height)) embedded.height = String(height);
+      } else if (message.type === "granted:scroll" && Number.isFinite(message.top) &&
+          message.top >= 0 && message.top <= 100000 && document.activeElement === embedded &&
+          !embedded.closest("[inert]")) {
+        panel.scrollTo({top: frameStart + Math.min(message.top, embedded.offsetHeight) - 84, behavior:"instant"});
+      }
+    }
+    function enter() {
+      wasVisible = undefined;
+      measure();
+    }
     const resize = new ResizeObserver(measure);
     resize.observe(root);
-    resize.observe(scrollRoot);
-    scrollRoot.addEventListener("scroll", schedule, { passive: true });
-    scrollRoot.addEventListener("spatial:entered", measure);
+    resize.observe(panel);
+    panel.addEventListener("scroll", schedule, { passive: true });
+    panel.addEventListener("spatial:entered", enter);
+    motion.addEventListener("change", schedule);
+    embedded.addEventListener("load", enter);
+    window.addEventListener("message", receive);
+    embedded.contentWindow?.postMessage({ type: "granted:measure" }, "*");
     measure();
     return () => {
       resize.disconnect();
-      scrollRoot.removeEventListener("scroll", schedule);
-      scrollRoot.removeEventListener("spatial:entered", measure);
-      cancelAnimationFrame(frame);
-      scrollRoot.removeAttribute("data-granted-demo-reading");
+      panel.removeEventListener("scroll", schedule);
+      panel.removeEventListener("spatial:entered", enter);
+      motion.removeEventListener("change", schedule);
+      embedded.removeEventListener("load", enter);
+      window.removeEventListener("message", receive);
+      cancelAnimationFrame(raf);
+      panel.removeAttribute("data-granted-demo-reading");
+      if (wasVisible) embedded.contentWindow?.postMessage({ type: "granted:viewport", top: 0, height: 0, inset: 76, visible: false }, "*");
     };
-  }, [active, scrollRoot]);
-
-  useEffect(() => {
-    const embedded = frame.current;
-    if (!active || !scrollRoot || !embedded) return;
-    function receive(event: MessageEvent) {
-      // Without allow-same-origin the browser gives this exact frame an opaque origin.
-      if (event.origin !== "null" || event.source !== embedded!.contentWindow || !event.data) return;
-      const message = event.data;
-      if (message.type === "granted:resize" && Number.isFinite(message.height) && message.height > 0) {
-        const height = Math.max(240, Math.min(100000, Math.ceil(message.height)));
-        if (embedded!.height !== String(height)) embedded!.height = String(height);
-      } else if (message.type === "granted:scroll" && Number.isFinite(message.top) &&
-          message.top >= 0 && message.top <= 100000 && document.activeElement === embedded &&
-          !embedded!.closest("[inert]")) {
-        const frameTop = embedded!.getBoundingClientRect().top - scrollRoot!.getBoundingClientRect().top;
-        scrollRoot!.scrollTo({top: scrollRoot!.scrollTop + frameTop + Math.min(message.top, embedded!.offsetHeight) - 84, behavior:"instant"});
-      }
-    }
-    window.addEventListener("message", receive);
-    embedded.contentWindow?.postMessage({type:"granted:measure"}, "*");
-    return () => window.removeEventListener("message", receive);
   }, [active, scrollRoot]);
 
   function openFile(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !scrollRoot || !heading.current) return;
     event.preventDefault();
-    const top = scrollRoot.scrollTop + heading.current.getBoundingClientRect().top - scrollRoot.getBoundingClientRect().top - 92;
+    const layout = heading.current.closest("[data-granted-arrival]") ?? heading.current;
+    const top = scrollRoot.scrollTop + layout.getBoundingClientRect().top - scrollRoot.getBoundingClientRect().top - 92;
     heading.current.focus({ preventScroll: true });
     scrollRoot.scrollTo({ top, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }
 
   return <div ref={room} className={styles.room}>
-    <section className={styles.hero} data-room-surface aria-labelledby="granted-title">
+    <section className={styles.hero} data-granted-hero data-scene-color="#ff987f" data-scene-ink="#282136" data-room-surface aria-labelledby="granted-title">
       <header className={styles.heroCopy}>
-        <p className={styles.event}>JPMorgan Chase Data for Good · October 2026</p>
-        <h1 id="granted-title" tabIndex={-1} data-room-heading>Granted</h1>
-        <p className={styles.intro}>I co-built a grant research and editing tool for AnnieCannons. It helps nonprofit teams find opportunities and check a proposed edit against the source document.</p>
+        <div className={styles.heroTitle}>
+          <p className={styles.event}>JPMorgan Chase Data for Good · October 2026</p>
+          <h1 id="granted-title" tabIndex={-1} data-room-heading>Granted</h1>
+          <p className={styles.intro}>I co-built a grant research and editing tool for AnnieCannons. It helps nonprofit teams find opportunities and check a proposed edit against the source document.</p>
+        </div>
         <div className={styles.roomLinks}>
           <a className={styles.fileLink} href="#granted-demo">Try Granted with fictional data <span aria-hidden="true">↓</span></a>
           <a className={styles.fileLink} href="#granted-file" onClick={openFile}>Follow a grant file <span aria-hidden="true">↓</span></a>
@@ -151,37 +200,43 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
         <figcaption>JPMorgan Chase Data for Good Hackathon</figcaption>
       </figure>
     </section>
-    <section className={styles.caseFile} ref={chapter} data-room-surface aria-labelledby="granted-file">
-      <div className={styles.deskHead}>
-        <h2 id="granted-file" ref={heading} tabIndex={-1}>Inside a grant file</h2>
-        <p>A fictional excerpt shows how a draft moves through the prototype.</p>
+    <section className={styles.caseFile} ref={chapter} data-scene-color="#e5def0" data-scene-ink="#282136" data-room-surface aria-labelledby="granted-file">
+      <div data-granted-arrival="case-heading">
+        <div className={styles.deskHead}>
+          <h2 id="granted-file" ref={heading} tabIndex={-1}>Inside a grant file</h2>
+          <p>A fictional excerpt shows how a draft moves through the prototype.</p>
+        </div>
       </div>
-      <div className={styles.walkthrough}>
+      <div className={styles.walkthrough} data-granted-arrival="paper-stack">
         <div className={styles.paperStack} aria-hidden="true">{stages.map((stage, index) =>
           <div className={styles.leaf} key={stage.title} data-sheet={index}><ExampleSheet step={index} /></div>
         )}</div>
         <div className={styles.chapters}>{stages.map((stage, index) =>
           <article key={stage.title} data-file-step={index} className={styles.step}>
-            <div className={styles.stepCopy}>
-              <h3>{stage.title}</h3>
-              <p>{stage.description}</p>
-              {index === 0 && <dl className={styles.totals}>
-                <div><dt>Grant records</dt><dd>304</dd></div>
-                <div><dt>Documents</dt><dd>254</dd></div>
-                <div><dt>Q&amp;A passages</dt><dd>2,477</dd></div>
-              </dl>}
+            <div data-granted-arrival="file-step">
+              <div className={styles.stepCopy}>
+                <h3>{stage.title}</h3>
+                <p>{stage.description}</p>
+                {index === 0 && <dl className={styles.totals}>
+                  <div><dt>Grant records</dt><dd>304</dd></div>
+                  <div><dt>Documents</dt><dd>254</dd></div>
+                  <div><dt>Q&amp;A passages</dt><dd>2,477</dd></div>
+                </dl>}
+              </div>
+              <div className={styles.inlineSheet}><ExampleSheet step={index} /></div>
             </div>
-            <div className={styles.inlineSheet}><ExampleSheet step={index} /></div>
           </article>
         )}</div>
       </div>
     </section>
-    <section className={styles.demo} ref={demo} aria-labelledby="granted-demo">
-      <header className={styles.demoHead}>
-        <h2 id="granted-demo" tabIndex={-1}>Try Granted</h2>
-        <p>Explore the dashboard and grant workbench with fictional applications.</p>
-      </header>
-      <div className={styles.demoMount} data-native-scroll>
+    <section className={styles.demo} ref={demo} data-scene-color="#f5f3e9" data-scene-ink="#282136" aria-labelledby="granted-demo">
+      <div data-granted-arrival="demo-heading">
+        <header className={styles.demoHead}>
+          <h2 id="granted-demo" tabIndex={-1}>Try Granted</h2>
+          <p>Explore the dashboard and grant workbench with fictional applications.</p>
+        </header>
+      </div>
+      <div className={styles.demoMount} data-native-scroll data-scene-paper data-granted-arrival="workbench">
         <iframe ref={frame} src={scrollRoot ? "/demos/granted/index.html" : undefined}
           title="Granted dashboard and grant workbench with fictional data"
           sandbox="allow-scripts allow-forms allow-downloads" allow="clipboard-write"

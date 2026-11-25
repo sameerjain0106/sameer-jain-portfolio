@@ -13,6 +13,7 @@ import RoomCreature from "./RoomCreature";
 import LivingCursor from "./LivingCursor";
 import { AmbientMotionProvider, useAmbientMotion } from "@/lib/useAmbientMotion";
 import { useScrollChoreography } from "@/lib/useScrollChoreography";
+import { useSceneBackdrop } from "@/lib/useSceneBackdrop";
 import { useRoomSmoothScroll } from "@/lib/useRoomSmoothScroll";
 import styles from "./SpatialWorld.module.css";
 
@@ -35,6 +36,7 @@ const RoomPanel = memo(function RoomPanel({ id, active, entering, visible }: {
   useAmbientMotion(active, undefined, panel);
   useRoomSmoothScroll(active, id === "entrance" ? null : scrollRoot);
   useScrollChoreography(active, scrollRoot);
+  useSceneBackdrop((id === "entrance" || id === "granted") && (active || entering), scrollRoot);
   useLayoutEffect(() => { if (entering) awaitingEntry.current = true; }, [entering]);
   useEffect(() => {
     if (!active || !scrollRoot || !awaitingEntry.current) return;
