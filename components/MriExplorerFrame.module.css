@@ -1,8 +1,8 @@
 .explorer {
   position: relative;
   padding-top: 82px;
-  background: #3556d7;
-  color: #f2ef9b;
+  background: #4965dc;
+  color: #fff9ed;
 }
 
 .floatingFrames {
@@ -48,7 +48,6 @@
 }
 
 .frameSlot { position: relative; z-index: 1; }
-.frameSlot[data-ready="true"] { background: linear-gradient(to top, #f2ef9b 2px, transparent 2px); }
 
 @media (min-width: 760px) and (hover: hover) and (pointer: fine) {
   /* Give the room's edge dwell a native pointer target. */
@@ -89,9 +88,8 @@
 
 .studyTransition {
   position: relative;
-  padding: 3px max(7vw, 22px) clamp(10px, 2svh, 22px);
-  background: #f2ef9b;
-  color: #173bd3;
+  padding: 3px max(7vw, 22px) 42px;
+  background: linear-gradient(to bottom, transparent calc(100% - 24px), #f2ef9b);
 }
 
 .studyRail {
