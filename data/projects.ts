@@ -21,7 +21,7 @@ export const detailedProjects: Project[] = [
     slug: "brain-tumor-mri-classification",
     title: "Brain Tumor MRI Classification",
     oneLiner:
-      "Classifying brain MRI scans across three tumor types using three different paradigms: supervised classification, unsupervised clustering, and anomaly detection.",
+      "Comparing supervised classification, unsupervised clustering, and anomaly detection across three labels in a brain tumor MRI research dataset.",
     category: ["Data Science", "Machine Learning"],
     technologies: [
       "PCA",

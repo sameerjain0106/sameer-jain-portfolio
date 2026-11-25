@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { detailedProjects } from "@/data/projects";
+import { mriExplorerUrl } from "@/data/mriStory";
 import TechPill from "@/components/TechPill";
 import ApproachTabs from "@/components/ApproachTabs";
 
@@ -88,6 +89,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
+              {project.slug === "brain-tumor-mri-classification" && (
+                <a
+                  href={mriExplorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-md border border-signal/50 px-4 py-2 text-sm text-signal transition-colors hover:bg-signal/10"
+                >
+                  Open MRI explorer <span aria-hidden="true">↗</span>
+                </a>
+              )}
               {project.githubUrl ? (
                 <a
                   href={project.githubUrl}

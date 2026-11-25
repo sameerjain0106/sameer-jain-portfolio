@@ -20,6 +20,7 @@
 .heroActions { display: flex; gap: 26px; flex-wrap: wrap; align-items: center; margin-top: 29px; font-size: 14px; }
 .heroActions a { display: inline-flex; justify-content: space-between; gap: 27px; align-items: center; background: var(--butter); color: var(--ink); padding: 14px 18px; min-height: 48px; border-radius: 4px; }
 .heroActions a span { font-size: 22px; }
+.heroActions .caseStudyLink { color: inherit; background: transparent; padding-inline: 0; text-decoration: underline; text-underline-offset: 4px; }
 .heroActions > span { opacity: .8; }
 .finalAction { display: inline-flex; align-items: center; justify-content: space-between; gap: 32px; background: var(--blue); color: var(--butter); padding: 18px 23px; border-radius: 60% 45% 55% 40% / 50% 55% 45% 50%; min-height: 80px; margin-top: 30px; font-size: 17px; }
 .heroActions a, .finalAction { transition: transform 200ms cubic-bezier(.23,1,.32,1); }

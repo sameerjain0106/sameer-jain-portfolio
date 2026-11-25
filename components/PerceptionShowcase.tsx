@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { perceptionStory as story, perceptionMotion as config } from "@/data/perceptionStory";
+import { mriExplorerUrl } from "@/data/mriStory";
 import { useAmbientMotion } from "@/lib/useAmbientMotion";
 import styles from "./PerceptionShowcase.module.css";
 
@@ -287,7 +288,11 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
         <p className={styles.body}>{beat.body}</p>
         <p className={styles.finding}>{beat.finding}</p>
         <p className={styles.note}>{beat.note}</p>
-        {index === 0 ? <div className={styles.heroActions}><Link href="/projects/brain-tumor-mri-classification">Explore the project <span aria-hidden="true">↗</span></Link><span>Scroll to look closer ↓</span></div> : index === story.length - 1 ? <Link className={styles.finalAction} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.source} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
+        {index === 0 ? <div className={styles.heroActions}>
+          <a href={mriExplorerUrl} target="_blank" rel="noopener noreferrer">Open MRI explorer <span aria-hidden="true">↗</span></a>
+          <Link className={styles.caseStudyLink} href="/projects/brain-tumor-mri-classification">Read the case study</Link>
+          <span>Scroll to look closer ↓</span>
+        </div> : index === story.length - 1 ? <Link className={styles.finalAction} href="/projects/brain-tumor-mri-classification">Inside the MRI project <span aria-hidden="true">↗</span></Link> : <a className={styles.source} href={imageRoot + beat.figure} target="_blank" rel="noopener noreferrer">Open original figure ↗</a>}
       </div>
       <figure className={styles.inlineArt} data-scroll-reveal={embedded ? undefined : "figure"} ref={index === 0 ? firstArt : undefined}><SceneArt index={index} mobile /><figcaption>{beat.caption}</figcaption></figure>
     </article>)}</div>
