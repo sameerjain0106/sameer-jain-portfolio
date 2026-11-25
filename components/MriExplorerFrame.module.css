@@ -7,16 +7,23 @@
 
 .floatingFrames {
   position: absolute;
-  inset: 80px -4% auto 45%;
-  height: min(77svh, 720px);
+  inset: 88px 7% auto 45%;
+  height: min(69svh, 640px);
   opacity: .56;
   pointer-events: none;
 }
 
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .floatingFrames {
+    translate: var(--frames-x, 0px) var(--frames-y, 0px);
+    transition: translate 300ms cubic-bezier(.18, .66, .3, 1);
+  }
+}
+
 @media (max-width: 759px) {
   .floatingFrames {
-    inset: 94px -18% auto 22%;
-    height: min(69svh, 460px);
+    inset: 112px 9% auto 25%;
+    height: min(59svh, 430px);
     opacity: .31;
   }
 }

@@ -17,6 +17,7 @@ export default function MriExplorerFrame({ active, scrollRoot }: { active: boole
 
   useEffect(() => {
     if (!scrollRoot) return;
+    const art = floatingFrames.current;
 
     const timer = window.setTimeout(() => setUnavailable(true), 12000);
 
@@ -41,6 +42,15 @@ export default function MriExplorerFrame({ active, scrollRoot }: { active: boole
         // Pointer and click events inside the explorer do not bubble into the room.
         embedded.dispatchEvent(new PointerEvent("pointermove", { ...point, pointerType: "mouse" }));
         if (message.blink === true) embedded.dispatchEvent(new MouseEvent("click", point));
+        if (art && Number.isFinite(message.stageX) && Math.abs(message.stageX) <= 1 &&
+            Number.isFinite(message.stageY) && Math.abs(message.stageY) <= 1) {
+          art.style.setProperty("--frames-x", `${-message.stageX * 12}px`);
+          art.style.setProperty("--frames-y", `${-message.stageY * 9}px`);
+        }
+      }
+      if (message?.type === "mri-explorer:stage-leave") {
+        art?.style.removeProperty("--frames-x");
+        art?.style.removeProperty("--frames-y");
       }
       if (message?.type === "mri-explorer:map" && document.activeElement === embedded) {
         embedded.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "M", shiftKey: true }));

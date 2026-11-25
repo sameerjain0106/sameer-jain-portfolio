@@ -10,6 +10,7 @@
 
     const main = document.querySelector("main");
     const stage = document.querySelector(".scan-stage");
+    const world = window.frameElement?.closest("[data-world-room]");
     const pointerMotion = matchMedia("(any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference)");
     let reportedHeight = 0;
     let pointerType;
@@ -24,17 +25,22 @@
     function resetStageMotion() {
       stage.style.removeProperty("--scan-aim-x");
       stage.style.removeProperty("--scan-aim-y");
+      send({ type: "mri-explorer:stage-leave" });
     }
 
     function moveStage(x, y) {
       if (!pointerMotion.matches) return;
       const { left, top, right, bottom, width, height } = stage.getBoundingClientRect();
       if (x < left || x > right || y < top || y > bottom || !width || !height) {
-        resetStageMotion();
+        if (stage.style.getPropertyValue("--scan-aim-x")) resetStageMotion();
         return;
       }
-      stage.style.setProperty("--scan-aim-x", ((x - left) / width - .5) * 26 + "px");
-      stage.style.setProperty("--scan-aim-y", ((y - top) / height - .5) * 20 + "px");
+      const range = Math.min(1, width / 1120, window.parent.innerHeight / 690) * (world?.dataset.idlePaused === "true" ? .38 : 1);
+      const stageX = ((x - left) / width * 2 - 1) * range;
+      const stageY = ((y - top) / height * 2 - 1) * range;
+      stage.style.setProperty("--scan-aim-x", `${stageX * 21}px`);
+      stage.style.setProperty("--scan-aim-y", `${stageY * 15}px`);
+      return { stageX, stageY };
     }
 
     function sendHeight(force = false) {
@@ -61,8 +67,7 @@
       if (aimFrame) return;
       aimFrame = requestAnimationFrame(() => {
         aimFrame = 0;
-        moveStage(aimX, aimY);
-        send({ type: "mri-explorer:aim", x: aimX, y: aimY });
+        send({ type: "mri-explorer:aim", x: aimX, y: aimY, ...moveStage(aimX, aimY) });
       });
     }, { passive: true });
 

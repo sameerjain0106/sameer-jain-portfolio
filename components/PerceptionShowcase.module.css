@@ -51,6 +51,7 @@
 .beat4 .copy h2 { color: #f2ef9b; }
 .beat5 .copy h2 { color: var(--blue); font-size: clamp(80px, 12vw, 180px); }
 .frameSculpture { position: absolute; inset: 5% 0 8%; z-index: 0; overflow: hidden; perspective: 900px; pointer-events: none; }
+[data-mri-explorer-frames] .frameSculpture { overflow: visible; }
 .frameFloat { position: absolute; transform-style: preserve-3d; animation: frameDrift 21s ease-in-out infinite; animation-play-state: paused; }
 .frameOne { top: 15%; left: 7%; width: 82%; height: 60%; --frame-face: #f2ef9b; --frame-side: #8b8944; --frame-pitch: 16deg; --frame-yaw: -25deg; --frame-roll: -13deg; opacity: .78; }
 .frameTwo { top: 8%; left: 20%; width: 67%; height: 74%; --frame-face: #ff8066; --frame-side: #a4443c; --frame-pitch: -12deg; --frame-yaw: 18deg; --frame-roll: 12deg; animation-duration: 26s; animation-delay: -8s; opacity: .74; }

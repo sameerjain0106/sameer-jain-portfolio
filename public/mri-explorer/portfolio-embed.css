@@ -34,7 +34,7 @@ html[data-portfolio-framed], [data-portfolio-framed] body { overflow: hidden; }
   --muted: #f1eeff;
   --accent-ink: #ffe0bd;
   --upload-ring: #c1c9f6;
-  grid-template-columns: minmax(155px, 1fr) clamp(290px, 31vw, 420px) minmax(144px, .85fr);
+  grid-template-columns: minmax(155px, 1fr) clamp(290px, 31vw, 420px) minmax(155px, 1fr);
   padding: clamp(34px, 4vw, 64px) max(7vw, calc((100% - 1500px) / 2)) clamp(38px, 4vw, 68px);
   background: var(--scan-blue);
   color: var(--ink);
@@ -143,8 +143,16 @@ html[data-portfolio-framed], [data-portfolio-framed] body { overflow: hidden; }
   --accent-ink: #91351d;
 }
 
+@media (width >= 900px) {
+  [data-portfolio-embed] .scan-stage { padding-bottom: clamp(24px, 2.3vw, 36px); }
+  [data-portfolio-embed] .project-name { align-self: start; margin-top: clamp(70px, 10.5vw, 154px); }
+  [data-portfolio-embed] .project-name h1 { font-size: clamp(3.2rem, 5.4vw, 6rem); }
+  [data-portfolio-embed] .sample-button { grid-template-columns: minmax(72px, 1fr) minmax(0, .85fr); }
+  [data-portfolio-embed] .projection { padding-top: clamp(25px, 2.8vw, 52px); }
+}
+
 @media (width <= 850px) {
-  [data-portfolio-embed] .scan-stage { grid-template-columns: minmax(144px, 1fr) minmax(245px, 33vw) minmax(124px, .85fr); gap: 18px; }
+  [data-portfolio-embed] .scan-stage { grid-template-columns: minmax(136px, 1fr) minmax(245px, 33vw) minmax(136px, 1fr); gap: 18px; }
 }
 
 @media (width <= 730px) {
@@ -158,14 +166,18 @@ html[data-portfolio-framed], [data-portfolio-framed] body { overflow: hidden; }
 }
 
 @media (any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
-  [data-portfolio-framed] :is(.project-name, .scan-frame, #samples-label) {
+  [data-portfolio-framed] :is(.project-name, .scan-input, .scan-frame, .examples) {
     transition: translate 280ms cubic-bezier(.18, .66, .3, 1);
   }
   [data-portfolio-framed] .project-name { translate: var(--scan-aim-x, 0px) var(--scan-aim-y, 0px); }
+  [data-portfolio-framed] .scan-input {
+    translate: calc(var(--scan-aim-x, 0px) * 1.15) calc(var(--scan-aim-y, 0px) * .95);
+  }
   [data-portfolio-framed] .scan-frame {
-    translate: calc(var(--scan-aim-x, 0px) * -.38) calc(var(--scan-aim-y, 0px) * -.38);
+    translate: calc(var(--scan-aim-x, 0px) * .26) calc(var(--scan-aim-y, 0px) * .22);
   }
-  [data-portfolio-framed] #samples-label {
-    translate: calc(var(--scan-aim-x, 0px) * .55) calc(var(--scan-aim-y, 0px) * .55);
+  [data-portfolio-framed] .examples {
+    translate: calc(var(--scan-aim-x, 0px) * -.65) calc(var(--scan-aim-y, 0px) * -.55);
   }
+  [data-portfolio-framed] :is(.scan-input, .examples):has(:focus-visible) { translate: none; }
 }
