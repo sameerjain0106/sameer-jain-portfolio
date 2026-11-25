@@ -27,6 +27,7 @@ let queryCoordinates = null;
 let queryPulseAnimation;
 let reference;
 let vectors;
+let queuedFile = null;
 let worker;
 let pendingUpload = null;
 let selectedSample = null;
@@ -472,10 +473,18 @@ async function start() {
     samples.setAttribute("aria-busy", "false");
     configureMap();
     void loadClusterViews();
-    useSample(reference.samples.find((sample) => sample.label === "brain_glioma") ?? reference.samples[0]);
+    if (queuedFile) {
+      const file = queuedFile;
+      queuedFile = null;
+      void useUpload(file);
+    } else {
+      useSample(reference.samples.find((sample) => sample.label === "brain_glioma") ?? reference.samples[0]);
+    }
   } catch (error) {
     reference = null;
     mapBounds = null;
+    queuedFile = null;
+    pick.disabled = true;
     for (const button of mapButtons) button.disabled = true;
     element("map-summary").textContent = "The scan groups could not load. Refresh to retry.";
     samples.setAttribute("aria-busy", "false");
@@ -506,8 +515,15 @@ pick.addEventListener("click", () => upload.click());
 upload.addEventListener("change", () => {
   const file = upload.files?.[0];
   upload.value = "";
-  if (file && reference) useUpload(file);
+  if (!file) return;
+  if (reference && vectors) {
+    void useUpload(file);
+  } else {
+    queuedFile = file;
+    say("Image selected. Waiting for the reference set…");
+  }
 });
+pick.disabled = false;
 if (typeof ResizeObserver === "function") {
   new ResizeObserver(drawMap).observe(canvas);
 } else {
