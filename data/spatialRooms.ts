@@ -1,6 +1,6 @@
 export const rooms = {
   entrance: { label: "Entrance", edgeLabel: "Entrance", short: "Start here", x: 0, y: 0, color: "#cbc8f2", description: "A curious mind at work." },
-  mri: { label: "Learning to see", edgeLabel: "Brain Tumor MRI", short: "MRI / machine learning", x: -1, y: 0, color: "#2449dc", description: "Inside a brain MRI experiment." },
+  mri: { label: "Learning to see", edgeLabel: "Brain Tumor MRI", short: "MRI / machine learning", x: -1, y: 0, color: "#56bdb7", description: "Inside a brain MRI experiment." },
   etf: { label: "Finding a signal", edgeLabel: "ETF Return Prediction", short: "ETF / research systems", x: 1, y: 0, color: "#f2ef9b", description: "Putting a market hypothesis to the test." },
   profile: { label: "Meet Sameer", edgeLabel: "About Sameer", short: "A little about me", x: 0, y: -1, color: "#ff987f", description: "The person behind the experiments." },
   contact: { label: "Say hello", edgeLabel: "Contact & Links", short: "Let's connect", x: 0, y: 1, color: "#bdebd7", description: "A good place to start a conversation." },

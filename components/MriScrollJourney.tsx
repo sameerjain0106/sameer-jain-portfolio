@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
+import { rooms } from "@/data/spatialRooms";
 import results from "@/public/projects/brain-tumor-mri/results/metrics.json";
 import MriExplorerFrame from "./MriExplorerFrame";
 import PerceptionShowcase, { mix, readableInk } from "./PerceptionShowcase";
 import MriPipeline from "./MriPipeline";
 import styles from "./MriScrollJourney.module.css";
+
+const entryInk = "#102f3b";
 
 /** The original vertical research story, followed by its scroll-built method. */
 export default function MriScrollJourney({ active, scrollRoot }: { active: boolean; scrollRoot: HTMLElement | null }) {
@@ -45,8 +48,8 @@ export default function MriScrollJourney({ active, scrollRoot }: { active: boole
       const blend = reduced.matches ? Number(progress >= .5) : progress * progress * (3 - 2 * progress);
       const documentRoot = explorer!.contentDocument?.documentElement ?? null;
       if (blend === previousBlend && documentRoot === previousDocument) return;
-      const ground = mix("#4965dc", "#f2ef9b", blend);
-      const ink = readableInk(ground, blend < .45 ? "#fff9ed" : "#173bd3");
+      const ground = mix(rooms.mri.color, "#f2ef9b", blend);
+      const ink = readableInk(ground, blend < .45 ? entryInk : "#173bd3");
       if (ground !== previousGround) room!.style.setProperty("--mri-entry-ground", ground);
       if (ink !== previousInk) room!.style.setProperty("--mri-entry-ink", ink);
 
@@ -84,7 +87,8 @@ export default function MriScrollJourney({ active, scrollRoot }: { active: boole
     };
   }, [scrollRoot]);
 
-  return <div ref={journey} className={styles.room} data-mri-journey data-story-axis="vertical">
+  return <div ref={journey} className={styles.room} data-mri-journey data-story-axis="vertical"
+    style={{ "--mri-entry-ground": rooms.mri.color, "--mri-entry-ink": entryInk } as CSSProperties}>
     <MriExplorerFrame active={active} scrollRoot={scrollRoot} />
     <PerceptionShowcase scrollRoot={scrollRoot} isActive={active} embedded />
     <MriPipeline active={active} scrollRoot={scrollRoot} />

@@ -1,6 +1,4 @@
 .room {
-  --mri-entry-ground: #4965dc;
-  --mri-entry-ink: #fff9ed;
   background: var(--mri-entry-ground);
   font-family: var(--font-plex-sans), sans-serif;
 }

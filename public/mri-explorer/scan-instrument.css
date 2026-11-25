@@ -4,7 +4,7 @@
   position: absolute;
   inset: calc(-1 * clamp(12px, 1.5vw, 24px));
   z-index: -1;
-  border: 1px solid #d5d9ff6b;
+  border: 1px solid #1e646a70;
   border-radius: 50%;
   pointer-events: none;
 }
@@ -31,7 +31,7 @@
 }
 
 [data-portfolio-framed] .upload-button {
-  background: radial-gradient(circle at 48% 37%, #f4ede6 10%, #c4cff3 75%, #9aafe8);
+  background: radial-gradient(circle at 48% 37%, #f4ede6 10%, #c3e7dd 75%, #99cfc5);
 }
 
 .scan-input .input-hint { margin-top: clamp(18px, 2.1vw, 32px); }
@@ -59,14 +59,14 @@
   width: min(100%, 265px);
   margin: 26px 0 0;
   padding-block: 10px;
-  border-block: 1px solid #f2ef9b70;
+  border-block: 1px solid #1e646a70;
 }
 
 .scan-facts div { display: flex; flex-direction: column-reverse; }
-.scan-facts dt { color: #fff9ed; font-size: .79rem; line-height: 1.4; }
+.scan-facts dt { font-size: .79rem; line-height: 1.4; }
 .scan-facts dd {
   margin: 0 0 4px;
-  color: #f2ef9b;
+  color: var(--ink);
   font: 700 clamp(1.45rem, 2.3vw, 2.05rem)/1 var(--display);
   font-variant-numeric: tabular-nums;
   letter-spacing: -.035em;
