@@ -1,5 +1,6 @@
 import { Project, ProjectSummary } from "@/lib/types";
 import { etfResearch } from "@/data/etfResearch";
+import { roomHref } from "@/data/spatialRooms";
 
 // ============================================================
 // PROJECT DATA
@@ -252,6 +253,21 @@ const etfResearchProject: ProjectSummary = {
 export const projects: ProjectSummary[] = [
   ...detailedProjects,
   etfResearchProject,
+  {
+    slug: "granted",
+    caseStudyPath: roomHref("granted"),
+    title: "Granted · Nonprofit Grant Analytics",
+    oneLiner: "At JPMorgan Chase’s Data for Good hackathon, our team built a tool for AnnieCannons to find relevant grants and review draft answers alongside their sources.",
+    category: ["Data Science"],
+    technologies: ["React", "FastAPI", "Parquet", "Ollama"],
+    featured: true,
+    githubUrl: null,
+    headlineStats: [
+      { value: "1st", label: "AnnieCannons challenge" },
+      { value: "304", label: "Grant records" },
+      { value: "254", label: "Source documents" },
+    ],
+  },
 ];
 
 export const featuredProjects = projects.filter((p) => p.featured);

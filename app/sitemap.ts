@@ -5,7 +5,7 @@ const BASE_URL = "https://musteermain.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const projectRoutes = projects.map((p) => ({
-    url: `${BASE_URL}/projects/${p.slug}`,
+    url: BASE_URL + (p.caseStudyPath ?? `/projects/${p.slug}`),
     lastModified: new Date(),
   }));
 

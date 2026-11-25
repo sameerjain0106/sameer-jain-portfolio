@@ -37,7 +37,7 @@ export default function ProjectCard({ project, number = 1 }: { project: ProjectS
     caption: "ResNet50 features → K-Means → 603 grouped scans",
   } : project.cardImage;
   const titleId = `case-${project.slug}`;
-  const href = `/projects/${project.slug}`;
+  const href = project.caseStudyPath ?? `/projects/${project.slug}`;
   const titleLines = isEtf ? ["Systematic ETF", "Research Engine"] : isMri ? ["Brain Tumor MRI", "Classification"] : [project.title];
 
   return (

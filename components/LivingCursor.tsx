@@ -6,7 +6,7 @@ import styles from "./LivingCursor.module.css";
 
 const colors: Record<RoomId, string> = {
   entrance: "206 48 234", mri: "72 244 214", etf: "113 59 245",
-  profile: "25 207 233", contact: "237 62 147",
+  granted: "215 70 48",
 };
 const nativeCursor = "input, textarea, select, [contenteditable]:not([contenteditable='false']), [data-native-cursor]";
 const clickable = "a[href]:not([aria-disabled='true']), button:not(:disabled):not([aria-disabled='true']), [role='button']:not([aria-disabled='true']), summary, [data-edge]";

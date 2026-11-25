@@ -13,6 +13,7 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
   const video = useRef<HTMLVideoElement>(null);
   const ambientEnabled = useAmbientMotionEnabled();
   const [failed, setFailed] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const player = video.current;
@@ -76,7 +77,9 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
       {failed ? <Image src="/images/entrance-animation-v6.jpg" alt="Codex-faced figure beside Sameer in an edited portrait collage."
         width={624} height={856} sizes="(max-width: 650px) calc(100vw - 88px), 540px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
         poster="/images/entrance-animation-v6.jpg"
+        data-portrait-playing={playing}
         aria-label="Looping portrait of a Codex-faced figure and Sameer, with moving arms, swaying hair, and blinking eyes."
+        onPlaying={() => setPlaying(true)}
         onError={() => setFailed(true)} />}
     </div>
   </figure>;

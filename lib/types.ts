@@ -31,6 +31,7 @@ export interface ProjectHeadlineStat {
 
 export interface ProjectSummary {
   slug: string;
+  caseStudyPath?: string;
   title: string;
   oneLiner: string;
   category: ProjectCategory[];

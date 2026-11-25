@@ -29,19 +29,12 @@ const residents: Record<RoomId, Resident> = {
     glint: "M33 126L57 88L70 87M87 69L100 76M162 48L177 52L185 36L201 39M145 188Q158 204 149 207",
     eyes: [{ x: 103, y: 112, rx: 15, ry: 20, turn: -9 }, { x: 140, y: 108, rx: 14, ry: 19, turn: 9 }],
   },
-  profile: {
-    light: "#ffe7f2", color: "#d4b5ff", shade: "#3146b2",
-    body: "M26 67Q70 43 120 74Q163 44 214 61L215 176Q170 158 125 187C137 205 154 199 153 215C137 223 125 209 118 198C112 214 94 219 87 210C83 199 107 198 107 188Q67 165 24 185Z",
-    seam: "M120 75L118 187M34 78Q75 61 111 83L109 176Q74 156 33 173ZM130 83Q169 60 204 72L205 163Q164 151 129 177ZM44 145Q70 139 96 150M44 155Q70 149 94 159M144 146Q168 137 193 145M145 156Q167 147 191 154M184 58L181 82L212 64",
-    glint: "M39 72Q75 57 104 73M133 75Q156 61 178 61M32 164L33 135M198 112L198 150M95 209Q103 209 111 198",
-    eyes: [{ x: 78, y: 116, rx: 17, ry: 23, turn: -5 }, { x: 162, y: 112, rx: 16, ry: 22, turn: 7 }],
-  },
-  contact: {
-    light: "#fffbd7", color: "#f0d98d", shade: "#b46b9f",
-    body: "M42 92C22 84 13 62 23 42C23 65 49 67 67 62L115 34Q120 31 125 35L171 63C193 68 218 56 218 38C235 65 219 88 196 97L196 171Q162 181 132 174L119 194L108 175Q70 185 42 171Z",
-    seam: "M43 94L119 147L196 94M45 166L104 135M193 166L139 135M67 62L119 105L171 63M23 43Q21 83 61 83M217 43Q220 79 179 85M108 175L119 164L132 174",
-    glint: "M53 92L53 157M73 66L117 42M129 42L164 65M183 160L149 167M31 65Q41 78 55 75M205 64Q197 77 185 76",
-    eyes: [{ x: 97, y: 115, rx: 15, ry: 20, turn: -7 }, { x: 143, y: 112, rx: 17, ry: 22, turn: 8 }],
+  granted: {
+    light: "#fff2c9", color: "#ffcf72", shade: "#a44d68",
+    body: "M25 75Q22 62 37 62H71L82 42Q85 36 95 36H127Q139 36 146 53L152 64L190 61C207 61 217 76 214 96L208 145Q204 170 178 176L168 179Q185 203 167 219L156 199L139 204L143 185Q127 189 111 184L89 210L85 193L65 192L77 176Q46 171 36 152L25 106Q22 93 25 75Z",
+    seam: "M24 92C61 83 109 88 140 91Q194 95 213 84M42 144Q123 164 205 139M55 153Q124 173 190 148M79 62L91 42M151 66L143 54M143 185L168 179",
+    glint: "M42 72Q48 71 62 73M96 45H121M177 72Q197 67 205 82M51 132L54 139M102 169Q131 178 158 169",
+    eyes: [{ x: 87, y: 117, rx: 17, ry: 21, turn: -10 }, { x: 154, y: 117, rx: 17, ry: 22, turn: 8 }],
   },
 };
 
@@ -349,8 +342,8 @@ export default function RoomCreature({ room, active, paused }: CreatureProps) {
     const discover = () => {
       const panel = world.querySelector<HTMLElement>(`[data-panel="${room}"]`);
       if (!panel) return false;
-      const hosts = Array.from(panel.querySelectorAll<HTMLElement>("[data-room-surface], article[data-profile-leaf]"))
-        .filter(host => !host.hasAttribute("data-profile-stage") && !host.hasAttribute("data-surface-flow"));
+      const hosts = Array.from(panel.querySelectorAll<HTMLElement>("[data-room-surface]"))
+        .filter(host => !host.hasAttribute("data-surface-flow"));
       if (!hosts.length) return false;
       setPlacement({ room, hosts }); return true;
     };

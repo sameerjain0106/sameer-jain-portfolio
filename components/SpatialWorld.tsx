@@ -3,10 +3,10 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
-import { arrows, directions, neighbor, roomFromLocation, roomHref, roomIds, rooms, type Direction, type RoomId } from "@/data/spatialRooms";
+import { arrows, directions, neighbor, roomDestination, roomHref, roomIds, rooms, type Direction, type RoomAnchor, type RoomId } from "@/data/spatialRooms";
 import MriScrollJourney from "./MriScrollJourney";
 import SpatialEtfRoom from "./SpatialEtfRoom";
-import { ContactRoom, ProfileRoom } from "./SpatialPeopleRooms";
+import GrantedRoom from "./GrantedRoom";
 import SpatialEntrance from "./SpatialEntrance";
 import DestinationPreview from "./DestinationPreview";
 import RoomCreature from "./RoomCreature";
@@ -20,24 +20,14 @@ type Mode = { kind: "idle" } | { kind: "map" } | { kind: "travel"; from: RoomId;
 type World = { room: RoomId; visited: RoomId[]; mode: Mode };
 const HOLD_MS = 1050;
 const gatePaths: Record<Direction, string> = {
-  left: "M8 10 Q164 150 8 290",
-  right: "M92 10 Q-64 150 92 290",
-  up: "M10 8 Q150 164 290 8",
-  down: "M10 92 Q150 -64 290 92",
+  left: "M7 8 Q169 150 7 292",
+  right: "M93 8 Q-69 150 93 292",
+  up: "M8 7 Q150 169 292 7",
+  down: "M8 93 Q150 -69 292 93",
 };
 
-function edgeAt(x: number, y: number): Direction | null {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  if (x < 44 && y > 90 && y < h - 90) return "left";
-  if (x > w - 44 && y > 90 && y < h - 90) return "right";
-  if (y < 38 && x > w * .25 && x < w * .75) return "up";
-  if (y > h - 38 && x > w * .25 && x < w * .75) return "down";
-  return null;
-}
-
-const RoomPanel = memo(function RoomPanel({ id, active, entering, visible, navigate }: {
-  id: RoomId; active: boolean; entering: boolean; visible: boolean; navigate: (id: RoomId) => void;
+const RoomPanel = memo(function RoomPanel({ id, active, entering, visible }: {
+  id: RoomId; active: boolean; entering: boolean; visible: boolean;
 }) {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const panel = useRef<HTMLElement | null>(null);
@@ -62,8 +52,7 @@ const RoomPanel = memo(function RoomPanel({ id, active, entering, visible, navig
       {id === "entrance" && <SpatialEntrance active={contentActive} scrollRoot={scrollRoot} />}
       {id === "mri" && <MriScrollJourney active={contentActive} scrollRoot={scrollRoot} />}
       {id === "etf" && <SpatialEtfRoom active={contentActive} scrollRoot={scrollRoot} />}
-      {id === "profile" && <ProfileRoom active={contentActive} scrollRoot={scrollRoot} />}
-      {id === "contact" && <ContactRoom active={contentActive} scrollRoot={scrollRoot} />}
+      {id === "granted" && <GrantedRoom active={contentActive} scrollRoot={scrollRoot} />}
     </div>
   </section>;
 });
@@ -86,7 +75,8 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
   const pressed = useRef(false);
   const finishTravel = useRef<(() => void) | null>(null);
   const pendingRoomFocus = useRef<RoomId | null>(null);
-  const pendingRoomFragment = useRef("");
+  const pendingRoomAnchor = useRef<RoomAnchor | undefined>(undefined);
+  const lastLocation = useRef("");
   worldRef.current = world;
 
   useEffect(() => {
@@ -116,31 +106,24 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
 
   const focusRoom = useCallback((id: RoomId) => {
     const panel = root.current?.querySelector<HTMLElement>(`[data-panel="${id}"]`);
-    const fragment = pendingRoomFragment.current;
-    pendingRoomFragment.current = "";
-    const destination = id === "profile" && (fragment === "#education" || fragment === "#about") ? panel?.querySelector<HTMLElement>(fragment) : null;
-    const stage = panel?.querySelector<HTMLElement>("[data-room-heading]");
-    const book = panel?.querySelector<HTMLElement>('[data-profile-enhanced="true"] [data-profile-book]');
-    const scroller = panel?.querySelector<HTMLElement>("[data-room-scroll]");
-    const unfoldEducation = fragment === "#education" && book && scroller;
-    const heading = destination && !book && fragment === "#education"
-      ? destination.querySelector<HTMLElement>("h1, h2")
-      : stage ?? panel?.querySelector<HTMLElement>("h1");
-    if (unfoldEducation) {
-      const start = book.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-      scroller.scrollTop = start + (book.offsetHeight - scroller.clientHeight) * .48;
-    } else destination?.scrollIntoView({ block: "start", behavior: "auto" });
+    const anchor = pendingRoomAnchor.current;
+    pendingRoomAnchor.current = undefined;
+    const destination = anchor ? panel?.querySelector<HTMLElement>(anchor) : null;
+    const heading = destination
+      ? destination.querySelector<HTMLElement>("h1, h2") ?? destination
+      : panel?.querySelector<HTMLElement>("[data-room-heading], h1");
+    destination?.scrollIntoView({ block: "start", behavior: "auto" });
     if (heading) {
       heading.setAttribute("tabindex", "-1");
       heading.focus({ preventScroll: true });
     }
   }, []);
 
-  const navigate = useCallback((to: RoomId, fromHistory = false, initialFragment = "") => {
+  const navigate = useCallback((to: RoomId, fromHistory = false, anchor?: RoomAnchor) => {
     const current = worldRef.current;
     if (current.mode.kind === "travel" && !fromHistory) return;
     cancelHold();
-    pendingRoomFragment.current = initialFragment;
+    pendingRoomAnchor.current = anchor;
     armed.current = false;
     const from = current.mode.kind === "travel" ? current.mode.to : current.room;
     const next: World = {
@@ -150,13 +133,18 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     };
     worldRef.current = next;
     setWorld(next);
-    if (!fromHistory && (to !== from || window.location.hash)) window.history.pushState(null, "", roomHref(to));
+    const href = roomHref(to) + (anchor ?? "");
+    const location = window.location;
+    if (!fromHistory && href !== location.pathname + location.search + location.hash) {
+      window.history.pushState(null, "", href);
+      lastLocation.current = location.href;
+    }
   }, [cancelHold]);
 
-  const followLink = (event: MouseEvent<HTMLAnchorElement>, id: RoomId) => {
+  const followLink = (event: MouseEvent<HTMLAnchorElement>, id: RoomId, anchor?: RoomAnchor) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
     event.preventDefault();
-    navigate(id);
+    navigate(id, false, anchor);
   };
 
   useEffect(() => {
@@ -166,11 +154,21 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     media.addEventListener("change", change);
     const previousRestoration = history.scrollRestoration;
     history.scrollRestoration = "manual";
-    const onHistory = () => navigate(roomFromLocation(), true);
+    const onHistory = () => {
+      const location = window.location;
+      if (lastLocation.current === location.href) return;
+      lastLocation.current = location.href;
+      const target = roomDestination(location.search, location.hash);
+      if (target.anchor || worldRef.current.mode.kind === "travel" || target.room !== worldRef.current.room || !location.hash) {
+        navigate(target.room, true, target.anchor);
+      }
+    };
     window.addEventListener("popstate", onHistory);
     window.addEventListener("hashchange", onHistory);
-    if (roomFromLocation() !== worldRef.current.room || window.location.hash === "#education" || window.location.hash === "#about") {
-      navigate(roomFromLocation(), true, window.location.hash);
+    if (lastLocation.current !== window.location.href) {
+      lastLocation.current = window.location.href;
+      const target = roomDestination(window.location.search, window.location.hash);
+      if (target.anchor || target.room !== worldRef.current.room) navigate(target.room, true, target.anchor);
     }
     return () => {
       media.removeEventListener("change", change);
@@ -187,7 +185,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const incoming = root.current?.querySelector<HTMLElement>(`[data-panel="${trip.to}"]`);
     const incomingScroll = incoming?.querySelector<HTMLElement>("[data-room-scroll]");
     // Reset after the hidden panel is mounted, before its first transition paint.
-    if (incomingScroll) { incomingScroll.scrollTop = 0; incomingScroll.scrollLeft = 0; }
+    if (incomingScroll && (trip.from !== trip.to || !pendingRoomAnchor.current)) { incomingScroll.scrollTop = 0; incomingScroll.scrollLeft = 0; }
     let live = true;
     const complete = () => {
       if (!live) return;
@@ -226,26 +224,12 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const id = pendingRoomFocus.current;
     if (!id || world.mode.kind !== "idle" || world.room !== id) return;
     const panel = root.current?.querySelector<HTMLElement>(`[data-panel="${id}"]`);
-    const notebook = panel?.querySelector<HTMLElement>("[data-profile-journey]");
-    let frame = 0;
-    let readiness: MutationObserver | undefined;
-    const applyFocus = () => {
-      frame = 0;
+    const frame = requestAnimationFrame(() => {
       if (pendingRoomFocus.current !== id || !panel || panel.inert) return;
-      // A newly mounted notebook must choose its enhanced or fallback layout first.
-      if (notebook && !notebook.hasAttribute("data-profile-enhanced")) return;
       pendingRoomFocus.current = null;
-      readiness?.disconnect();
       focusRoom(id);
-    };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(applyFocus); };
-    if (notebook && !notebook.hasAttribute("data-profile-enhanced")) {
-      readiness = new MutationObserver(schedule);
-      readiness.observe(notebook, { attributes: true, attributeFilter: ["data-profile-enhanced"] });
-    }
-    // Wait for the committed active room, rather than racing React's state update.
-    schedule();
-    return () => { cancelAnimationFrame(frame); readiness?.disconnect(); };
+    });
+    return () => cancelAnimationFrame(frame);
   }, [world.mode, world.room, focusRoom]);
 
   useEffect(() => {
@@ -270,7 +254,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       // Only native pointer motion can arm or cancel edge travel.
       if (!event.isTrusted || event.pointerType !== "mouse" || !fine.matches) return;
       const gate = (event.target as Element)?.closest<HTMLElement>("[data-edge]");
-      const edge = (gate?.dataset.edge as Direction | undefined) ?? edgeAt(event.clientX, event.clientY);
+      const edge = gate?.dataset.edge as Direction | undefined;
       if (!edge) { armed.current = true; cancelHold(); return; }
       const state = worldRef.current;
       if (!armed.current || pressed.current || event.buttons || state.mode.kind !== "idle" || performance.now() < inhibitedUntil.current || document.getSelection()?.toString() || (event.target as Element)?.closest("[data-no-dwell]")) { cancelHold(); return; }
@@ -279,12 +263,16 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       cancelHold();
       hold.current = {
         direction: edge, started: performance.now(), progress: 0,
-        edge: gate ?? root.current?.querySelector<HTMLElement>(`[data-edge="${edge}"]`) ?? null,
+        edge: gate ?? null,
       };
       setDwell(edge);
       holdFrame.current = requestAnimationFrame(tick);
     };
-    const scroll = () => { inhibitedUntil.current = performance.now() + 250; cancelHold(); };
+    const scroll = () => {
+      inhibitedUntil.current = performance.now() + 250;
+      if (worldRef.current.room === "entrance") armed.current = false;
+      cancelHold();
+    };
     const down = () => { pressed.current = true; cancelHold(); };
     const up = () => { pressed.current = false; };
     const blur = () => { armed.current = false; pressed.current = false; cancelHold(); };
@@ -362,14 +350,15 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       </button>
     </header>
     <div className={styles.rooms}>
-      {world.visited.map(id => <RoomPanel key={id} id={id} active={world.mode.kind === "idle" && world.room === id} entering={world.mode.kind === "travel" && world.mode.to === id} visible={world.room === id || (world.mode.kind === "travel" && world.mode.to === id)} navigate={navigate} />)}
+      {world.visited.map(id => <RoomPanel key={id} id={id} active={world.mode.kind === "idle" && world.room === id} entering={world.mode.kind === "travel" && world.mode.to === id} visible={world.room === id || (world.mode.kind === "travel" && world.mode.to === id)} />)}
     </div>
     {dwell && neighbor(world.room, dwell) && <DestinationPreview room={neighbor(world.room, dwell)!} direction={dwell} progressRef={setPreview} />}
     <nav id="room-navigation" aria-label="Adjacent rooms" className={styles.edges} aria-hidden={traveling} ref={node => { if (node) node.inert = traveling; }}>
       {directions.map(direction => {
         const target = neighbor(world.room, direction);
         return target && <a key={direction} href={roomHref(target)} onClick={event => followLink(event, target)}
-          className={`${styles.edge} ${styles[direction]}`} data-edge={direction} data-charging={dwell === direction}
+          className={`${styles.edge} ${styles[direction]}`} data-edge={direction} data-destination={target} data-charging={dwell === direction}
+          style={{ "--gate-ground": rooms[target].color } as CSSProperties}
           aria-label={`${rooms[target].edgeLabel}, ${direction}. Hold pointer at the edge or activate to enter.`}>
           <svg className={styles.gateSurface} viewBox={direction === "left" || direction === "right" ? "0 0 100 300" : "0 0 300 100"} preserveAspectRatio="none" aria-hidden="true">
             <path className={styles.gateBody} d={`${gatePaths[direction]} Z`} />
@@ -379,7 +368,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
         </a>;
       })}
     </nav>
-    <p className={styles.srOnly} role="status" aria-live="polite">{!traveling && (world.room === "entrance" ? "Entrance. Choose an adjacent room." : `${current.label}. Scroll to explore this room.`)}</p>
+    <p className={styles.srOnly} role="status" aria-live="polite">{!traveling && (world.room === "entrance" ? "Entrance. Scroll for experience and contact, or choose a project room." : `${current.label}. Scroll to explore this room.`)}</p>
     <dialog ref={dialog} className={styles.map} aria-labelledby="map-title" onCancel={event => { event.preventDefault(); closeMap(); }} onClick={event => { if (event.target === event.currentTarget) closeMap(); }} onKeyDown={event => {
       if (event.key !== "Tab") return;
       const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button:not([disabled]), a[href]"));
@@ -399,6 +388,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
           </a>)}
         </div>
         <p className={styles.mapFoot}>Move to an edge and hold to travel, or use the room links.<br /><kbd>Esc</kbd> closes this map.</p>
+        <Link className={styles.mapContact} href="/#contact" prefetch={false} onClick={event => followLink(event, "entrance", "#contact")}>Contact</Link>
         <button className={styles.motionToggle} onClick={toggleIdle} disabled={reduced} aria-pressed={idlePaused}>
           {reduced ? "Idle motion off · reduced-motion preference" : idlePaused ? "Full background motion" : "Calmer background motion"}
         </button>
@@ -406,6 +396,6 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     </dialog>
     <RoomCreature room={world.room} active={world.mode.kind === "idle"} paused={idlePaused} />
     <LivingCursor room={world.room} active={world.mode.kind === "idle"} paused={idlePaused} />
-    <noscript><style>{`.${styles.mapButton}{display:none!important}`}</style><nav className={styles.noScript} aria-label="All rooms">{roomIds.map(id => <a key={id} href={roomHref(id)}>{rooms[id].label}</a>)}</nav></noscript>
+    <noscript><style>{`.${styles.mapButton}{display:none!important}`}</style><nav className={styles.noScript} aria-label="All rooms">{roomIds.map(id => <a key={id} href={roomHref(id)}>{rooms[id].label}</a>)}<Link href="/#contact" prefetch={false}>Contact</Link></nav></noscript>
   </div></AmbientMotionProvider>;
 }
