@@ -7,7 +7,7 @@ export const rooms = {
 
 export type RoomId = keyof typeof rooms;
 export type Direction = "left" | "right" | "up" | "down";
-export type RoomAnchor = "#about" | "#timeline" | "#contact" | "#granted-file";
+export type RoomAnchor = "#about" | "#timeline" | "#contact" | "#granted-file" | "#granted-demo";
 export const roomIds = Object.keys(rooms) as RoomId[];
 export const directions: Direction[] = ["left", "up", "right", "down"];
 export const arrows: Record<Direction, string> = { left: "←", right: "→", up: "↑", down: "↓" };
@@ -25,7 +25,8 @@ export function roomDestination(search: string, hash: string): { room: RoomId; a
   switch (hash) {
     case "#work": return { room: "mri" };
     case "#more-work": return { room: "etf" };
-    case "#granted-file": return { room: "granted", anchor: "#granted-file" };
+    case "#granted-file":
+    case "#granted-demo": return { room: "granted", anchor: hash };
     case "#profile":
     case "#about": return { room: "entrance", anchor: "#about" };
     case "#education":

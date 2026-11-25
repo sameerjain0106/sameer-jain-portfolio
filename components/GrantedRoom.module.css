@@ -116,6 +116,13 @@
 .totals dt { font-size: .79rem; }
 .inlineSheet { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
+.demo { position: relative; padding: clamp(48px, 7vw, 100px) clamp(10px, 3.5vw, 70px) 48px; background: #f0e9d5; }
+.demoHead { display: flex; align-items: end; justify-content: space-between; gap: 1rem 2rem; flex-wrap: wrap; margin: 0 auto clamp(18px, 3.2vw, 42px); max-width: 1540px; }
+.demoHead h2 { margin: 0; font: 660 clamp(43px, 6.7vw, 102px)/.98 var(--font-bricolage), sans-serif; letter-spacing: -.066em; }
+.demoHead p { margin: 0; max-width: 34ch; font-size: clamp(.93rem, 1.2vw, 1.1rem); line-height: 1.5; }
+.demoMount { max-width: 1540px; margin-inline: auto; background: #f5f3e9; border: 1px solid #b2ac97; box-shadow: 4px 5px 0 #d9cda8; }
+.demoMount iframe { border: 0; display: block; width: 100%; }
+
 @media (max-width: 760px), (max-height: 540px) {
   .hero { grid-template-columns: 1fr; gap: 16px; padding: 100px var(--gutter) 96px; }
   .hero h1 { font-size: clamp(72px, 17vw, 112px); }
@@ -136,6 +143,11 @@
   .inlineSheet { position: relative; width: auto; height: auto; overflow: visible; clip-path: none; margin-top: 24px; }
   .sheet { padding: 21px; }
   .totals { gap: 14px; }
+}
+@media (max-width: 560px) {
+  .demo { padding-inline: 0; }
+  .demoHead { padding-inline: 20px; }
+  .demoMount { border-inline: 0; box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .leaf { transition: none; transform: none; }

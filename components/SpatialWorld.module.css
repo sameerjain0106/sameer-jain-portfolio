@@ -61,6 +61,19 @@
 .up, .down { width: clamp(292px, 26vw, 342px); height: clamp(90px, 11svh, 104px); left: 50%; transform: translateX(-50%); }
 .up { top: 0; }
 .down { bottom: 0; }
+/* Keep the return gate available in its own strip while the embedded app is in use. */
+.scroller[data-granted-demo-reading] { bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
+.world[data-world-room="granted"]:has(.scroller[data-granted-demo-reading]) .down {
+  width: 190px;
+  height: 48px;
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+.world[data-world-room="granted"]:has(.scroller[data-granted-demo-reading]) .down .edgeContent {
+  height: 28px;
+  bottom: 5px;
+  gap: 8px;
+}
+.world[data-world-room="granted"]:has(.scroller[data-granted-demo-reading]) .down .edgeArrow { font-size: 21px; }
 .up .gateSurface { transform-origin: center 7%; }
 .down .gateSurface { transform-origin: center 93%; }
 .up .edgeContent, .down .edgeContent { left: 50%; top: 16px; width: auto; height: 36px; flex-direction: row; transform: translateX(-50%); gap: 10px; }

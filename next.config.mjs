@@ -36,6 +36,13 @@ const nextConfig = {
       source: "/fonts/:fontFile",
       headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
     }, {
+      source: "/demos/granted/index.html",
+      headers: [
+        { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        { key: "Content-Security-Policy", value: "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-ancestors 'self'; form-action 'none'; base-uri 'none'" },
+        { key: "X-Robots-Tag", value: "noindex" },
+      ],
+    }, {
       source: "/mri-explorer/index.html",
       headers: [
         { key: "X-Frame-Options", value: "SAMEORIGIN" },

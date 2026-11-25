@@ -47,6 +47,8 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
   const room = useRef<HTMLDivElement>(null);
   const chapter = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
+  const demo = useRef<HTMLElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     const root = room.current;
@@ -54,11 +56,16 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
     if (!active || !root || !scrollRoot || !section) return;
     const steps = [...section.querySelectorAll<HTMLElement>("[data-file-step]")];
     let midpoints: number[] = [];
+    let demoStart = Infinity;
+    let panelHeight = 0;
     let frame = 0;
 
     function draw() {
       frame = 0;
       const readingLine = scrollRoot!.scrollTop + scrollRoot!.clientHeight * .52;
+      // Use the outer panel height so reserving space for the return gate cannot
+      // change this threshold and repeatedly open and close the bottom strip.
+      scrollRoot!.toggleAttribute("data-granted-demo-reading", scrollRoot!.scrollTop + panelHeight * .85 >= demoStart);
       let current = 0;
       for (let i = 1; i < midpoints.length; i++) {
         if (readingLine >= (midpoints[i - 1] + midpoints[i]) / 2) current = i;
@@ -69,6 +76,8 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
     function schedule() { if (!frame) frame = requestAnimationFrame(draw); }
     function measure() {
       const origin = scrollRoot!.scrollTop - scrollRoot!.getBoundingClientRect().top;
+      demoStart = demo.current ? origin + demo.current.getBoundingClientRect().top : Infinity;
+      panelHeight = scrollRoot!.parentElement?.clientHeight ?? scrollRoot!.clientHeight;
       midpoints = steps.map(element => {
         const box = element.getBoundingClientRect();
         return origin + box.top + box.height / 2;
@@ -86,7 +95,30 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
       scrollRoot.removeEventListener("scroll", schedule);
       scrollRoot.removeEventListener("spatial:entered", measure);
       cancelAnimationFrame(frame);
+      scrollRoot.removeAttribute("data-granted-demo-reading");
     };
+  }, [active, scrollRoot]);
+
+  useEffect(() => {
+    const embedded = frame.current;
+    if (!active || !scrollRoot || !embedded) return;
+    function receive(event: MessageEvent) {
+      // Without allow-same-origin the browser gives this exact frame an opaque origin.
+      if (event.origin !== "null" || event.source !== embedded!.contentWindow || !event.data) return;
+      const message = event.data;
+      if (message.type === "granted:resize" && Number.isFinite(message.height) && message.height > 0) {
+        const height = Math.max(240, Math.min(100000, Math.ceil(message.height)));
+        if (embedded!.height !== String(height)) embedded!.height = String(height);
+      } else if (message.type === "granted:scroll" && Number.isFinite(message.top) &&
+          message.top >= 0 && message.top <= 100000 && document.activeElement === embedded &&
+          !embedded!.closest("[inert]")) {
+        const frameTop = embedded!.getBoundingClientRect().top - scrollRoot!.getBoundingClientRect().top;
+        scrollRoot!.scrollTo({top: scrollRoot!.scrollTop + frameTop + Math.min(message.top, embedded!.offsetHeight) - 84, behavior:"instant"});
+      }
+    }
+    window.addEventListener("message", receive);
+    embedded.contentWindow?.postMessage({type:"granted:measure"}, "*");
+    return () => window.removeEventListener("message", receive);
   }, [active, scrollRoot]);
 
   function openFile(event: MouseEvent<HTMLAnchorElement>) {
@@ -104,7 +136,7 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
         <h1 id="granted-title" tabIndex={-1} data-room-heading>Granted</h1>
         <p className={styles.intro}>I co-built a grant research and editing tool for AnnieCannons. It helps nonprofit teams find opportunities and check a proposed edit against the source document.</p>
         <div className={styles.roomLinks}>
-          <a className={styles.fileLink} href="https://granted-workspace-sj.vercel.app/" target="_blank" rel="noreferrer">Try Granted with fictional data <span aria-hidden="true">↗</span></a>
+          <a className={styles.fileLink} href="#granted-demo">Try Granted with fictional data <span aria-hidden="true">↓</span></a>
           <a className={styles.fileLink} href="#granted-file" onClick={openFile}>Follow a grant file <span aria-hidden="true">↓</span></a>
         </div>
       </header>
@@ -142,6 +174,19 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
             <div className={styles.inlineSheet}><ExampleSheet step={index} /></div>
           </article>
         )}</div>
+      </div>
+    </section>
+    <section className={styles.demo} ref={demo} aria-labelledby="granted-demo">
+      <header className={styles.demoHead}>
+        <h2 id="granted-demo" tabIndex={-1}>Try Granted</h2>
+        <p>Explore the dashboard and grant workbench with fictional applications.</p>
+      </header>
+      <div className={styles.demoMount} data-native-scroll>
+        <iframe ref={frame} src={scrollRoot ? "/demos/granted/index.html" : undefined}
+          title="Granted dashboard and grant workbench with fictional data"
+          sandbox="allow-scripts allow-forms allow-downloads" allow="clipboard-write"
+          data-native-cursor data-no-dwell loading="lazy" height="760"
+          onLoad={() => frame.current?.contentWindow?.postMessage({type:"granted:measure"}, "*")} />
       </div>
     </section>
   </div>;
