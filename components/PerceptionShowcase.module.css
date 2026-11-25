@@ -1,5 +1,5 @@
 .world { --world-ground: #173bd3; --world-ink: #f2ef9b; --world-inset: 82px; --room-height: 100svh; --blue: #173bd3; --butter: #f2ef9b; --coral: #ff8066; --ink: #111b39; position: relative; display: grid; background: var(--blue); color: var(--butter); isolation: isolate; }
-.embedded { --world-inset: 0px; min-height: var(--room-height); }
+.embedded { --world-inset: 0px; --world-ground: var(--butter); --world-ink: var(--blue); min-height: var(--room-height); background: var(--butter); color: var(--blue); }
 .embedded .beat { padding: 92px clamp(52px, 4.5vw, 80px) 60px; }
 @media (min-width: 900px) { .embedded .beat { padding-inline: max(92px, 6vw); } }
 .world[data-active="false"] .scene { will-change: auto; }
@@ -42,6 +42,12 @@
 .sheet + .sheet { margin-top: 7px; }
 .sheet img { width: 100%; height: auto; display: block; }
 .sampleSpread > figcaption { margin-top: 13px; font-size: 13px; }
+.embedded .scene1 .sampleSpread, .studyOpening .sampleSpread { border: 1px solid #173bd343; box-shadow: 7px 8px 0 #173bd31c; }
+.embedded .studyOpening { padding-block: 64px 75px; }
+.studyOpening .copy h1 { max-width: 8ch; font-size: clamp(44px, 6.2vw, 96px); letter-spacing: -.065em; line-height: .94; }
+.studyOpening .finding { margin-top: 22px; font: 650 clamp(20px, 2.2vw, 32px)/1.15 var(--font-bricolage), sans-serif; letter-spacing: -.03em; }
+.studyOpening .body { margin-top: 12px; }
+.studyOpening .source { margin-top: 9px; }
 .plotPlate { background: #fff6e8; color: var(--ink); padding: clamp(10px, 1.3vw, 22px); width: 100%; }
 .plotPlate img { display: block; width: 100%; height: 100%; max-height: 58svh; object-fit: contain; }
 .plotPlate > figcaption { font-size: 13px; line-height: 1.5; padding-top: 13px; }
@@ -96,9 +102,17 @@
   .scene0 .frameSculpture { left: 18%; }
   .scene0 .mainPlate, .scene5 .mainPlate { width: 55%; top: 26%; left: 23%; transform: translate3d(var(--cursor-x, 0px), var(--cursor-y, 0px), 0) rotate(calc(-5deg + var(--cursor-turn, 0deg))); }
   .scene0 .sideOne, .scene5 .sideOne { width: 29%; top: 8%; left: 62%; transform: translate3d(calc(var(--cursor-x,0px) * -.55), calc(var(--cursor-y,0px) * -.55), 0) rotate(calc(12deg - var(--cursor-turn, 0deg))); }
-  .embedded .scene0 .sideOne, .embedded .scene5 .sideOne { top: max(100px, 10%); }
+  .embedded .scene5 .sideOne { top: max(100px, 10%); }
   .scene0 .sideTwo, .scene5 .sideTwo { width: 31%; top: 69%; left: 15%; transform: translate3d(calc(var(--cursor-x,0px) * 1.2), calc(var(--cursor-y,0px) * 1.2), 0) rotate(calc(-11deg + var(--cursor-turn, 0deg))); }
   .scene1 .sampleSpread { width: 53%; left: 5%; top: 22%; transform: translate3d(var(--cursor-x,0px),var(--cursor-y,0px),0) rotate(-4deg); }
+  .embedded .scene1 .sampleSpread {
+    --approach: calc(1 - var(--study-opening-arrive, 0));
+    width: min(53%, calc(var(--room-height) * .95));
+    top: max(100px, 18%);
+    opacity: calc(1 - var(--approach) * .66);
+    transform: translate3d(calc(var(--cursor-x, 0px) - var(--approach) * 70px), calc(var(--cursor-y, 0px) + var(--approach) * 120px), 0)
+      rotate(calc(-2deg - var(--approach) * 6deg));
+  }
   .scene2 .plotPlate { width: 54%; right: 6%; top: 15%; }
   .scene3 .plotPlate { width: 52%; left: 5%; top: 16%; transform: translate3d(calc(var(--cursor-x,0px) * -.5),var(--cursor-y,0px),0) rotate(-2deg); }
   .scene4 .plotPlate { width: 53%; right: 5%; top: 16%; }
@@ -130,25 +144,14 @@
   .sampleSpread { margin: 16px 6px; }
   .beat2 .finding, .beat3 .finding, .beat4 .finding { font-size: clamp(29px, 6.5vw, 49px); }
   .beat5 .copy h2 { font-size: clamp(80px, 15vw, 135px); }
-  .embedded .beat0 { min-height: var(--room-height); padding-block: 92px 60px; }
   .embedded .copy h2 { font-size: clamp(40px, 10vw, 72px); }
-  .embedded .beat0 .label { font-size: 13px; margin-bottom: 16px; }
-  .embedded .beat0 .copy h1 { font-size: clamp(40px, 10.8vw, 76px); }
-  .embedded .beat0 .body { font-size: 16px; line-height: 1.5; margin-top: 18px; }
-  .embedded .beat0 .finding { font-size: 14px; margin-top: 14px; }
-  .embedded .beat0 .note { display: none; }
-  .embedded .beat0 .heroActions { margin-top: 18px; gap: 12px; }
-  .embedded .beat0 .heroActions a { min-height: 44px; padding-block: 10px; font-size: 13px; }
-  .embedded .beat0 .heroActions > span { display: block; flex-basis: 100%; font-size: 12px; line-height: 1.5; opacity: 1; }
-  .embedded .beat0 .inlineArt { width: min(68vw, 270px); margin: 20px auto 0; }
-  .embedded .beat0 .inlineArt > figcaption { margin-top: 24px; font-size: 12px; }
+  .studyOpening .copy h1 { font-size: clamp(44px, 10vw, 76px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .world { display: block; }
   .stage { display: none; }
   .beat { min-height: 0; }
   .copy { max-width: 700px; }
-  .embedded .beat0 .note { display: block; }
   .inlineArt { display: block; max-width: 850px; }
   .heroActions a:hover, .finalAction:hover { transform: none; }
   .scanPlate, .sampleSpread { transform: none; }

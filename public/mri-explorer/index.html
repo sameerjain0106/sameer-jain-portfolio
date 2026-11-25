@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./match-distance.css">
   <link rel="stylesheet" href="./model-input.css">
   <link rel="stylesheet" href="./portfolio-embed.css">
+  <link rel="stylesheet" href="./scan-instrument.css">
   <script src="./portfolio-embed.js"></script>
   <script type="module" src="./app.js"></script>
   <script type="module" src="./explorer-reveal.js"></script>
@@ -19,15 +20,21 @@
   <main>
     <section class="study" id="explorer" aria-labelledby="page-title">
       <div class="scan-stage">
-        <header class="project-name" data-explorer-reveal>
+        <header class="project-name" data-scan-departure="heading">
           <h1 id="page-title">MRI scan explorer</h1>
           <p class="portfolio-context">Compare a research scan with the project’s ResNet50 reference set.</p>
+          <dl class="scan-facts">
+            <div><dt>Source images</dt><dd>6,056</dd></div>
+            <div><dt>Grouped scans</dt><dd>603</dd></div>
+          </dl>
         </header>
-        <div class="scan-input" data-explorer-reveal>
+        <div class="scan-input">
           <figure class="specimen" aria-labelledby="image-origin">
+            <span class="scanner-dial" aria-hidden="true"></span>
             <button class="upload-button" id="pick-image" type="button" aria-labelledby="upload-label" aria-describedby="upload-hint" disabled>
-              <span class="scan-frame">
+              <span class="scan-frame" data-scan-departure="scan">
                 <img id="query-image" src="./research/example-glioma.png" alt="Published MRI crop labeled Glioma">
+                <span class="scanner-slice" aria-hidden="true"></span>
               </span>
               <span class="upload-action"><span class="upload-arrow" aria-hidden="true">↑</span> <span id="upload-label">Upload an MRI image</span></span>
             </button>
@@ -52,7 +59,7 @@
           </details>
           <p class="status" id="status" role="status" aria-live="polite">Loading the reference set…</p>
         </div>
-        <div class="examples" data-explorer-reveal>
+        <div class="examples" data-scan-departure="samples">
           <p id="samples-label">Example scans</p>
           <div id="samples" class="sample-list" role="group" aria-labelledby="samples-label" aria-busy="true"></div>
         </div>
@@ -65,7 +72,7 @@
           <h2 id="map-title">MRI scan groups</h2>
           <p>Each point is one scan group, positioned using the first two principal components of its ResNet50 features.</p>
         </header>
-        <div class="map-layout" data-explorer-reveal>
+        <div class="map-layout">
           <div class="map-controls">
             <div class="map-modes" id="map-modes" role="group" aria-label="Color the scan map by" hidden>
               <button type="button" data-map-mode="labels" aria-pressed="true">Dataset labels</button>
@@ -96,7 +103,7 @@
             </div>
           </div>
           <figure class="projection-figure">
-            <div class="map-shell">
+            <div class="map-shell" data-map-reveal>
               <canvas id="feature-map" role="img" aria-describedby="map-summary map-caption" aria-label="PCA map of MRI scan groups"></canvas>
               <span id="map-query-pulse" aria-hidden="true" hidden></span>
               <span class="axis axis-x" aria-hidden="true">PC 1</span>
@@ -108,15 +115,19 @@
             </figcaption>
           </figure>
         </div>
-        <div class="map-match-note">
-          <p id="comparison-note" hidden></p>
-          <p class="proximity" id="reference-proximity" hidden></p>
+      </div>
+      <div class="atlas-readings">
+        <div class="record-wrap">
+          <div class="map-match-note">
+            <p id="comparison-note" hidden></p>
+            <p class="proximity" id="reference-proximity" hidden></p>
+          </div>
+          <details id="model-input" class="model-input" data-explorer-reveal hidden>
+            <summary>Inspect the model input</summary>
+            <div id="model-input-body"></div>
+          </details>
+          <p class="portfolio-context research-use">For de-identified research scans. A dataset match does not establish a diagnosis.</p>
         </div>
-        <details id="model-input" class="model-input" data-explorer-reveal hidden>
-          <summary>Inspect the model input</summary>
-          <div id="model-input-body"></div>
-        </details>
-        <p class="portfolio-context research-use">For de-identified research scans. A dataset match does not establish a diagnosis.</p>
       </div>
     </section>
 

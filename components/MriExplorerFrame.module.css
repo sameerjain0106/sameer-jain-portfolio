@@ -1,7 +1,7 @@
 .explorer {
   position: relative;
   padding-top: 82px;
-  background: linear-gradient(to bottom, #3556d7 calc(100% - clamp(140px, 30svh, 260px)), #173bd3);
+  background: #3556d7;
   color: #f2ef9b;
 }
 
@@ -48,6 +48,7 @@
 }
 
 .frameSlot { position: relative; z-index: 1; }
+.frameSlot[data-ready="true"] { background: linear-gradient(to top, #f2ef9b 2px, transparent 2px); }
 
 @media (min-width: 760px) and (hover: hover) and (pointer: fine) {
   /* Give the room's edge dwell a native pointer target. */
@@ -88,10 +89,30 @@
 
 .studyTransition {
   position: relative;
-  padding: 0 max(7vw, 22px) clamp(32px, 6svh, 58px);
+  padding: 3px max(7vw, 22px) clamp(10px, 2svh, 22px);
+  background: #f2ef9b;
+  color: #173bd3;
 }
 
-.studyTransition a {
+.studyRail {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2.6vw, 42px);
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+.studyRail::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: .42;
+  transform: scaleX(var(--scroll-opacity, 1));
+  transform-origin: left;
+}
+
+.studyRail a {
   display: inline-flex;
   align-items: center;
   gap: 16px;
@@ -101,4 +122,4 @@
   text-underline-offset: 5px;
 }
 
-.studyTransition span { font-size: 21px; }
+.studyRail span { font-size: 21px; }

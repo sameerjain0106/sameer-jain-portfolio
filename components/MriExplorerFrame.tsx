@@ -87,7 +87,7 @@ export default function MriExplorerFrame({ active, scrollRoot }: { active: boole
         <FrameArchitecture />
       </div>
       <h2 id="mri-explorer-heading" data-room-heading tabIndex={-1} className={styles.srOnly}>Brain tumor MRI explorer</h2>
-      <a className={styles.skipLink} href="#work" onClick={goToStudy}>Skip to the MRI study</a>
+      <a className={styles.skipLink} href="#work" onClick={goToStudy}>Skip to Study results</a>
       <div className={styles.frameSlot} data-ready={height !== null}>
         {height === null && (
           <div className={styles.placeholder}>
@@ -107,7 +107,9 @@ export default function MriExplorerFrame({ active, scrollRoot }: { active: boole
         />
       </div>
       <div className={styles.studyTransition}>
-        <a href="#work" onClick={goToStudy}>Read the study <span aria-hidden="true">↓</span></a>
+        <div className={styles.studyRail} data-scroll-reveal="group">
+          <a href="#work" onClick={goToStudy}>View study results <span aria-hidden="true">↓</span></a>
+        </div>
       </div>
     </section>
   );

@@ -3,10 +3,17 @@ const room = frame?.closest("[data-room-scroll]");
 
 if (room) {
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  const stage = document.querySelector(".scan-stage");
+  const map = document.querySelector("[data-map-reveal]");
   const beats = Array.from(document.querySelectorAll("[data-explorer-reveal]"), node => ({ node }));
   let frameRequest = 0;
   let dirty = true;
   let viewportHeight = 0;
+  let stageTop = 0;
+  let stageHeight = 0;
+  let mapTop = 0;
+  let lastDeparture;
+  let lastMapReveal;
 
   function layoutTop(node, boundary) {
     let top = 0;
@@ -28,6 +35,9 @@ if (room) {
     if (dirty) {
       viewportHeight = room.clientHeight;
       const frameTop = layoutTop(frame, room);
+      stageTop = frameTop + layoutTop(stage, null);
+      stageHeight = stage.offsetHeight;
+      mapTop = frameTop + layoutTop(map, null);
       for (const beat of beats) {
         beat.top = frameTop + layoutTop(beat.node, null);
         beat.height = beat.node.offsetHeight;
@@ -36,6 +46,19 @@ if (room) {
     }
 
     const scroll = room.scrollTop;
+    const departure = smooth((scroll - stageTop + viewportHeight * .095) /
+      Math.max(1, Math.min(viewportHeight, stageHeight) * .59)).toFixed(3);
+    const mapReveal = smooth((viewportHeight * .96 - (mapTop - scroll)) /
+      (viewportHeight * .55)).toFixed(3);
+    if (lastDeparture !== departure) {
+      stage.style.setProperty("--scan-departure", departure);
+      lastDeparture = departure;
+    }
+    if (lastMapReveal !== mapReveal) {
+      map.style.setProperty("--explorer-map-reveal", mapReveal);
+      lastMapReveal = mapReveal;
+    }
+
     for (const beat of beats) {
       if (!beat.height) continue;
       const top = beat.top - scroll;
@@ -66,6 +89,8 @@ if (room) {
   const observer = new ResizeObserver(refresh);
   observer.observe(document.querySelector("main"));
   observer.observe(room);
+  observer.observe(stage);
+  observer.observe(document.querySelector(".map-layout"));
   for (const { node } of beats) observer.observe(node);
   room.addEventListener("scroll", schedule, { passive: true });
   room.addEventListener("spatial:entered", refresh);
