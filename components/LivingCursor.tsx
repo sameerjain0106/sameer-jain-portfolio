@@ -8,7 +8,7 @@ const colors: Record<RoomId, string> = {
   entrance: "206 48 234", mri: "72 244 214", etf: "113 59 245",
   profile: "25 207 233", contact: "237 62 147",
 };
-const editing = "input, textarea, select, [contenteditable]:not([contenteditable='false'])";
+const nativeCursor = "input, textarea, select, [contenteditable]:not([contenteditable='false']), [data-native-cursor]";
 const clickable = "a[href]:not([aria-disabled='true']), button:not(:disabled):not([aria-disabled='true']), [role='button']:not([aria-disabled='true']), summary, [data-edge]";
 // The shared silhouette begins at the real hotspot; every deformation pivots here.
 const arrow = "M0 0 C2.3 1.1 4.5 2.5 6.6 4 L25.3 17.3 C27.8 19.1 27.2 21.7 24.3 22 L17.3 22.6 L21.9 31.5 C23 33.6 22.4 35.2 20.4 36.2 L19.8 36.5 C17.7 37.5 16.2 36.8 15.2 34.8 L10.7 26.3 L5.4 30.7 C3.1 32.6 .9 31.4 .8 28.5 Z";
@@ -71,7 +71,7 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     }
     function eligible(target: EventTarget | null, x: number, y: number) {
       return supported && !document.hidden && document.hasFocus() && target instanceof Element && world!.contains(target)
-        && !target.closest(editing) && x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom;
+        && !target.closest(nativeCursor) && x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom;
     }
     function move(event: PointerEvent) {
       if (event.pointerType !== "mouse" || !eligible(event.target, event.clientX, event.clientY)) { hide(); return; }

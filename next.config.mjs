@@ -1,6 +1,27 @@
+const mriAssetOrigin = "https://brain-tumor-mri-research.vercel.app";
+const mriAssets = [
+  "research/reference.json",
+  "research/embeddings.f32",
+  "research/cluster-fits.json",
+  "research/example-glioma.png",
+  "research/example-menin.png",
+  "research/example-tumor.png",
+  "vendor/ort.wasm.min.js",
+  "vendor/ort-wasm-simd-threaded.mjs",
+  "vendor/ort-wasm-simd-threaded.wasm",
+  "model/resnet50.onnx",
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async rewrites() {
+    // Keep the published reference data and model at their existing URLs.
+    return mriAssets.map(path => ({
+      source: `/mri-explorer/${path}`,
+      destination: `${mriAssetOrigin}/${path}`,
+    }));
+  },
   async headers() {
     return [{
       source: "/:path*",
@@ -14,6 +35,13 @@ const nextConfig = {
       // Font filenames contain content hashes, so cached bytes never change.
       source: "/fonts/:fontFile",
       headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+    }, {
+      source: "/mri-explorer/index.html",
+      headers: [
+        { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; connect-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; form-action 'none'" },
+        { key: "X-Robots-Tag", value: "noindex" },
+      ],
     }];
   },
 };

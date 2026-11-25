@@ -262,7 +262,11 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       if (enabled && input.current.pointer.known) { status("creatureAwake", true); startAutomaticBlink(); schedule(); }
     }
     function refresh() { needsMeasure = true; if (enabled) schedule(); else if (visible && active && fine.matches && !reduced.matches && !document.hidden) { measure(); paint(); } }
-    function blur() { focused = false; configure(); }
+    function blur() {
+      // A control in the MRI frame can take focus while this tab stays focused.
+      focused = room === "mri" && document.hasFocus();
+      configure();
+    }
     function focus() { focused = true; configure(); }
     // A folded leaf can touch the viewport with zero area before unfolding.
     // Observe a positive-area threshold too, so that first edge contact cannot

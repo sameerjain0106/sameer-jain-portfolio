@@ -1,0 +1,64 @@
+.explorer {
+  position: relative;
+  padding-top: 82px;
+  background: #3556d7;
+  color: #f2ef9b;
+}
+
+.srOnly, .skipLink:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skipLink:focus {
+  position: absolute;
+  z-index: 1;
+  top: 85px;
+  left: 24px;
+  padding: 10px 14px;
+  background: #f2ef9b;
+  color: #111b39;
+}
+
+.frameSlot { position: relative; }
+
+@media (min-width: 760px) and (hover: hover) and (pointer: fine) {
+  /* The room's edge dwell needs pointer events outside the cross-origin frame. */
+  .frameSlot::before, .frameSlot::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset-block: 0;
+    width: 52px;
+  }
+  .frameSlot::before { left: 0; }
+  .frameSlot::after { right: 0; }
+}
+
+.frameSlot[data-ready="false"] .frame {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.placeholder {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 14px;
+  min-height: 260px;
+  padding: 28px clamp(26px, 8vw, 110px);
+}
+
+.placeholder a { text-decoration: underline; text-underline-offset: 4px; }
