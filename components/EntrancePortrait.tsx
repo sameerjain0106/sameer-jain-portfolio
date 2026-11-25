@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 import Image from "next/image";
 import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
 const VIDEO = "/images/entrance-animation-v6.mp4";
 
-export default function EntrancePortrait({ active, scrollRoot }: {
-  active: boolean; scrollRoot: HTMLElement | null;
+export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
+  active: boolean; scrollRoot: HTMLElement | null; portraitRef: Ref<HTMLElement>;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const ambientEnabled = useAmbientMotionEnabled();
@@ -71,10 +71,10 @@ export default function EntrancePortrait({ active, scrollRoot }: {
     };
   }, [active, scrollRoot, ambientEnabled, failed]);
 
-  return <figure className={styles.portrait} data-entrance-portrait>
+  return <figure ref={portraitRef} className={styles.portrait} data-entrance-portrait>
     <div className={styles.portraitFrame}>
       {failed ? <Image src="/images/entrance-animation-v6.jpg" alt="Codex-faced figure beside Sameer in an edited portrait collage."
-        width={624} height={856} sizes="(max-width: 650px) calc(100vw - 94px), 448px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
+        width={624} height={856} sizes="(max-width: 650px) calc(100vw - 88px), 540px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
         poster="/images/entrance-animation-v6.jpg"
         aria-label="Looping portrait of a Codex-faced figure and Sameer, with moving arms, swaying hair, and blinking eyes."
         onError={() => setFailed(true)} />}
