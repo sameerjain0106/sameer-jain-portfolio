@@ -46,6 +46,37 @@
 .value { text-align: right; font-family: var(--font-plex-mono), monospace; font-size: 11px; }
 .footnote { margin-top: 22px; color: var(--signal-muted); font-size: 11px; line-height: 1.8; }
 .empty { padding: 28px; }
+.replay {
+  grid-template-columns: minmax(0, 1fr);
+  color: #152349;
+  --signal-ink: #152349;
+  --signal-muted: #455373;
+  --signal-line: #15234935;
+  --signal-positive: #1d7774;
+  --signal-negative: #bd443e;
+  background: #f8f4ff;
+  border: 1px solid var(--signal-line);
+}
+.replay .browser { padding: 14px 16px; border-right: 0; border-bottom: 1px solid var(--signal-line); }
+.replay .detail { padding: 14px 16px 18px; }
+.replay .label { text-transform: none; letter-spacing: 0; }
+.replay .group { margin-top: 8px; background: #e5e7f8; }
+.replay .group button[aria-pressed="true"] { color: white; background: #2144c8; }
+.replay .group button:hover:not([aria-pressed="true"]) { background: #d5dbf4; }
+.replay .help { margin-top: 10px; }
+.replay .tickers { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 8px; }
+.replay .tickers button { flex-direction: column; gap: 3px; padding: 5px 2px; font-size: 11px; }
+.replay .tickers button span:last-child { font-size: 9px; }
+.replay .summary h3 { font-size: 30px; }
+.replay .score > p:last-child { font-size: 22px; }
+.replay .meter { margin-top: 10px; }
+.replay .meter::-webkit-meter-bar { background: #d6dcef; }
+.replay .chartHeading { margin-top: 18px; padding-bottom: 8px; }
+.replay .contributions { margin-top: 6px; }
+.replay .contributions li { grid-template-columns: minmax(0, 1.3fr) minmax(34px, .8fr) 53px; gap: 7px; min-height: 32px; }
+.replay .feature { overflow-wrap: anywhere; font-size: 11px; }
+.replay .value { font-size: 10px; }
+.replay .footnote { margin-top: 12px; }
 @media (max-width: 800px) {
   .explorer { grid-template-columns: 1fr; }
   .browser { border-right: 0; border-bottom: 1px solid var(--signal-line); padding: 22px; }

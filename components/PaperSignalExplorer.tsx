@@ -1,10 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import styles from "./PaperSignalExplorer.module.css";
 
 type Contribution = { feature: string; contribution: number };
-type SignalRow = {
+export type SignalRow = {
   ticker: string;
   model_score_percentile: number;
   major_positive_contributors: Contribution[];
@@ -41,7 +41,11 @@ function signed(value: number) {
   return `${value >= 0 ? "+" : "−"}${Math.abs(value).toFixed(4)}`;
 }
 
-export default function PaperSignalExplorer({ snapshot }: { snapshot: Snapshot }) {
+export default function PaperSignalExplorer({ snapshot, replay = false, onSelectionChange }: {
+  snapshot: Snapshot;
+  replay?: boolean;
+  onSelectionChange?: (row: SignalRow) => void;
+}) {
   const [group, setGroup] = useState<"top" | "bottom">("top");
   const [ticker, setTicker] = useState(snapshot.top_model_ranked[0]?.ticker ?? "");
   const headingId = useId();
@@ -51,6 +55,9 @@ export default function PaperSignalExplorer({ snapshot }: { snapshot: Snapshot }
   const scale = Math.max(0.0001, ...allRows.flatMap((row) =>
     [...row.major_positive_contributors, ...row.major_negative_contributors].map((item) => Math.abs(item.contribution))
   ));
+  useEffect(() => {
+    if (selected) onSelectionChange?.(selected);
+  }, [selected, onSelectionChange]);
 
   function selectGroup(next: "top" | "bottom") {
     setGroup(next);
@@ -64,7 +71,7 @@ export default function PaperSignalExplorer({ snapshot }: { snapshot: Snapshot }
   const percentile = selected.model_score_percentile * 100;
 
   return (
-    <div className={styles.explorer} aria-labelledby={headingId}>
+    <div className={`${styles.explorer}${replay ? ` ${styles.replay}` : ""}`} aria-labelledby={headingId}>
       <div className={styles.browser}>
         <p className={styles.label} id={headingId}>Inspect the published signal</p>
         <div className={styles.group} role="group" aria-label="Choose model ranking group">
