@@ -25,6 +25,16 @@ const viewHeight = 340;
 const walkStep = 182;
 const lastStop = stops.length - 1;
 const walkLength = stops[lastStop].x - stops[0].x;
+const departure = stops.find(stop => stop.landmark === "terminal")!;
+const arrival = stops.find(stop => stop.landmark === "terminalReturn")!;
+const flightLength = arrival.x - departure.x;
+const landmarkY = (index: number) => index % 3 === 1 ? 282 : 292;
+// The wheels touch the painted apron; the crossing clears the tower's rooftop sign.
+const departureY = landmarkY(stops.indexOf(departure)) + 7;
+const arrivalY = landmarkY(stops.indexOf(arrival)) + 7;
+const flightRise = 199;
+const apronOffset = 65;
+const jetTravel = flightLength - 2 * apronOffset;
 const clamp = (value: number, low = 0, high = 1) => Math.max(low, Math.min(high, value));
 const ease = (t: number) => t * t * (3 - 2 * t);
 const road = stops.slice(1).reduce((path, stop, i) => {
@@ -96,6 +106,19 @@ function LandmarkArt({ kind }: { kind: Landmark }) {
       </g>;
     case "network":
       return <g>
+        <path d="M-67-90v-34m66 20v-20m-66 30 66-28" fill="none" stroke="#566782" strokeWidth="3" />
+        <path d="m-88-153 6-4H24l-6 4Zm106 0 6-4v37l-6 4Z" fill="#8495ae" stroke="#64748e" strokeWidth="1" />
+        <rect x="-88" y="-153" width="106" height="37" rx="1.5" fill="#fbfaf5" stroke="#64748e" strokeWidth="1.5" />
+        <g transform="translate(-80 -149)" fill="#009fdb">
+          <path d="M6.1 2.7A14.5 14.5 0 0 1 22.4 2.5C16.4 4 11.1 4.5 6.1 2.7Z" />
+          <path d="M4.5 4C9.4 6.4 16.8 6.2 24 3.6L26.1 6C17.6 8.3 8.8 8.4 2.9 5.8Z" />
+          <path d="M2.3 6.9C8.3 10.8 18.9 10.2 26.8 7L28 9.7C18.8 12.1 7.6 12.3 1.2 9.4Z" />
+          <path d="M.7 11C7.7 14.8 19.7 14.3 28.4 11.5L28.8 14.1C18 16.7 7 16.4.2 13.5Z" />
+          <path d="M.2 15.5C6.5 18.7 18.2 19.4 28.8 16L28.2 18.9C17.9 21.9 7.1 20.5.8 18.2Z" />
+          <path d="M1.4 20.1C8.2 22.9 18.9 24 27.4 20.9L25.7 23.8C18.4 26 9.4 25.2 3.4 23.4Z" />
+          <path d="M5.2 25.2C11.1 27 17.9 27.4 23.7 25.6A14.5 14.5 0 0 1 5.2 25.2Z" />
+        </g>
+        <text x="-44" y="-127" fill="#1b2633" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="21" letterSpacing="-.9">AT&amp;T</text>
         <path d="M-90 17v-105h40V17Zm54 0v-116H6V17Zm58 0v-93h41v93Z" fill="#596a9f" />
         <path d="m-50-88 13-8V7l-13 10m56-116 13-8V7L6 17m57-93 13-8V7l-13 10" fill="#394773" />
         <path d="m-90-88 13-8h40l-13 8m14-11 13-8h42L6-99m16 23 13-8h41l-13 8" fill="#a2b0d2" />
@@ -139,13 +162,6 @@ function LandmarkArt({ kind }: { kind: Landmark }) {
         <path d="M-86-32H62V-4H-86Z" fill="#4f6b90" />
         <path d="M-61-32v28m31-28v28m31-28v28m31-28v28" stroke="#acc1d2" strokeWidth="2" />
         <path d="m-80-28 16 18m28-18 16 18M9-28l16 18m15-18 16 18" stroke="#a0bccd" strokeWidth="1.7" />
-        <g transform={kind === "terminalReturn" ? "translate(17 0)" : "translate(52 -17)"}>
-          <g className={kind === "terminalReturn" ? styles.arrivingPlane : styles.departingPlane}>
-            <path d="m-46-67 35-2 26-25 7 1-12 23 36-2 8 4-42 6-23 12-7-1 6-10-30-1Z" fill="#e1e7ea" stroke="#4b6082" strokeWidth="1.7" />
-            <path d="m-46-67-8-15 5-1 18 15Zm32 1 43-2 10 1-52 4Z" fill="#203654" />
-            <path d="m-52-79 11 9-7 1Z" fill="#ef4053" />
-          </g>
-        </g>
         <path d="M-91 16h13m13 0h13m14 0h13m13 0H1m13 0h13m14 0h13" stroke="#eee5cf" strokeWidth="2.1" />
       </g>;
     case "tower":
@@ -172,9 +188,25 @@ function LandmarkArt({ kind }: { kind: Landmark }) {
   }
 }
 
+function Airliner() {
+  return <g id="timeline-airliner" strokeLinejoin="round">
+    <path d="M-12-3-30-23l6-1L3-7Z" fill="#aebfd0" stroke="#42536b" strokeWidth="1.3" />
+    <path d="m-30-3-9-19 4-1 17 19Z" fill="#233852" stroke="#42536b" strokeWidth="1.2" />
+    <path d="m-37-20 4 8 7 .5-9-10Z" fill="#e74452" />
+    <path d="M-40-3c6 0 12-1 17-2l49-1c6 0 8 1 12 4l6 3c2 3-8 5-19 5h-40c-11 0-20-4-25-7Z" fill="#fcf8ec" stroke="#414d68" strokeWidth="1.6" />
+    <path d="M-32 1c12 3 31 3 49 2l22-1c-5 3-13 4-23 4h-30Z" fill="#314762" />
+    <path d="m-3 1-22 16 5 1L13 3Z" fill="#c8d5de" stroke="#42536b" strokeWidth="1.3" />
+    <path d="m29-4 4 1 3 2-9 .2Z" fill="#36516b" />
+    <path d="M-17-1h35" stroke="#506581" strokeWidth="2" strokeLinecap="round" strokeDasharray="1 4.2" />
+    <path d="M-10 5v3m32-3v3" stroke="#54556c" strokeWidth="1.4" />
+    <g fill="#343750"><circle cx="-10" cy="8" r="1.8" /><circle cx="22" cy="8" r="1.5" /></g>
+  </g>;
+}
+
 function EntranceMap() {
   return <svg className={styles.art} data-timeline-map viewBox={`${stops[0].x - 500} 112 1000 ${viewHeight}`} aria-hidden="true" focusable="false">
     <defs>
+      <Airliner />
       {stops.map(stop => <g id={`timeline-icon-${stop.landmark}`} key={stop.landmark}><LandmarkArt kind={stop.landmark} /></g>)}
       <pattern id="timeline-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0v24" fill="none" stroke="#747da3" strokeOpacity=".23" /></pattern>
       <pattern id="timeline-cut" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0v9" stroke="#8b8098" strokeOpacity=".23" strokeWidth="2" /></pattern>
@@ -201,12 +233,16 @@ function EntranceMap() {
       </g>
     </g>)}
     {stops.map((stop, index) => <g key={stop.landmark} data-timeline-landmark={stop.landmark}
-      data-company-station={"upcoming" in stop ? stop.x : undefined} transform={`translate(${stop.x} ${index % 3 === 1 ? 282 : 292})`}>
+      data-company-station={"upcoming" in stop ? stop.x : undefined} transform={`translate(${stop.x} ${landmarkY(index)})`}>
       <path d="m-118 37 55-43H81l49 21-45 28H-97Z" fill={index < 3 ? "#c8c9df" : index < 7 ? "#b9cec6" : "#c9c9db"} stroke="#7e82a2" strokeWidth="1" />
       <path d="m-114 38 21 10H86l44-28v-5L85 43H-97Z" fill="#8586ac" />
       <path d="M-112-9v36m-6-6h12m226-25v33m-6-6h12" stroke="#8a83a9" strokeWidth="1.4" />
-      <use href={`#timeline-icon-${stop.landmark}`} />
+      <g data-timeline-building><use href={`#timeline-icon-${stop.landmark}`} /></g>
     </g>)}
+    <ellipse data-flight-shadow cx={departure.x + apronOffset} cy={departureY + 10} rx="34" ry="3.4" fill="#363951" opacity=".23" />
+    <g data-timeline-plane transform={`translate(${departure.x + apronOffset} ${departureY})`}>
+      <use href="#timeline-airliner" />
+    </g>
     <path d={road} stroke="#fcf4e1" strokeWidth="15" fill="none" strokeLinecap="round" />
     <path d={road} stroke="#8f89a7" strokeWidth="2" fill="none" strokeLinecap="round" strokeDasharray="1 7" />
     <path d={road} data-timeline-road pathLength="1" stroke="#4c60b5" strokeWidth="3" strokeDasharray="1" strokeDashoffset="1" fill="none" strokeLinecap="round" />
@@ -250,8 +286,11 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
     const near = figure.querySelector<SVGPathElement>("[data-timeline-near-leg]")!;
     const far = figure.querySelector<SVGPathElement>("[data-timeline-far-leg]")!;
     const arm = figure.querySelector<SVGPathElement>("[data-timeline-arm]")!;
-    const signs = Array.from(map.querySelectorAll<SVGGElement>("[data-company-station]"), node => ({
-      node, x: Number(node.dataset.companyStation), previous: -1,
+    const plane = map.querySelector<SVGGElement>("[data-timeline-plane]")!;
+    const shadow = map.querySelector<SVGEllipseElement>("[data-flight-shadow]")!;
+    const stations = Array.from(map.querySelectorAll<SVGGElement>("[data-timeline-landmark]"), (node, i) => ({
+      building: node.querySelector<SVGGElement>("[data-timeline-building]")!,
+      hasSign: node.hasAttribute("data-company-station"), x: stops[i].x, openness: -1,
     }));
     const labels = Array.from(scene.querySelectorAll<HTMLElement>("[data-timeline-stop]"));
     const buttons = Array.from(scene.querySelectorAll<HTMLButtonElement>("[data-timeline-jump]"));
@@ -261,6 +300,7 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
     let dirty = true;
     let raf = 0;
     let lastPaint = -1;
+    let lastFlight = -1;
     let selected = -1;
     let start = 0;
     let span = 1;
@@ -286,14 +326,36 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
         const travel = (x - stops[from].x) / (stops[from + 1].x - stops[from].x);
         const y = roadHeight[from] + (roadHeight[from+1] - roadHeight[from]) * ease(travel);
         const camera = clamp(x - width * .5, 0, Math.max(0, worldWidth - width));
-        const approach = Math.min(390, width * .48);
-        for (const sign of signs) {
-          const progress = ease(clamp((x - sign.x + approach) / approach));
-          if (progress === sign.previous) continue;
-          sign.node.style.setProperty("--landmark-approach", progress.toFixed(4));
-          sign.previous = progress;
+        // Fold each facade about its bottom edge, leaving the platform on the ground.
+        const foldedAt = Math.min(540, width * .56);
+        const openAt = Math.min(100, foldedAt * .23);
+        for (const station of stations) {
+          const openness = ease(clamp((foldedAt - Math.abs(x - station.x)) / (foldedAt - openAt)));
+          if (openness === station.openness) continue;
+          const angle = (1 - openness) * Math.PI * .5;
+          const height = .065 + .935 * Math.cos(angle);
+          const lean = .29 * Math.sin(angle);
+          station.building.setAttribute("transform", `translate(0 22) matrix(1 0 ${lean.toFixed(4)} ${height.toFixed(4)} 0 0) translate(0 -22)`);
+          if (station.hasSign) station.building.style.setProperty("--landmark-approach", openness.toFixed(4));
+          station.openness = openness;
         }
-        map!.setAttribute("viewBox", `${camera.toFixed(2)} 112 ${width.toFixed(2)} ${viewHeight}`);
+        const flight = clamp((x - departure.x) / flightLength);
+        const lift = Math.sin(Math.PI * flight) ** 2;
+        if (flight !== lastFlight) {
+          const jetX = departure.x + apronOffset + jetTravel * flight;
+          const groundY = departureY + (arrivalY - departureY) * ease(flight);
+          const jetY = groundY - flightRise * lift;
+          const slope = ((arrivalY - departureY) * 6 * flight * (1 - flight) - flightRise * Math.PI * Math.sin(2 * Math.PI * flight)) / jetTravel;
+          const pitch = Math.atan(slope) * 180 / Math.PI * .66;
+          plane.setAttribute("transform", `translate(${jetX.toFixed(2)} ${jetY.toFixed(2)}) rotate(${pitch.toFixed(2)})`);
+          shadow.setAttribute("cx", jetX.toFixed(2));
+          shadow.setAttribute("cy", (groundY + 10).toFixed(2));
+          shadow.setAttribute("rx", (34 - 17 * lift).toFixed(2));
+          shadow.setAttribute("opacity", (.23 - .16 * lift).toFixed(3));
+          lastFlight = flight;
+        }
+        // Give the airborne jet headroom while keeping the walker in frame below it.
+        map!.setAttribute("viewBox", `${camera.toFixed(2)} ${(112 - 62 * lift).toFixed(2)} ${width.toFixed(2)} ${viewHeight}`);
         route!.setAttribute("stroke-dashoffset", (1 - x / worldWidth).toFixed(5));
         walker!.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
         const swing = Math.sin((x - stops[0].x) * Math.PI * 2 / walkStep);
@@ -380,9 +442,10 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
       <div className={styles.stage} ref={stage} data-timeline-chapter={stops[0].landmark}>
         <ol className={styles.stops}>
           {stops.map((stop: TimelineStop) => <li className={styles.stop} key={stop.landmark} data-timeline-stop={stop.landmark}>
-            <svg className={styles.still} viewBox="-135 -166 270 218" aria-hidden="true" focusable="false">
+            <svg className={styles.still} viewBox={stop.landmark === "tower" ? "-135 -214 270 266" : "-135 -166 270 218"} aria-hidden="true" focusable="false">
               <path d="m-127 32 67-34H79l49 22-56 27H-87Z" fill="#d5cfdf"/>
               <use href={`#timeline-icon-${stop.landmark}`}/>
+              {"upcoming" in stop && <use href="#timeline-airliner" transform={stop.landmark === "tower" ? "translate(0 -184)" : `translate(${stop.landmark === "terminal" ? apronOffset : -apronOffset} 7)`} />}
             </svg>
             <div className={styles.date}>{stop.date}{"upcoming" in stop && <span>Upcoming</span>}</div>
             <h3>{stop.title}</h3>

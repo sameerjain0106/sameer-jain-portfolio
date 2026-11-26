@@ -56,12 +56,6 @@
 .viewport { position: relative; height: 0; overflow: hidden; }
 .art { display: block; width: 100%; height: 100%; }
 .deltaSign { opacity: calc(.32 + .68 * var(--landmark-approach, 1)); }
-.departingPlane {
-  transform: translate(calc(-74px * (1 - var(--landmark-approach, 1))), calc(28px * (1 - var(--landmark-approach, 1))));
-}
-.arrivingPlane {
-  transform: translate(calc(-80px * (1 - var(--landmark-approach, 1))), calc(-42px * (1 - var(--landmark-approach, 1))));
-}
 .chaseVane {
   transform: translateY(calc(13px * (1 - var(--landmark-approach, 1))));
   opacity: calc(.26 + .74 * var(--landmark-approach, 1));
