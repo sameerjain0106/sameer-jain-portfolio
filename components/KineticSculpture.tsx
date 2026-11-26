@@ -163,23 +163,31 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
       gl.uniform1f(time,elapsed); gl.uniform2f(pointer,pointerX,pointerY);
       gl.drawElements(gl.TRIANGLES,indices.length,gl.UNSIGNED_SHORT,0);
     };
-    const render = (now: number) => {
-      frame=0;
-      if (disposed || lost || node.dataset.ambientRunning !== "true") { previous=0; return; }
-      // The clock and exponential easing follow real time even on slower frames;
-      // sync() resets previous when resuming, so inactive time is never integrated.
+    const advance = (now: number) => {
       const delta = previous ? Math.max(0,(now-previous)/1000) : 0;
       previous=now; elapsed+=delta;
       const ease=1-Math.exp(-delta*5);
       pointerX+=(targetX-pointerX)*ease; pointerY+=(targetY-pointerY)*ease;
-      // Preserve the original clock and pointer easing while fully transparent,
-      // so reversing the scroll reveals exactly the same phase. Only the costly
-      // GPU work is skipped; offscreen/paused artwork still stops its RAF below.
+    };
+    const running = () => !disposed && !lost && node.dataset.ambientRunning === "true";
+    const render = (now: number) => {
+      frame=0;
+      if (!running() || occluded) return;
+      advance(now);
       draw(); frame=requestAnimationFrame(render);
     };
     const sync = () => {
-      if (node.dataset.ambientRunning === "true" && !lost && !disposed) { if (!frame) { previous=0; frame=requestAnimationFrame(render); } }
-      else { cancelAnimationFrame(frame); frame=0; previous=0; }
+      const active = running();
+      if (active && !occluded) {
+        if (!frame) frame=requestAnimationFrame(render);
+        return;
+      }
+      cancelAnimationFrame(frame);
+      frame=0;
+      // Keep phase across a transparent fade without rendering a frame. An
+      // offscreen or paused sculpture keeps the original frozen clock.
+      if (occluded && (active || previous)) advance(performance.now());
+      if (!active) previous=0;
     };
     let projectionAspect = Number.NaN;
     const resize = () => {
@@ -204,6 +212,7 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
     const occlusionObserver = visibilityGate ? new MutationObserver(() => {
       occluded = visibilityGate.dataset.kineticOccluded === "true";
       node.dataset.kineticOccluded = String(occluded);
+      sync();
     }) : null;
     if (visibilityGate) occlusionObserver!.observe(visibilityGate,{attributes:true,attributeFilter:["data-kinetic-occluded"]});
     node.dataset.kineticOccluded = String(occluded);
@@ -211,10 +220,14 @@ export default function KineticSculpture({ kind, active, scrollRoot }: {
     const section = node.closest("section");
     const move = (event: PointerEvent) => {
       if (event.pointerType !== "mouse" || node.dataset.ambientRunning !== "true") return;
+      if (occluded && previous) advance(performance.now());
       targetX=(event.clientX/window.innerWidth-.5)*2;
       targetY=(event.clientY/window.innerHeight-.5)*2;
     };
-    const leave = () => { targetX=0; targetY=0; };
+    const leave = () => {
+      if (occluded && previous) advance(performance.now());
+      targetX=0; targetY=0;
+    };
     section?.addEventListener("pointermove",move,{passive:true}); section?.addEventListener("pointerleave",leave);
     const contextLost = (event: Event) => { event.preventDefault(); lost=true; cancelAnimationFrame(frame); frame=0; setReady(false); };
     const contextRestored = () => setGeneration(value=>value+1);

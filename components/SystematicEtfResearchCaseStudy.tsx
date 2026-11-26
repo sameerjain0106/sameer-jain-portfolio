@@ -42,24 +42,31 @@ function CaseSection({ children }: { children: ReactNode }) {
   );
 }
 
+const fullFigureSizes = "(min-width: 1536px) 1400px, (min-width: 490px) 91vw, calc(100vw - 44px)";
+const halfFigureSizes = `(min-width: 1536px) 690px, (min-width: 1280px) 45vw, ${fullFigureSizes}`;
+
 function ResearchFigure({
   src,
   alt,
   caption,
+  dimensions,
+  sizes = fullFigureSizes,
 }: {
   src: string;
   alt: string;
   caption: string;
+  dimensions: readonly [width: number, height: number];
+  sizes?: string;
 }) {
   return (
     <figure className="overflow-hidden rounded-xl border border-base-border bg-[#f8fafc] shadow-[0_24px_70px_-46px_rgba(77,216,196,0.45)]">
       <Image
         src={src}
         alt={alt}
-        width={1600}
-        height={900}
+        width={dimensions[0]}
+        height={dimensions[1]}
         className="h-auto w-full object-contain"
-        sizes="(max-width: 1024px) 100vw, 72vw"
+        sizes={sizes}
       />
       <figcaption className="border-t border-slate-200 bg-white px-4 py-3 font-mono text-[10px] leading-5 text-slate-600">
         {caption}
@@ -117,10 +124,10 @@ export default function SystematicEtfResearchCaseStudy() {
         />
         <div className="site-shell relative py-12 sm:py-16 lg:py-20">
           <Link
-            href="/#work"
+            href="/projects"
             className="mono-label text-[10px] text-ink-muted transition-colors hover:text-signal"
           >
-            ← Back to selected work
+            ← Back to projects
           </Link>
 
           <div className="mt-8 grid items-end gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(470px,0.95fr)] xl:gap-14">
@@ -218,7 +225,8 @@ export default function SystematicEtfResearchCaseStudy() {
         <div className="mt-7">
           <ResearchFigure
             src={etfResearch.figures.timeline}
-            alt="Research timeline showing development, sealed confirmation, and forward testing"
+            alt="Annual mean Spearman information coefficients with development years 2019–2023 and sealed confirmation years 2024–2026 shown separately"
+            dimensions={[1648, 970]}
             caption="The model was selected in pre-2024 development, evaluated once on the sealed confirmation period, then frozen for prospective paper predictions."
           />
         </div>
@@ -274,6 +282,8 @@ export default function SystematicEtfResearchCaseStudy() {
           </div>
           <ResearchFigure
             src={etfResearch.figures.complexity}
+            dimensions={[1684, 970]}
+            sizes={`(min-width: 1536px) 880px, (min-width: 1280px) 57vw, ${fullFigureSizes}`}
             alt="Pre-confirmation comparison of Elastic Net, XGBoost, pairwise ranking, MLP, and ensemble models"
             caption="None of the nonlinear candidates passed the predeclared complexity-advancement gate."
           />
@@ -303,11 +313,15 @@ export default function SystematicEtfResearchCaseStudy() {
         <div className="mt-6 grid gap-6 xl:grid-cols-2">
           <ResearchFigure
             src={etfResearch.figures.confirmation}
+            dimensions={[1505, 970]}
+            sizes={halfFigureSizes}
             alt="Development and sealed confirmation mean information coefficients"
             caption={`Development mean IC ${confirmation.development_mean_spearman_ic.toFixed(3)}; sealed confirmation mean IC ${confirmation.confirmation_mean_spearman_ic.toFixed(3)}.`}
           />
           <ResearchFigure
             src={etfResearch.figures.weeklyIc}
+            dimensions={[1862, 970]}
+            sizes={halfFigureSizes}
             alt="Weekly information coefficient during the sealed confirmation period"
             caption="133 weekly confirmation decisions and 13,254 ETF/date predictions; dependence-aware inference is reported alongside the series."
           />
@@ -327,6 +341,8 @@ export default function SystematicEtfResearchCaseStudy() {
         <div className="mt-8 grid items-start gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <ResearchFigure
             src={etfResearch.figures.coefficients}
+            dimensions={[1791, 1095]}
+            sizes={`(min-width: 1536px) 860px, (min-width: 1280px) 56vw, ${fullFigureSizes}`}
             alt="Coefficient stability for the frozen 18-feature Elastic Net"
             caption="Fold-level standardized coefficients reveal which associations persisted across chronological training windows."
           />
@@ -364,6 +380,7 @@ export default function SystematicEtfResearchCaseStudy() {
         <div className="mt-6">
           <ResearchFigure
             src={etfResearch.figures.economics}
+            dimensions={[1790, 970]}
             alt="Historical economic comparison of the frozen ML portfolio, momentum, and equal weight"
             caption="The ML portfolio did not dominate momentum on CAGR or equal weight on Sharpe. Historical returns are not proof of alpha."
           />

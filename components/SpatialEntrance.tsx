@@ -114,7 +114,7 @@ export default function SpatialEntrance({ active, scrollRoot }: {
         <p className={styles.touchHint}>Tap an edge for projects.<br />Scroll to learn about me.</p>
       </div>
     </div>
-    <div className={styles.portraitStage} data-scene-depart>
+    <div className={styles.portraitStage} data-scene-depart data-kinetic-occluded="false">
       <div className={styles.entranceSculpture} aria-hidden="true"><KineticSculpture kind="ribbon" active={active} scrollRoot={scrollRoot} /></div>
       <EntrancePortrait active={active} scrollRoot={scrollRoot} portraitRef={portrait} />
     </div>

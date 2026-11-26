@@ -26,7 +26,8 @@ let clusterViews;
 let queryCoordinates = null;
 let queryPulseAnimation;
 let reference;
-let vectors;
+let referenceVectors;
+let sampleMatches;
 let worker;
 let pendingUpload = null;
 let selectedSample = null;
@@ -62,6 +63,41 @@ async function loadAsset(path, format) {
   const response = await fetch(localAsset(path));
   if (!response.ok) throw new Error("Could not load the project reference files.");
   return response[format]();
+}
+
+// Exact results from the published reference snapshot. A new snapshot uses
+// the live index to calculate its own examples.
+const publishedReferenceHash = "2aa0bd992a5f56524a1ce75d3ef97445a1bc4b567f8ee3959acd3cb51f9d2693";
+const publishedMatches = {
+  menin: { label: "brain_menin", distance: .04314459006066118, coordinates: [-.11698564751762308, -.03848013275922823] },
+  tumor: { label: "brain_tumor", distance: .05427073064542032, coordinates: [-.2992450664895823, .10780925874337699] },
+  glioma: { label: "brain_glioma", distance: .07320881040664562, coordinates: [.27122279484420836, -.07860503926885924] },
+};
+
+function loadReferenceVectors() {
+  referenceVectors ??= loadAsset(reference.embeddingPath, "arrayBuffer").then((bytes) => {
+    const vectors = new Float32Array(bytes);
+    if (vectors.length !== reference.groups.length * reference.dimension) {
+      throw new Error("The saved reference set did not load completely.");
+    }
+    return vectors;
+  }).catch((error) => {
+    referenceVectors = undefined;
+    throw error;
+  });
+  return referenceVectors;
+}
+
+async function loadSampleMatches(bytes) {
+  const digest = await globalThis.crypto?.subtle?.digest("SHA-256", bytes).catch(() => null);
+  if (digest) {
+    const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    if (hash === publishedReferenceHash) return publishedMatches;
+  }
+  const vectors = await loadReferenceVectors();
+  return Object.fromEntries(reference.samples.map((sample) => [
+    sample.id, compareFeatures(sample.embedding, vectors, sample.groupIndex),
+  ]));
 }
 
 function selectMapLabel(label) {
@@ -306,26 +342,35 @@ function markSelection(id) {
   }
 }
 
-function compareFeatures(values, excludedIndex = -1) {
+function compareFeatures(values, vectors, excludedIndex = -1) {
   const query = unitVector(values, reference.dimension);
   const [best] = rankGroups(query, vectors, reference.groups.length, excludedIndex);
   return {
-    query,
-    label: labels[reference.groups[best.index].label].name,
+    coordinates: project(query, reference.projection),
+    label: reference.groups[best.index].label,
     distance: best.distance,
-    distant: best.distance > reference.validation.nearestDistance.p95,
   };
 }
 
-function renderComparison(values, excludedIndex = -1) {
-  const { query, label, distance, distant } = compareFeatures(values, excludedIndex);
+function renderComparison(match, excludedIndex = -1) {
+  const { coordinates, distance } = match;
+  const label = labels[match.label].name;
+  const distant = distance > reference.validation.nearestDistance.p95;
   const example = excludedIndex !== -1;
-  queryCoordinates = project(query, reference.projection);
+  queryCoordinates = coordinates;
   showMatch(label, distant && !example ? "distant" : "match");
   setMatchDistance(distance, reference.validation.nearestDistance);
   setModelInput({
     src: image.src, alt: image.alt, example, label, distance, distant,
-    compareFeatures: (features) => compareFeatures(features, excludedIndex),
+    prepareComparison: loadReferenceVectors,
+    compareFeatures: (features, vectors) => {
+      const result = compareFeatures(features, vectors, excludedIndex);
+      return {
+        label: labels[result.label].name,
+        distance: result.distance,
+        distant: result.distance > reference.validation.nearestDistance.p95,
+      };
+    },
   });
   const selectedImage = element("map-selected-image");
   selectedImage.src = image.src;
@@ -378,14 +423,14 @@ function useSample(sample) {
   markSelection(sample.id);
   showImage(localAsset(sample.imagePath).href, "Published MRI project crop labeled " + labels[sample.label].name,
     labels[sample.label].name + " example", "Published MRI crop");
-  renderComparison(sample.embedding, sample.groupIndex);
+  renderComparison(sampleMatches[sample.id], sample.groupIndex);
   say("Showing the published " + labels[sample.label].name.toLowerCase() + " example.", false, false);
 }
 
 function ensureWorker() {
   if (worker) return worker;
   worker = new Worker(localAsset("./inference-worker.js"));
-  worker.onmessage = ({ data }) => {
+  worker.onmessage = async ({ data }) => {
     if (data.id !== latestRun || data.id !== pendingUpload) return;
     if (data.phase === "loading") say("Loading the 47 MB ResNet50 model for the first comparison…");
     else if (data.phase === "computing") say("Extracting ResNet50 features on this device…");
@@ -398,9 +443,12 @@ function ensureWorker() {
         return;
       }
       try {
-        renderComparison(data.features);
+        const vectors = await loadReferenceVectors();
+        if (data.id !== latestRun) return;
+        renderComparison(compareFeatures(data.features, vectors));
         say("Comparison complete. The image stayed on this device.");
       } catch (error) {
+        if (data.id !== latestRun) return;
         resetComparison("Unavailable", "Try another crop.");
         say(error.message, true);
       }
@@ -436,6 +484,7 @@ async function useUpload(file) {
       "Local file", true);
     resetComparison("In progress", "Comparing the selected crop with saved scan-group features.");
     const activeWorker = ensureWorker();
+    void loadReferenceVectors().catch(() => {});
     pendingUpload = id;
     activeWorker.postMessage({ id, tensor: prepared.tensor }, [prepared.tensor.buffer]);
   } catch (error) {
@@ -450,12 +499,12 @@ async function useUpload(file) {
 
 async function start() {
   try {
-    reference = await loadAsset("research/reference.json", "json");
-    vectors = new Float32Array(await loadAsset(reference.embeddingPath, "arrayBuffer"));
-    if (reference.version !== 1 || !reference.samples.length ||
-        vectors.length !== reference.groups.length * reference.dimension) {
+    const bytes = await loadAsset("research/reference.json", "arrayBuffer");
+    reference = JSON.parse(new TextDecoder().decode(bytes));
+    if (reference.version !== 1 || !reference.samples.length) {
       throw new Error("The saved reference set did not load completely.");
     }
+    sampleMatches = await loadSampleMatches(bytes);
     for (const sample of reference.samples) {
       const button = document.createElement("button");
       button.type = "button";

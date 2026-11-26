@@ -10,18 +10,25 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
   useEffect(() => {
     if (!active || !scroller) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const hideFlowFields = matchMedia("(min-width: 900px) and (prefers-reduced-motion: no-preference)");
     const nodes = Array.from(scroller.querySelectorAll<HTMLElement>("[data-scroll-reveal]"));
     const surfaces = Array.from(scroller.querySelectorAll<HTMLElement>("[data-room-surface]"));
     let beats: Beat[] = [];
     let frame = 0;
     let dirty = true;
     let disposed = false;
-    let fieldScroll = "";
+    const visibleSurfaces = new Set<HTMLElement>();
 
     // Positioning is added only where needed; the MRI stage keeps its sticky position.
     surfaces.forEach(node => { if (!node.hasAttribute("data-surface-positioned") && getComputedStyle(node).position === "static") node.style.position = "relative"; });
     const visibility = new IntersectionObserver(entries => {
-      entries.forEach(entry => { (entry.target as HTMLElement).dataset.surfaceVisible = String(entry.isIntersecting); });
+      for (const entry of entries) {
+        const surface = entry.target as HTMLElement;
+        if (entry.isIntersecting) visibleSurfaces.add(surface);
+        else visibleSurfaces.delete(surface);
+        surface.dataset.surfaceVisible = String(entry.isIntersecting);
+      }
+      schedule();
     }, { root: scroller, threshold: 0 });
     surfaces.forEach(node => visibility.observe(node));
 
@@ -50,12 +57,14 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
       const scrollTop = scroller.scrollTop;
       const maxScroll = scroller.scrollHeight - height;
       const reduced = motion.matches;
-      const nextFieldScroll = `${reduced ? 0 : -Math.sin(scrollTop * .00065) * 32}px`;
-      if (nextFieldScroll !== fieldScroll) {
-        fieldScroll = nextFieldScroll;
+      if (!reduced && visibleSurfaces.size) {
+        const fieldScroll = `${-Math.sin(scrollTop * .00065) * 32}px`;
         // A non-inheriting property keeps the field's movement from invalidating
         // every text and SVG descendant. Only each surface's ::before inherits it.
-        surfaces.forEach(surface => surface.style.setProperty("--field-scroll", fieldScroll));
+        for (const surface of visibleSurfaces) {
+          if (hideFlowFields.matches && surface.hasAttribute("data-surface-flow")) continue;
+          if (surface.style.getPropertyValue("--field-scroll") !== fieldScroll) surface.style.setProperty("--field-scroll", fieldScroll);
+        }
       }
       beats.forEach(beat => {
         const travel = Math.min(height * .44, Math.max(height * .22, beat.height * .55 + height * .15));
@@ -87,6 +96,7 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
     scroller.addEventListener("scroll", schedule, { passive: true });
     document.addEventListener("visibilitychange", tabVisibility);
     motion.addEventListener("change", refresh);
+    hideFlowFields.addEventListener("change", schedule);
     void document.fonts.ready.then(() => { if (!disposed) refresh(); });
     schedule();
     return () => {
@@ -94,6 +104,7 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
       scroller.removeEventListener("scroll", schedule);
       document.removeEventListener("visibilitychange", tabVisibility);
       motion.removeEventListener("change", refresh);
+      hideFlowFields.removeEventListener("change", schedule);
     };
   }, [active, scroller]);
 }

@@ -25,13 +25,13 @@ export async function generateMetadata({
       title: `${project.title} | Sameer Jain`,
       description: project.oneLiner,
       type: "article",
-      images: [],
+      images: [{ url: project.cardImage.src, alt: project.cardImage.alt }],
     },
     twitter: {
       card: "summary_large_image",
       title: `${project.title} | Sameer Jain`,
       description: project.oneLiner,
-      images: [],
+      images: [{ url: project.cardImage.src, alt: project.cardImage.alt }],
     },
   };
 }
@@ -40,6 +40,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const project = detailedProjects.find((p) => p.slug === slug);
   if (!project) notFound();
+  const classSizes = project.data.classes.map(({ images }) => images);
+  const smallestClass = Math.min(...classSizes).toLocaleString("en-US");
+  const largestClass = Math.max(...classSizes).toLocaleString("en-US");
 
   return (
     <article>
@@ -54,10 +57,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         >
           <div className="mx-auto max-w-4xl px-6 pb-12 pt-12 md:px-10 md:pt-16">
             <Link
-              href="/#work"
+              href="/projects"
               className="mono-label text-xs text-ink-muted hover:text-signal transition-colors"
             >
-              ← Back to work
+              ← Back to projects
             </Link>
 
             <div className="mt-6 flex flex-wrap gap-2">
@@ -142,13 +145,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               <div>
                 <dt className="text-ink-faint">Images / class</dt>
                 <dd className="mt-1 font-mono text-ink">
-                  {project.data.imagesPerClass.toLocaleString()}
+                  {smallestClass === largestClass ? smallestClass : `${smallestClass}–${largestClass}`}
                 </dd>
               </div>
               <div>
                 <dt className="text-ink-faint">Total images</dt>
                 <dd className="mt-1 font-mono text-ink">
-                  {project.data.totalImages.toLocaleString()}
+                  {project.data.totalImages.toLocaleString("en-US")}
                 </dd>
               </div>
               <div>

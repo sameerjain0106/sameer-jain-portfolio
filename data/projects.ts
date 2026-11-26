@@ -48,8 +48,11 @@ export const detailedProjects: Project[] = [
     data: {
       description:
         "Grayscale/RGB brain MRI images across three classes (brain_glioma, brain_menin, brain_tumor) — glioma and menin have 2,004 images each, tumor has 2,048.",
-      classes: ["brain_glioma", "brain_menin", "brain_tumor"],
-      imagesPerClass: 2004,
+      classes: [
+        { name: "brain_glioma", images: 2004 },
+        { name: "brain_menin", images: 2004 },
+        { name: "brain_tumor", images: 2048 },
+      ],
       totalImages: 6056,
       imageSize: "512×512",
     },
@@ -250,8 +253,14 @@ const etfResearchProject: ProjectSummary = {
   headlineStats: [...etfResearch.headlineStats],
 };
 
+const detailedProjectSummaries: ProjectSummary[] = detailedProjects.map(
+  ({ slug, title, oneLiner, category, technologies, featured, githubUrl, cardImage, headlineStats, caseStudyPath }) => ({
+    slug, title, oneLiner, category, technologies, featured, githubUrl, cardImage, headlineStats, caseStudyPath,
+  }),
+);
+
 export const projects: ProjectSummary[] = [
-  ...detailedProjects,
+  ...detailedProjectSummaries,
   etfResearchProject,
   {
     slug: "granted",

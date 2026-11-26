@@ -110,8 +110,7 @@ git push -u origin main
 
 ## 5. Dependencies
 
-Production: `next`, `react`, `react-dom`, `recharts` (for the results
-bar chart), and `gsap` (for spatial room transitions).
+Production: `next`, `react`, `react-dom`, `gsap`, and `lenis`.
 Dev: `typescript`, `tailwindcss`, `autoprefixer`, `postcss`, ESLint +
 Next.js config, and type definitions. The destination previews and MRI
 pipeline add no runtime dependencies. Native CSS, SVG, canvas, and WebGL
@@ -141,7 +140,7 @@ components/
   ProjectCard.tsx, ProjectExplorer.tsx   Project grid + category filter
   ApproachTabs.tsx                 Tab switcher between a project's methodological approaches
   MethodologyPipeline.tsx          Expandable pipeline steps (used for anomaly detection)
-  ResultsChart.tsx                 Recharts bar chart for model comparison
+  ResultsChart.tsx                 Native HTML/CSS bar chart for model comparison
   ImageGallery.tsx                 Captioned image grid for visualizations
   StatusBadge.tsx                  "Results available" / "methodology only" indicator
   TechnicalMetric.tsx, TechPill.tsx, SectionHeading.tsx   Small reusable UI primitives

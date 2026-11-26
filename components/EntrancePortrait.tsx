@@ -6,6 +6,7 @@ import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
 const VIDEO = "/images/entrance-animation-v6.mp4";
+const POSTER = "/images/entrance-animation-v6.webp";
 
 export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
   active: boolean; scrollRoot: HTMLElement | null; portraitRef: Ref<HTMLElement>;
@@ -19,22 +20,24 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
     const player = video.current;
     if (!player || !active || !scrollRoot || failed) return;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const visibilityGate = player.closest<HTMLElement>("[data-kinetic-occluded]");
     let visible = false;
     let disposed = false;
     let retryAttached = false;
     const retryEvents = ["pointerdown", "keydown", "touchend", "wheel"] as const;
+    const canPlay = () => visible && !document.hidden && visibilityGate?.dataset.kineticOccluded !== "true";
     const clearRetry = () => {
       retryEvents.forEach(event => window.removeEventListener(event, update));
       retryAttached = false;
     };
     const retryOnGesture = () => {
-      if (retryAttached || disposed || !visible || document.hidden) return;
+      if (retryAttached || disposed || !canPlay()) return;
       retryEvents.forEach(event => window.addEventListener(event, update, { passive: true }));
       retryAttached = true;
     };
     const update = () => {
       if (disposed) return;
-      if (!visible || document.hidden) {
+      if (!canPlay()) {
         clearRetry();
         player.pause();
         return;
@@ -47,13 +50,15 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
       player.playbackRate = rate;
       player.muted = true;
       // Recover from restrictive autoplay policies on the next normal interaction.
-      void player.play().then(clearRetry).catch(retryOnGesture);
+      if (player.paused) void player.play().then(clearRetry).catch(retryOnGesture);
     };
     const observer = new IntersectionObserver(entries => {
       visible = entries.some(entry => entry.isIntersecting);
       update();
     }, { root: scrollRoot, threshold: 0 });
     observer.observe(player);
+    const occlusion = new MutationObserver(update);
+    if (visibilityGate) occlusion.observe(visibilityGate, { attributes: true, attributeFilter: ["data-kinetic-occluded"] });
     const resumeLoop = () => {
       // Some media engines pause while seeking back to the first loop frame.
       if (player.loop && player.paused && player.currentTime < .1) update();
@@ -65,6 +70,7 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
       disposed = true;
       clearRetry();
       observer.disconnect();
+      occlusion.disconnect();
       player.removeEventListener("seeked", resumeLoop);
       document.removeEventListener("visibilitychange", update);
       reduced.removeEventListener("change", update);
@@ -74,9 +80,9 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
 
   return <figure ref={portraitRef} className={styles.portrait} data-entrance-portrait>
     <div className={styles.portraitFrame}>
-      {failed ? <Image src="/images/entrance-animation-v6.jpg" alt="Codex-faced figure beside Sameer in an edited portrait collage."
+      {failed ? <Image src={POSTER} alt="Codex-faced figure beside Sameer in an edited portrait collage."
         width={624} height={856} sizes="(max-width: 650px) calc(100vw - 88px), 540px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
-        poster="/images/entrance-animation-v6.jpg"
+        poster={POSTER}
         data-portrait-playing={playing}
         aria-label="Looping portrait of a Codex-faced figure and Sameer, with moving arms, swaying hair, and blinking eyes."
         onPlaying={() => setPlaying(true)}

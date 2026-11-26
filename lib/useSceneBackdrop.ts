@@ -69,10 +69,16 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
         lastPaint = bg + ink;
       }
       for (const node of departing) {
-        const end = height * (node.dataset.sceneDepart === "cue" ? .15 : .61);
+        const cue = node.dataset.sceneDepart === "cue";
+        const end = height * (cue ? .15 : .61);
         const opacity = reduced.matches ? 1 : 1 - smooth(clamp(y / end));
         const value = String(Number(opacity.toFixed(3)));
         if (node.style.opacity !== value) node.style.opacity = value;
+        if (cue && node.inert !== (value === "0")) node.inert = value === "0";
+        if (node.hasAttribute("data-kinetic-occluded")) {
+          const occluded = String(value === "0");
+          if (node.dataset.kineticOccluded !== occluded) node.dataset.kineticOccluded = occluded;
+        }
       }
       reveals.forEach((node, i) => {
         const first = node.dataset.sceneReveal === "first";

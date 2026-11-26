@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ProjectApproach } from "@/lib/types";
+import { useId, useState, type KeyboardEvent } from "react";
+import type { ProjectApproach } from "@/lib/types";
 import StatusBadge from "@/components/StatusBadge";
 import ResultsChart from "@/components/ResultsChart";
 import ImageGallery from "@/components/ImageGallery";
@@ -11,16 +11,39 @@ import TechnicalMetric from "@/components/TechnicalMetric";
 export default function ApproachTabs({ approaches }: { approaches: ProjectApproach[] }) {
   const [activeId, setActiveId] = useState(approaches[0]?.id);
   const active = approaches.find((a) => a.id === activeId) ?? approaches[0];
+  const tabId = useId();
 
   if (!active) return null;
 
+  function selectWithKeyboard(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let next: number;
+    switch (event.key) {
+      case "ArrowRight": next = (index + 1) % approaches.length; break;
+      case "ArrowLeft": next = (index + approaches.length - 1) % approaches.length; break;
+      case "Home": next = 0; break;
+      case "End": next = approaches.length - 1; break;
+      default: return;
+    }
+    const nextId = approaches[next].id;
+    event.preventDefault();
+    setActiveId(nextId);
+    document.getElementById(`${tabId}-${nextId}`)?.focus();
+  }
+
   return (
     <div>
-      <div className="flex flex-wrap gap-2 border-b border-base-border pb-4">
-        {approaches.map((a) => (
+      <div className="flex flex-wrap gap-2 border-b border-base-border pb-4" role="tablist" aria-label="Research approaches">
+        {approaches.map((a, index) => (
           <button
             key={a.id}
+            type="button"
+            role="tab"
+            id={`${tabId}-${a.id}`}
+            aria-selected={a.id === active.id}
+            aria-controls={`${tabId}-panel`}
+            tabIndex={a.id === active.id ? 0 : -1}
             onClick={() => setActiveId(a.id)}
+            onKeyDown={(event) => selectWithKeyboard(event, index)}
             className={
               a.id === active.id
                 ? "rounded-md bg-signal/10 border border-signal/40 px-4 py-2 text-sm font-medium text-signal transition-colors"
@@ -32,7 +55,7 @@ export default function ApproachTabs({ approaches }: { approaches: ProjectApproa
         ))}
       </div>
 
-      <div className="mt-6 space-y-8">
+      <div className="mt-6 space-y-8" role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${active.id}`} tabIndex={0}>
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={active.status} />
         </div>
@@ -80,7 +103,7 @@ export default function ApproachTabs({ approaches }: { approaches: ProjectApproa
                 />
               ))}
             </div>
-            <ResultsChart models={active.models} />
+            <ResultsChart key={active.id} models={active.models} />
           </div>
         )}
 

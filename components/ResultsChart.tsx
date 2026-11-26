@@ -1,58 +1,50 @@
 "use client";
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { ModelResult } from "@/lib/types";
+import { useState } from "react";
+import type { ModelResult } from "@/lib/types";
+import styles from "./ResultsChart.module.css";
+
+const ticks = [100, 75, 50, 25, 0];
 
 export default function ResultsChart({ models }: { models: ModelResult[] }) {
-  const data = models.map((m) => ({
-    name: m.name,
-    Accuracy: Number((m.accuracy * 100).toFixed(1)),
-    "F1 Score": Number((m.f1 * 100).toFixed(1)),
-  }));
-
+  const [selected, setSelected] = useState<string | null>(null);
   return (
-    <div className="h-80 w-full rounded-lg border border-base-border bg-base-panel p-4">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1F242E" vertical={false} />
-          <XAxis
-            dataKey="name"
-            tick={{ fill: "#8B93A1", fontSize: 11, fontFamily: "var(--font-plex-mono)" }}
-            axisLine={{ stroke: "#1F242E" }}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: "#8B93A1", fontSize: 11, fontFamily: "var(--font-plex-mono)" }}
-            axisLine={{ stroke: "#1F242E" }}
-            tickLine={false}
-            unit="%"
-            domain={[0, 100]}
-          />
-          <Tooltip
-            contentStyle={{
-              background: "#12151C",
-              border: "1px solid #1F242E",
-              borderRadius: 8,
-              fontSize: 12,
-              fontFamily: "var(--font-plex-mono)",
-            }}
-            labelStyle={{ color: "#E6E9EF" }}
-            cursor={{ fill: "rgba(77, 216, 196, 0.05)" }}
-          />
-          <Legend wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-plex-mono)" }} />
-          <Bar dataKey="Accuracy" fill="#4DD8C4" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="F1 Score" fill="#D9A45B" radius={[3, 3, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <figure className={styles.chart} aria-label="Model accuracy and F1 score">
+      <div className={styles.grid} aria-hidden="true">
+        {ticks.map((tick) => <div className={styles.tick} key={tick} style={{ top: `${100 - tick}%` }}><span>{tick}%</span></div>)}
+      </div>
+      <ul className={styles.groups}>
+        {models.map((model) => {
+          const accuracy = `${(model.accuracy * 100).toFixed(1)}%`;
+          const f1 = `${(model.f1 * 100).toFixed(1)}%`;
+          const isSelected = selected === model.name;
+          return (
+            <li className={styles.group} key={model.name}>
+              <button
+                type="button"
+                className={styles.model}
+                aria-label={`${model.name}, accuracy ${accuracy}, F1 score ${f1}`}
+                aria-pressed={isSelected}
+                onClick={() => setSelected(isSelected ? null : model.name)}
+              >
+                <span className={styles.bars} aria-hidden="true">
+                  <span className={styles.accuracy} style={{ height: accuracy }} />
+                  <span className={styles.f1} style={{ height: f1 }} />
+                </span>
+                <span className={styles.label}>{model.name}</span>
+              </button>
+              <div className={styles.values} data-selected={isSelected} aria-hidden="true">
+                <span className={styles.accuracy}>Accuracy {accuracy}</span>
+                <span className={styles.f1}>F1 Score {f1}</span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <figcaption className={styles.legend}>
+        <span className={styles.accuracy}>Accuracy</span>
+        <span className={styles.f1}>F1 Score</span>
+      </figcaption>
+    </figure>
   );
 }

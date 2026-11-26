@@ -9,13 +9,13 @@ export const metadata: Metadata = {
     title: `${etfResearch.title} | Sameer Jain`,
     description: etfResearch.oneLiner,
     type: "article",
-    images: [],
+    images: [{ url: etfResearch.figures.confirmation, width: 1505, height: 970, alt: "ETF model development and sealed confirmation results" }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${etfResearch.title} | Sameer Jain`,
     description: etfResearch.oneLiner,
-    images: [],
+    images: [{ url: etfResearch.figures.confirmation, alt: "ETF model development and sealed confirmation results" }],
   },
 };
 

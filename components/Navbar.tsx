@@ -3,7 +3,7 @@ import { site } from "@/data/site";
 import styles from "./JournalShell.module.css";
 
 const navLinks = [
-  { href: "/#work", label: "Work" },
+  { href: "/projects", label: "Work" },
   { href: "/#profile", label: "Profile" },
   { href: "/#contact", label: "Contact" },
 ];
@@ -13,13 +13,13 @@ export default function Navbar() {
     <header className={styles.header}>
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
       <nav className={`site-shell ${styles.nav}`} aria-label="Main navigation">
-        <Link href="/" className={styles.identity} aria-label="Sameer Jain, home">
+        <Link href="/" prefetch={false} className={styles.identity} aria-label="Sameer Jain, home">
           <span className={styles.identityName}>Sameer Jain<span>Data Science / Statistics / ML</span></span>
         </Link>
         <ul className={styles.navLinks}>
           {navLinks.map((link) => (
             <li key={link.href}>
-              <Link href={link.href}>
+              <Link href={link.href} prefetch={false}>
                 {link.label}
               </Link>
             </li>

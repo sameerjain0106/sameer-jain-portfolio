@@ -60,8 +60,7 @@ export interface Project extends ProjectSummary {
   problem: string;
   data: {
     description: string;
-    classes: string[];
-    imagesPerClass: number;
+    classes: { name: string; images: number }[];
     totalImages: number;
     imageSize: string;
   };

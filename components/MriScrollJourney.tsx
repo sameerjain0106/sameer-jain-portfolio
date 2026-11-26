@@ -16,7 +16,7 @@ export default function MriScrollJourney({ active, scrollRoot }: { active: boole
 
   useEffect(() => {
     const room = journey.current;
-    if (!room || !scrollRoot) return;
+    if (!active || !room || !scrollRoot) return;
     const explorer = room.querySelector("iframe");
     const heading = room.querySelector<HTMLElement>("#work h1");
     if (!explorer || !heading) return;
@@ -85,7 +85,7 @@ export default function MriScrollJourney({ active, scrollRoot }: { active: boole
       reduced.removeEventListener("change", schedule);
       document.removeEventListener("visibilitychange", refresh);
     };
-  }, [scrollRoot]);
+  }, [active, scrollRoot]);
 
   return <div ref={journey} className={styles.room} data-mri-journey data-story-axis="vertical"
     style={{ "--mri-entry-ground": rooms.mri.color, "--mri-entry-ink": entryInk } as CSSProperties}>

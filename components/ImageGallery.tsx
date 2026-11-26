@@ -15,7 +15,7 @@ export default function ImageGallery({ images }: { images: ProjectImage[] }) {
               alt={img.alt}
               fill
               className="object-contain p-2"
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(min-width: 896px) 396px, (min-width: 768px) calc(50vw - 52px), (min-width: 640px) calc(50vw - 36px), calc(100vw - 48px)"
             />
           </div>
           <figcaption className="border-t border-base-border px-4 py-3 text-xs text-ink-muted">

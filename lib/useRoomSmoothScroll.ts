@@ -19,10 +19,15 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     let wheelDirection = 0;
     let recentTravel = 0;
 
+    function setRunning(running: boolean) {
+      const next = String(running);
+      if (scroller!.dataset.scrollSmoothingRunning !== next) scroller!.dataset.scrollSmoothingRunning = next;
+    }
+
     function stopFrames() {
       cancelAnimationFrame(frame);
       frame = 0;
-      scroller!.dataset.scrollSmoothingRunning = "false";
+      setRunning(false);
     }
 
     function cancelInertia() {
@@ -37,11 +42,16 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     function tick(time: number) {
       frame = 0;
       if (disposed || document.hidden || !instance) return;
+      // Native navigation can move the room between frames, for example when
+      // a link inside an iframe jumps to a section. Rebase on that position.
+      if (instance.isScrolling === "smooth" && Math.abs(instance.actualScroll - instance.scroll) > 1) {
+        cancelInertia();
+        return;
+      }
       instance.raf(time);
-      if (instance.isScrolling === "smooth") {
-        scroller!.dataset.scrollSmoothingRunning = "true";
-        frame = requestAnimationFrame(tick);
-      } else scroller!.dataset.scrollSmoothingRunning = "false";
+      const running = instance.isScrolling === "smooth";
+      setRunning(running);
+      if (running) frame = requestAnimationFrame(tick);
     }
 
     function wake() {

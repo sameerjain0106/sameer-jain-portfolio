@@ -82,7 +82,7 @@ async function replayPreview(current) {
   current.replay.disabled = true;
   current.replayStatus.textContent = "Preparing the published preview…";
   try {
-    await loadPreview(current, true);
+    const [, vectors] = await Promise.all([loadPreview(current, true), current.prepareComparison()]);
     if (selection !== current) return;
     if (!current.tensor) throw new Error("The preview could not be prepared. Try again.");
     const worker = new Worker(new URL("./inference-worker.js", import.meta.url));
@@ -98,7 +98,7 @@ async function replayPreview(current) {
         return;
       }
       try {
-        const replayed = current.compareFeatures(data.features);
+        const replayed = current.compareFeatures(data.features, vectors);
         setReading(current.replayed, replayed);
         if (document.activeElement === current.replay) current.replayed.focus();
         current.replay.hidden = true;

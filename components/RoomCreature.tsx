@@ -72,6 +72,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     const automaticEyes = Array.from(drawing.querySelectorAll<SVGGElement>("[data-creature-auto-eye]"));
     const subscribers = input.current.subscribers;
     let visible = false, enabled = false, disposed = false, needsMeasure = true;
+    let needsAim = false;
     let focused = document.hasFocus();
     let frame = 0, lastTime = 0, width = 1, height = 1;
     let renderedWidth = 0, renderedHeight = 0;
@@ -92,14 +93,16 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       if (node!.dataset[key] !== next) node!.dataset[key] = next;
     }
     function updateAim() {
+      needsAim = false;
       const pointer = input.current.pointer;
       if (!inverse || !pointer.known) return;
       const point = new DOMPoint(pointer.x, pointer.y).matrixTransform(inverse);
       if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
       const dx = (point.x - width * .5) / Math.max(1, width * .42);
       const dy = (point.y - height * .43) / Math.max(1, height * .45);
-      const length = Math.max(1, Math.hypot(dx, dy));
-      target = { x: dx / length, y: dy / length, interest: Math.max(0, 1 - Math.hypot(dx, dy)) };
+      const distance = Math.hypot(dx, dy);
+      const length = Math.max(1, distance);
+      target = { x: dx / length, y: dy / length, interest: Math.max(0, 1 - distance) };
     }
     function measure() {
       needsMeasure = false;
@@ -215,6 +218,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     }
     function reset() {
       stop(); target = { x: 0, y: 0, interest: 0 };
+      needsAim = false;
       eyes = { x: 0, y: 0 }; head = { x: 0, y: 0, interest: 0 };
       paint();
     }
@@ -222,6 +226,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       frame = 0;
       if (disposed || !enabled) return;
       if (needsMeasure) measure();
+      if (needsAim) updateAim();
       // Exponential damping stays stable at any frame interval. Capping dt made
       // a slow renderer prolong the gaze response instead of catching up in time.
       const dt = lastTime ? Math.max(0, (time - lastTime) / 1000) : 1 / 60;
@@ -241,8 +246,10 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
       }
     }
     function move() {
-      if (!enabled) return;
-      updateAim(); status("creatureAwake", true);
+      if (!enabled || needsAim) return;
+      // Coalesce high-rate pointer inputs into the latest point for this frame.
+      needsAim = true;
+      status("creatureAwake", true);
       status("creatureIdleRunning", focused); startAutomaticBlink(); schedule();
     }
     const subscriber: CreatureSubscriber = { move, blink, reset };
