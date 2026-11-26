@@ -56,8 +56,9 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
 
     function wake() {
       if (disposed || document.hidden || !instance || frame) return;
-      // An on-demand loop must not integrate the idle interval as one large dt.
-      instance.time = performance.now();
+      // Let Lenis take the first animation frame's timestamp. The input event's
+      // performance.now() can be later than that frame's shared timestamp.
+      instance.time = 0;
       frame = requestAnimationFrame(tick);
     }
 
