@@ -124,7 +124,6 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
         node!.style.setProperty("--creature-scale", String(scale));
         renderedWidth = width; renderedHeight = height;
       }
-      // This is measured on scroll/resize, never in the pointer handler.
       // Keep the coordinate SVG outside the composited idle wrapper: idle motion
       // must not change the original, viewport-relative gaze calculation.
       try { inverse = coordinateSpace!.getScreenCTM()?.inverse() ?? null; } catch { inverse = null; }
@@ -284,15 +283,15 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     window.addEventListener("blur", blur);
     window.addEventListener("focus", focus);
     window.addEventListener("resize", refresh, { passive: true });
-    // A whole-room pin stays in viewport coordinates as the content scrolls.
-    if (!continuous) scroller.addEventListener("scroll", refresh, { passive: true });
+    // Both pin layouts stay in viewport coordinates wherever their host is
+    // visible. Only entry and geometry changes need to refresh gaze coordinates.
     document.addEventListener("visibilitychange", configure);
     fine.addEventListener("change", configure); reduced.addEventListener("change", configure);
     return () => {
       disposed = true; stop(); subscribers.delete(subscriber); observer.disconnect(); intersection.disconnect();
       window.removeEventListener("blur", blur);
       window.removeEventListener("focus", focus);
-      window.removeEventListener("resize", refresh); scroller.removeEventListener("scroll", refresh);
+      window.removeEventListener("resize", refresh);
       document.removeEventListener("visibilitychange", configure);
       fine.removeEventListener("change", configure); reduced.removeEventListener("change", configure);
     };

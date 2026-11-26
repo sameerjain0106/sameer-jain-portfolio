@@ -14,12 +14,18 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
     const root = scroller;
     const chapters = Array.from(root.querySelectorAll<HTMLElement>("[data-scene-color]"));
     if (!chapters.length) return;
+    const papers = chapters.map(chapter => {
+      const paper = chapter.querySelector<HTMLElement>("[data-scene-paper]");
+      // The transition finishes before the paper enters the viewport.
+      if (paper && chapter.dataset.sceneColor) paper.style.setProperty("--scene-bg", chapter.dataset.sceneColor);
+      return paper;
+    });
     const reveals = Array.from(root.querySelectorAll<HTMLElement>("[data-scene-reveal]"));
     const departing = Array.from(root.querySelectorAll<HTMLElement>("[data-scene-depart]"));
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let bands: { start: number; end: number }[] = [], revealTops: number[] = [];
     let height = 1, scrollMax = 0, frame = 0, dirty = true, disposed = false;
-    let lastPaint = "";
+    let lastGround = "", lastInk: string | undefined;
 
     function measure() {
       const origin = root.scrollTop - root.getBoundingClientRect().top - root.clientTop;
@@ -28,7 +34,7 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
       let previousEnd = 0;
       bands = chapters.slice(1).map((chapter, index) => {
         const top = origin + chapter.getBoundingClientRect().top;
-        const paper = chapter.querySelector<HTMLElement>("[data-scene-paper]");
+        const paper = papers[index + 1];
         const paperEntry = paper ? origin + paper.getBoundingClientRect().top - height : Infinity;
         const end = Math.max(previousEnd, Math.min(scrollMax, top - height * .30, paperEntry));
         const start = index === 0 ? 0 : Math.max(previousEnd, Math.min(end - height * .38, top - height * .82));
@@ -63,10 +69,14 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
         return `color-mix(in srgb, ${a} ${(100 * (1 - weight)).toFixed(2)}%, ${b})`;
       };
       const bg = color("sceneColor")!, ink = color("sceneInk");
-      if (lastPaint !== bg + ink) {
-        panel!.style.setProperty("--scene-bg", bg);
-        if (ink) panel!.style.setProperty("--scene-ink", ink);
-        lastPaint = bg + ink;
+      // Paint the backdrop without invalidating an inherited property across the room.
+      if (lastGround !== bg) {
+        panel!.style.backgroundColor = bg;
+        lastGround = bg;
+      }
+      if (ink && ink !== lastInk) {
+        panel!.style.setProperty("--scene-ink", ink);
+        lastInk = ink;
       }
       for (const node of departing) {
         const cue = node.dataset.sceneDepart === "cue";

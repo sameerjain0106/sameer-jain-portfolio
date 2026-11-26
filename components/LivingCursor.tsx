@@ -28,13 +28,16 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let supported = false, frame = 0, visible = false, disposed = false;
     let bounds = world.getBoundingClientRect();
-    let point = { x: 0, y: 0, hover: false, pressed: false };
+    const point = { x: 0, y: 0, hover: false, pressed: false };
+    let target: EventTarget | null = null;
+    let needsHitTest = false;
     let published = { x: Number.NaN, y: Number.NaN,
       hover: node.dataset.cursorHover === "true", pressed: node.dataset.cursorPressed === "true" };
 
     function hide() {
       cancelAnimationFrame(frame); frame = 0;
-      node!.dataset.cursorRunning = "false";
+      target = null;
+      needsHitTest = false;
       if (visible) {
         node!.dataset.cursorEnabled = "false";
         world!.removeAttribute("data-custom-cursor");
@@ -45,20 +48,19 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     function paint() {
       frame = 0;
       if (disposed || !supported || document.hidden) { hide(); return; }
+      if (needsHitTest) {
+        needsHitTest = false;
+        target = document.elementFromPoint(point.x, point.y);
+      }
+      if (!eligible(target, point.x, point.y)) { hide(); return; }
+      point.hover = !!(target as Element).closest(clickable);
       if (point.x !== published.x || point.y !== published.y) {
         const transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
         positions.forEach(position => { position.style.transform = transform; });
       }
-      if (point.x !== published.x) {
-        node!.dataset.cursorX = String(point.x);
-      }
-      if (point.y !== published.y) {
-        node!.dataset.cursorY = String(point.y);
-      }
       if (point.hover !== published.hover) node!.dataset.cursorHover = String(point.hover);
       if (point.pressed !== published.pressed) node!.dataset.cursorPressed = String(point.pressed);
       published = { ...point };
-      node!.dataset.cursorRunning = "false";
       // Hide the platform pointer only after the replacement has its real position.
       if (!visible) {
         node!.dataset.cursorEnabled = "true";
@@ -67,16 +69,20 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
       visible = true;
     }
     function schedule() {
-      if (!frame) { node!.dataset.cursorRunning = "true"; frame = requestAnimationFrame(paint); }
+      if (!frame) frame = requestAnimationFrame(paint);
     }
     function eligible(target: EventTarget | null, x: number, y: number) {
       return supported && !document.hidden && document.hasFocus() && target instanceof Element && world!.contains(target)
         && !target.closest(nativeCursor) && x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom;
     }
     function move(event: PointerEvent) {
-      if (event.pointerType !== "mouse" || !eligible(event.target, event.clientX, event.clientY)) { hide(); return; }
-      point = { x: event.clientX, y: event.clientY, pressed: event.buttons !== 0,
-        hover: !!(event.target as Element).closest(clickable) };
+      if (event.pointerType !== "mouse" || !supported) { hide(); return; }
+      // The latest native pointer event already identifies the target at the new point.
+      target = event.target;
+      needsHitTest = false;
+      point.x = event.clientX;
+      point.y = event.clientY;
+      point.pressed = event.buttons !== 0;
       schedule();
     }
     function press(event: PointerEvent) {
@@ -94,12 +100,12 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
       bounds = world!.getBoundingClientRect();
       if (visible && (point.x < bounds.left || point.x >= bounds.right || point.y < bounds.top || point.y >= bounds.bottom)) hide();
     }
-    function scroll() {
-      if (!visible) return;
-      const target = document.elementFromPoint(point.x, point.y);
-      if (!eligible(target, point.x, point.y)) { hide(); return; }
-      const hover = !!target?.closest(clickable);
-      if (point.hover !== hover) { point.hover = hover; schedule(); }
+    function scroll(event: Event) {
+      // Fixed controls never move with a room's scroller. Dynamic content needs
+      // one hit test per frame at most, even if nested scrollers also report changes.
+      if (!(event.target instanceof Element) || !(target instanceof Node) || !event.target.contains(target)) return;
+      needsHitTest = true;
+      schedule();
     }
     function keyboard(event: KeyboardEvent) { if (event.key === "Tab") hide(); }
 
@@ -127,7 +133,7 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
   }, [active]);
 
   return <div ref={cursor} className={styles.cursor} data-living-cursor data-cursor-enabled="false" data-cursor-hover="false"
-    data-cursor-running="false" data-active={active} data-paused={paused} aria-hidden="true"
+    data-active={active} data-paused={paused} aria-hidden="true"
     style={{ "--cursor-color": colors[room] } as CSSProperties}>
     <span className={styles.position} data-cursor-position><span className={styles.bubble}>
       <svg className={styles.shell} width="28" height="38" viewBox="0 0 28 38" focusable="false" data-cursor-arrow>

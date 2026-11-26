@@ -4,8 +4,7 @@
 .world a:focus-visible, .world button:focus-visible { outline: 3px solid currentColor; outline-offset: 5px; }
 .rooms, .panel, .scroller { position: absolute; inset: 0; }
 .panel { overflow: hidden; background: #cbc8f2; }
-.panel[data-panel="entrance"] { background-color: var(--scene-bg, #cbc8f2); }
-.panel[data-panel="granted"] { background-color: var(--scene-bg, #ff987f); }
+.panel[data-panel="granted"] { background-color: #ff987f; }
 .panel[hidden] { display: none; }
 .panel { --field-pattern: repeating-radial-gradient(ellipse at 22% 40%, transparent 0 82px, currentColor 83px 84px, transparent 85px 160px); --field-size: 850px 650px; --field-speed: 34s; --field-opacity: .065; }
 .panel[data-panel="mri"] { --field-pattern: repeating-radial-gradient(ellipse at 90% 55%, transparent 0 50px, currentColor 51px 52px, transparent 53px 110px); --field-size: 1000px 720px; --field-speed: 29s; --field-opacity: .16; }

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-type Beat = { node: HTMLElement; top: number; height: number; kind: string; side: number; progress: number };
+type Beat = { node: HTMLElement; start: number; end: number; hasHeight: boolean; kind: string; side: number; progress: number };
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 /** Native scroll is the timeline: entry fades retrace the same states in reverse. */
@@ -20,7 +20,8 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
     const visibleSurfaces = new Set<HTMLElement>();
 
     // Positioning is added only where needed; the MRI stage keeps its sticky position.
-    surfaces.forEach(node => { if (!node.hasAttribute("data-surface-positioned") && getComputedStyle(node).position === "static") node.style.position = "relative"; });
+    const unpositioned = surfaces.filter(node => !node.hasAttribute("data-surface-positioned") && getComputedStyle(node).position === "static");
+    unpositioned.forEach(node => { node.style.position = "relative"; });
     const visibility = new IntersectionObserver(entries => {
       for (const entry of entries) {
         const surface = entry.target as HTMLElement;
@@ -33,6 +34,8 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
     surfaces.forEach(node => visibility.observe(node));
 
     function measure() {
+      dirty = false;
+      if (!nodes.length) return;
       // Neutralize only our geometry, then read all layout positions in one batch.
       // Cached document positions avoid transform feedback during forward/reverse scroll.
       nodes.forEach(node => {
@@ -42,20 +45,23 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
       });
       const rootTop = scroller!.getBoundingClientRect().top + scroller!.clientTop;
       const scrollTop = scroller!.scrollTop;
+      const height = scroller!.clientHeight;
+      const maxScroll = scroller!.scrollHeight - height;
       beats = nodes.map((node, index) => {
         const box = node.getBoundingClientRect();
-        return { node, top: box.top - rootTop + scrollTop, height: box.height, kind: node.dataset.scrollReveal ?? "copy", side: index % 2 ? 1 : -1, progress: Number.NaN };
+        const kind = node.dataset.scrollReveal ?? "copy";
+        const travel = Math.min(height * .44, Math.max(height * .22, box.height * .55 + height * .15));
+        // Let the portrait enter the viewport before its visible fade begins.
+        const start = box.top - rootTop + scrollTop - height * (kind === "portrait" ? .76 : .96);
+        return { node, start, end: Math.min(start + travel, maxScroll), hasHeight: box.height > 0, kind, side: index % 2 ? 1 : -1, progress: Number.NaN };
       });
-      dirty = false;
     }
 
     function render() {
       frame = 0;
       if (disposed || document.hidden || !scroller) return;
       if (dirty) measure();
-      const height = scroller.clientHeight;
       const scrollTop = scroller.scrollTop;
-      const maxScroll = scroller.scrollHeight - height;
       const reduced = motion.matches;
       if (!reduced && visibleSurfaces.size) {
         const fieldScroll = `${-Math.sin(scrollTop * .00065) * 32}px`;
@@ -67,11 +73,8 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
         }
       }
       beats.forEach(beat => {
-        const travel = Math.min(height * .44, Math.max(height * .22, beat.height * .55 + height * .15));
-        // Let the portrait enter the viewport before its visible fade begins.
-        const start = beat.top - height * (beat.kind === "portrait" ? .76 : .96);
-        const end = Math.min(start + travel, maxScroll);
-        const progress = reduced || !beat.height ? 1 : end <= start ? Number(scrollTop >= end) : clamp((scrollTop - start) / (end - start));
+        const { start, end } = beat;
+        const progress = reduced || !beat.hasHeight ? 1 : end <= start ? Number(scrollTop >= end) : clamp((scrollTop - start) / (end - start));
         // Most reveals are fully before or after their short entrance window.
         // Their styles stay valid until progress changes or geometry is rebuilt.
         if (progress === beat.progress) return;
@@ -89,18 +92,20 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
     function schedule() { if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(render); }
     function refresh() { dirty = true; schedule(); }
     function tabVisibility() { if (document.hidden) { cancelAnimationFrame(frame); frame = 0; } else refresh(); }
-    const resize = new ResizeObserver(refresh);
-    resize.observe(scroller);
-    if (scroller.firstElementChild) resize.observe(scroller.firstElementChild);
-    nodes.forEach(node => resize.observe(node));
+    const resize = nodes.length ? new ResizeObserver(refresh) : null;
+    if (resize) {
+      resize.observe(scroller);
+      if (scroller.firstElementChild) resize.observe(scroller.firstElementChild);
+      nodes.forEach(node => resize.observe(node));
+      void document.fonts.ready.then(() => { if (!disposed) refresh(); });
+    }
     scroller.addEventListener("scroll", schedule, { passive: true });
     document.addEventListener("visibilitychange", tabVisibility);
     motion.addEventListener("change", refresh);
     hideFlowFields.addEventListener("change", schedule);
-    void document.fonts.ready.then(() => { if (!disposed) refresh(); });
     schedule();
     return () => {
-      disposed = true; cancelAnimationFrame(frame); resize.disconnect(); visibility.disconnect();
+      disposed = true; cancelAnimationFrame(frame); resize?.disconnect(); visibility.disconnect();
       scroller.removeEventListener("scroll", schedule);
       document.removeEventListener("visibilitychange", tabVisibility);
       motion.removeEventListener("change", refresh);
