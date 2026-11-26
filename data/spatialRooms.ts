@@ -2,7 +2,7 @@ export const rooms = {
   entrance: { label: "Entrance", edgeLabel: "Entrance", short: "Start here", x: 0, y: 0, color: "#cbc8f2", description: "A curious mind at work." },
   mri: { label: "Learning to see", edgeLabel: "Brain Tumor MRI", short: "MRI / machine learning", x: -1, y: 0, color: "#56bdb7", description: "Inside a brain MRI experiment." },
   etf: { label: "Finding a signal", edgeLabel: "ETF Return Prediction", short: "ETF / research systems", x: 1, y: 0, color: "#f2ef9b", description: "Putting a market hypothesis to the test." },
-  granted: { label: "Granted", edgeLabel: "Granted · Grant Analytics", short: "JPMorgan Chase Data for Good", x: 0, y: -1, color: "#ff987f", description: "First place in the AnnieCannons challenge." },
+  granted: { label: "Granted", edgeLabel: "Granted (JPMC Hackathon)", short: "JPMorgan Chase Data for Good", x: 0, y: -1, color: "#ff987f", description: "First place in the AnnieCannons challenge." },
 } as const;
 
 export type RoomId = keyof typeof rooms;
