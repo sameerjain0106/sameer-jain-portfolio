@@ -12,7 +12,7 @@ const stops = [
   { date: "Summer 2026", title: "AT&T", description: "I automated ingestion of more than 25 million financial records from Azure SQL into Snowflake and built forecasting workflows.", landmark: "network", x: 4062 },
   { date: "Fall 2026", title: "Senior design and Granted", description: "I started senior design and co-built Granted, a grant research tool that won first place in the AnnieCannons challenge at JPMorgan Chase’s Data for Good hackathon.", landmark: "workshop", x: 4707, href: "/?room=granted", link: "Granted case study" },
   { date: "Spring 2027", title: "Delta Air Lines", description: "Co-op, In-Flight Crew Resources and Insights", landmark: "terminal", x: 5341, upcoming: true },
-  { date: "Summer 2027", title: "JPMorganChase", description: "Summer internship", landmark: "tower", x: 5965, upcoming: true },
+  { date: "Summer 2027", title: "JPMorganChase", description: "Data and AI Summer Program", landmark: "tower", x: 5965, upcoming: true },
   { date: "Fall 2027", title: "Delta Air Lines", description: "Co-op, In-Flight Crew Resources and Insights", landmark: "terminalReturn", x: 6588, upcoming: true },
 ] as const;
 
