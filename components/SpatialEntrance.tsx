@@ -110,8 +110,8 @@ export default function SpatialEntrance({ active, scrollRoot }: {
         <p>Data science, statistics and ML</p>
       </div>
       <div className={styles.explorePrompt} data-entrance-guide>
-        <p className={styles.mouseHint}>Hover on the sides</p>
-        <p className={styles.touchHint}>Tap a side</p>
+        <p className={styles.mouseHint}>Hover at an edge for projects.<br />Scroll to learn about me.</p>
+        <p className={styles.touchHint}>Tap an edge for projects.<br />Scroll to learn about me.</p>
       </div>
     </div>
     <div className={styles.portraitStage} data-scene-depart>

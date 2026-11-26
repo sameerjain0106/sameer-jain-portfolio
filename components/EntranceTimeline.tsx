@@ -11,9 +11,9 @@ const stops = [
   { date: "Spring 2026", title: "Machine learning coursework", description: "My coursework included 4600, 3803, and other classes in machine learning and language models. My brain tumor MRI project explored classification, clustering, and anomaly detection.", landmark: "research", x: 3417, href: "/?room=mri", link: "Brain tumor MRI project" },
   { date: "Summer 2026", title: "AT&T", description: "I automated ingestion of more than 25 million financial records from Azure SQL into Snowflake and built forecasting workflows.", landmark: "network", x: 4062 },
   { date: "Fall 2026", title: "Senior design and Granted", description: "I started senior design and co-built Granted, a grant research tool that won first place in the AnnieCannons challenge at JPMorgan Chase’s Data for Good hackathon.", landmark: "workshop", x: 4707, href: "/?room=granted", link: "Granted case study" },
-  { date: "Spring 2027", title: "Delta Air Lines", description: "I’m planning to join Delta for the spring term.", landmark: "terminal", x: 5341, upcoming: true },
-  { date: "Summer 2027", title: "JPMorgan Chase", description: "I’m planning to join JPMorgan Chase for the summer.", landmark: "tower", x: 5965, upcoming: true },
-  { date: "Fall 2027", title: "Return to Delta", description: "I’m planning to return to Delta in the fall.", landmark: "terminalReturn", x: 6588, upcoming: true },
+  { date: "Spring 2027", title: "Delta Air Lines", description: "Co-op, In-Flight Crew Resources and Insights", landmark: "terminal", x: 5341, upcoming: true },
+  { date: "Summer 2027", title: "JPMorganChase", description: "Summer internship", landmark: "tower", x: 5965, upcoming: true },
+  { date: "Fall 2027", title: "Delta Air Lines", description: "Co-op, In-Flight Crew Resources and Insights", landmark: "terminalReturn", x: 6588, upcoming: true },
 ] as const;
 
 type Landmark = (typeof stops)[number]["landmark"];
@@ -24,6 +24,7 @@ const roadHeight = [350, 334, 350, 335, 354, 340, 354, 333, 349, 338];
 const viewHeight = 340;
 const walkStep = 182;
 const lastStop = stops.length - 1;
+const walkLength = stops[lastStop].x - stops[0].x;
 const clamp = (value: number, low = 0, high = 1) => Math.max(low, Math.min(high, value));
 const ease = (t: number) => t * t * (3 - 2 * t);
 const road = stops.slice(1).reduce((path, stop, i) => {
@@ -119,6 +120,18 @@ function LandmarkArt({ kind }: { kind: Landmark }) {
     case "terminal":
     case "terminalReturn":
       return <g>
+        <path d="M-76-51v-46m61 46v-46m-61 30 61-24" stroke="#5d6d88" strokeWidth="3" />
+        <g transform="translate(-92 -132)">
+          <path d="M0 3 4 0h100v38l-4 4H0Z" fill="#536c82" />
+          <rect y="3" width="100" height="37" rx="1.8" fill="#182b49" stroke="#71809a" strokeWidth="1.3" />
+          <g transform="translate(9 8)" className={styles.deltaSign}>
+            <path d="M12 0 2 21l10-5.4Z" fill="#ae153a" />
+            <path d="M12 0v15.6L22 21Z" fill="#ee3759" />
+            <path d="M1.2 23.1 12 18l11 5.1 2 4.4H-.8Z" fill="#e52249" />
+            <path d="M12 18v9.5H-.8l2-4.4Z" fill="#b11038" />
+            <path d="M32 9h3.6q6.3 0 6.3 5.8t-6.3 5.8H32ZM54.7 9h-7.5v11.6h7.5m-7.4-6h6.3M60.3 9v11.6h7.2M68 9h9.6m-4.8 0v11.6m6.4 0L84 9l4.7 11.6m-7.6-4h5.8" fill="none" stroke="#fff9ef" strokeWidth="1.8" strokeLinejoin="round" />
+          </g>
+        </g>
         <path d="M-103 21h177l33-16H-73Z" fill="#aeb4c8" />
         <path d="M-96-44H71v49H-96Z" fill="#9eb3c5" />
         <path d="M71-44 91-56v49L71 5Z" fill="#6d86a6" />
@@ -126,7 +139,13 @@ function LandmarkArt({ kind }: { kind: Landmark }) {
         <path d="M-86-32H62V-4H-86Z" fill="#4f6b90" />
         <path d="M-61-32v28m31-28v28m31-28v28m31-28v28" stroke="#acc1d2" strokeWidth="2" />
         <path d="m-80-28 16 18m28-18 16 18M9-28l16 18m15-18 16 18" stroke="#a0bccd" strokeWidth="1.7" />
-        <path d="m-46-67 35-2 26-25 7 1-12 23 36-2 8 4-42 6-23 12-7-1 6-10-30-1Z" fill={kind === "terminalReturn" ? "#ce735d" : "#da8a64"} />
+        <g transform={kind === "terminalReturn" ? "translate(17 0)" : "translate(52 -17)"}>
+          <g className={kind === "terminalReturn" ? styles.arrivingPlane : styles.departingPlane}>
+            <path d="m-46-67 35-2 26-25 7 1-12 23 36-2 8 4-42 6-23 12-7-1 6-10-30-1Z" fill="#e1e7ea" stroke="#4b6082" strokeWidth="1.7" />
+            <path d="m-46-67-8-15 5-1 18 15Zm32 1 43-2 10 1-52 4Z" fill="#203654" />
+            <path d="m-52-79 11 9-7 1Z" fill="#ef4053" />
+          </g>
+        </g>
         <path d="M-91 16h13m13 0h13m14 0h13m13 0H1m13 0h13m14 0h13" stroke="#eee5cf" strokeWidth="2.1" />
       </g>;
     case "tower":
@@ -139,6 +158,16 @@ function LandmarkArt({ kind }: { kind: Landmark }) {
         <path d="M-42 0H40v18h-82Zm16-15h48v14h-48Z" fill="#e6e0d4" />
         <path d="M-61 24h119m-126 6H63" stroke="#8d8ea7" strokeWidth="2" />
         <path d="M-15 18V1H9v17" fill="#7789ac" />
+        <path d="M-49-101v-24m91 22v-22" stroke="#4d5e72" strokeWidth="3" />
+        <path d="M-65-143H58l7-4H-58Z" fill="#f6f2e9" />
+        <rect x="-65" y="-143" width="123" height="37" rx="1.5" fill="#f5f1e6" stroke="#718199" strokeWidth="1.5" />
+        <path d="m58-143 7-4v36l-7 5Z" fill="#9ba8ba" />
+        <g transform="translate(-46 -124) scale(.65)" fill="#1468b6">
+          {[0, 90, 180, 270].map(angle => <g key={angle} transform={`rotate(${angle})`}>
+            <path className={styles.chaseVane} d="M-8.7-20H8.2L19.4-9H-8.7Z" />
+          </g>)}
+        </g>
+        <text x="-27" y="-120.6" fill="#253247" fontFamily="Georgia, serif" fontSize="11.1" letterSpacing="-.45">JPMorganChase</text>
       </g>;
   }
 }
@@ -171,7 +200,8 @@ function EntranceMap() {
         <path d="M-4-5V9M14-6v17" stroke="#6b6279" strokeWidth="2.4" />
       </g>
     </g>)}
-    {stops.map((stop, index) => <g key={stop.landmark} data-timeline-landmark={stop.landmark} transform={`translate(${stop.x} ${index % 3 === 1 ? 282 : 292})`}>
+    {stops.map((stop, index) => <g key={stop.landmark} data-timeline-landmark={stop.landmark}
+      data-company-station={"upcoming" in stop ? stop.x : undefined} transform={`translate(${stop.x} ${index % 3 === 1 ? 282 : 292})`}>
       <path d="m-118 37 55-43H81l49 21-45 28H-97Z" fill={index < 3 ? "#c8c9df" : index < 7 ? "#b9cec6" : "#c9c9db"} stroke="#7e82a2" strokeWidth="1" />
       <path d="m-114 38 21 10H86l44-28v-5L85 43H-97Z" fill="#8586ac" />
       <path d="M-112-9v36m-6-6h12m226-25v33m-6-6h12" stroke="#8a83a9" strokeWidth="1.4" />
@@ -220,16 +250,16 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
     const near = figure.querySelector<SVGPathElement>("[data-timeline-near-leg]")!;
     const far = figure.querySelector<SVGPathElement>("[data-timeline-far-leg]")!;
     const arm = figure.querySelector<SVGPathElement>("[data-timeline-arm]")!;
+    const signs = Array.from(map.querySelectorAll<SVGGElement>("[data-company-station]"), node => ({
+      node, x: Number(node.dataset.companyStation), previous: -1,
+    }));
     const labels = Array.from(scene.querySelectorAll<HTMLElement>("[data-timeline-stop]"));
     const buttons = Array.from(scene.querySelectorAll<HTMLButtonElement>("[data-timeline-jump]"));
     // Short windows and reduced motion use the printed edition of the same illustrated stops.
     const animated = matchMedia("(min-height: 551px) and (prefers-reduced-motion: no-preference)");
     let visible = false;
     let dirty = true;
-    let instant = true;
     let raf = 0;
-    let lastTime = 0;
-    let visual = 0;
     let lastPaint = -1;
     let selected = -1;
     let start = 0;
@@ -245,34 +275,34 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
       lastPaint = -1;
     }
 
-    function draw(now: number) {
+    function draw() {
       raf = 0;
       if (!visible || document.hidden || !animated.matches) return;
       if (dirty) measure();
-      // A small hold at either end lets both the first and the last sign settle before the stage unpins.
-      const target = clamp((root!.scrollTop - start) / span * (lastStop + .6) - .3, 0, lastStop);
-      const delta = target - visual;
-      const dt = lastTime ? clamp(now - lastTime, 1, 40) : 16;
-      lastTime = now;
-      if (instant || Math.abs(delta) > 1.15 || Math.abs(delta) < .00015) visual = target;
-      else visual += delta * (1 - Math.exp(-dt / 105));
-      instant = false;
-      if (visual !== lastPaint) {
-        const from = Math.min(lastStop - 1, Math.floor(visual));
-        const local = visual - from;
-        const travel = ease(clamp((local - .07) / .86));
-        const x = stops[from].x + (stops[from+1].x - stops[from].x) * travel;
+      // The room already supplies wheel momentum. Actual distance scrolled drives the gait and camera.
+      const x = stops[0].x + walkLength * clamp((root!.scrollTop - start) / span);
+      if (x !== lastPaint) {
+        const from = Math.max(0, stops.findIndex(stop => stop.x >= x) - 1);
+        const travel = (x - stops[from].x) / (stops[from + 1].x - stops[from].x);
         const y = roadHeight[from] + (roadHeight[from+1] - roadHeight[from]) * ease(travel);
         const camera = clamp(x - width * .5, 0, Math.max(0, worldWidth - width));
+        const approach = Math.min(390, width * .48);
+        for (const sign of signs) {
+          const progress = ease(clamp((x - sign.x + approach) / approach));
+          if (progress === sign.previous) continue;
+          sign.node.style.setProperty("--landmark-approach", progress.toFixed(4));
+          sign.previous = progress;
+        }
         map!.setAttribute("viewBox", `${camera.toFixed(2)} 112 ${width.toFixed(2)} ${viewHeight}`);
         route!.setAttribute("stroke-dashoffset", (1 - x / worldWidth).toFixed(5));
         walker!.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
-        const swing = Math.sin((x - stops[from].x) * Math.PI * 2 / walkStep) * Math.min(1, travel * 12, (1 - travel) * 12);
+        const swing = Math.sin((x - stops[0].x) * Math.PI * 2 / walkStep);
         figure!.setAttribute("transform", `translate(0 ${(-Math.abs(swing) * 1.2).toFixed(2)})`);
         near!.setAttribute("transform", `rotate(${(swing * 21).toFixed(2)} 4 -23)`);
         far!.setAttribute("transform", `rotate(${(-swing * 21).toFixed(2)} 0 -23)`);
         arm!.setAttribute("transform", `rotate(${(-swing * 14).toFixed(2)} 3 -37)`);
 
+        const visual = from + travel;
         const next = Math.round(visual);
         if (selected !== next) {
           if (selected >= 0) {
@@ -289,17 +319,14 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
         // Fade the old sign away before the incoming chapter can show through.
         const opacity = ease(clamp((.5 - Math.abs(visual - next)) / .19));
         labels[next].style.opacity = opacity.toFixed(3);
-        lastPaint = visual;
+        lastPaint = x;
       }
-      if (visual !== target) schedule();
-      else lastTime = 0;
     }
     function schedule() {
       if (visible && !raf && !document.hidden && animated.matches) raf = requestAnimationFrame(draw);
     }
     function refresh() {
       dirty = true;
-      instant = true;
       schedule();
     }
     function configure() {
@@ -318,15 +345,14 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
     navigate.current = index => {
       if (!animated.matches) return;
       if (dirty) measure();
-      instant = true;
-      root.scrollTo({ top: start + span * (index + .3) / (lastStop + .6), behavior: "instant" });
+      root.scrollTo({ top: start + span * (stops[index].x - stops[0].x) / walkLength, behavior: "instant" });
       schedule();
     };
     configure();
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       if (visible) refresh();
-      else { cancelAnimationFrame(raf); raf = lastTime = 0; }
+      else { cancelAnimationFrame(raf); raf = 0; }
     }, { root, rootMargin: "96px 0px" });
     observer.observe(runway);
     const resize = new ResizeObserver(refresh);

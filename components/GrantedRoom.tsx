@@ -51,21 +51,23 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
   const frame = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    if (!active || !room.current || !chapter.current || !scrollRoot || !frame.current) return;
+    if (!active || !room.current || !chapter.current || !demo.current || !scrollRoot || !frame.current) return;
     const root = room.current;
     const section = chapter.current;
     const panel = scrollRoot;
     const embedded = frame.current;
+    const demoSection = demo.current;
+    const mount = embedded.parentElement!;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const steps = [...section.querySelectorAll<HTMLElement>("[data-file-step]")];
     const hero = root.querySelector<HTMLElement>("[data-granted-hero]")!;
     const arrivals = [...root.querySelectorAll<HTMLElement>("[data-granted-arrival]")];
     let arrivalTops: number[] = [];
     let midpoints: number[] = [];
-    let demoStart = Infinity;
+    let gate: HTMLElement | null = null;
+    let returnSpace = 48;
     let heroEnd = 0;
     let frameStart = Infinity;
-    let panelHeight = 0;
     let raf = 0;
     let previousTop = NaN;
     let previousHeight = 0;
@@ -73,12 +75,16 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
 
     function sendViewport(top: number, height: number) {
       const localTop = top - frameStart;
-      const visible = localTop < Number(embedded.height) && localTop + height > 0;
-      if ((visible && (previousTop !== localTop || previousHeight !== height)) || visible !== wasVisible) {
-        embedded.contentWindow?.postMessage({ type: "granted:viewport", top: localTop, height, inset: 76, visible }, "*");
+      const usableHeight = Math.max(1, height - returnSpace);
+      const visible = localTop < Number(embedded.height) && localTop + usableHeight > 0;
+      if ((visible && (previousTop !== localTop || previousHeight !== usableHeight)) || visible !== wasVisible) {
+        // Clip only the ledger paper at the return control. The room and its
+        // creature keep their full viewport, even when the ledger has focus.
+        mount.style.setProperty("--granted-window-bottom", `${Math.ceil(localTop + usableHeight)}px`);
+        embedded.contentWindow?.postMessage({ type: "granted:viewport", top: localTop, height: usableHeight, inset: 76, visible }, "*");
         wasVisible = visible;
         previousTop = localTop;
-        previousHeight = height;
+        previousHeight = usableHeight;
       }
     }
     function progress(element: HTMLElement, property: string, raw: number) {
@@ -90,17 +96,19 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
       const top = panel.scrollTop;
       const height = panel.clientHeight;
       const readingLine = top + height * .52;
-      // Use the outer panel height so reserving space for the return gate cannot
-      // change this threshold and repeatedly open and close the bottom strip.
-      panel.toggleAttribute("data-granted-demo-reading", top + panelHeight * .85 >= demoStart);
+      if (gate && height) {
+        // Finish folding the gate as the first edge of the ledger comes into view.
+        const t = Math.max(0, Math.min(1, 1 + (top + height - frameStart) / (height * .52)));
+        progress(gate, "--granted-dock", t * t * (3 - 2 * t));
+      }
       sendViewport(top, height);
-      if (panelHeight && !motion.matches) {
-        progress(hero, "--granted-depart", top / (panelHeight * .78));
+      if (height && !motion.matches) {
+        progress(hero, "--granted-depart", top / (height * .78));
         // On a short phone the folder can begin below the fold.
-        progress(hero, "--granted-folder-exit", (top - Math.max(0, heroEnd - panelHeight)) / (panelHeight * .76));
+        progress(hero, "--granted-folder-exit", (top - Math.max(0, heroEnd - height)) / (height * .76));
         for (let i = 0; i < arrivals.length; i++) {
-          const start = Math.max(0, arrivalTops[i] - panelHeight * .98);
-          progress(arrivals[i], "--granted-arrive", (top - start) / (panelHeight * .38));
+          const start = Math.max(0, arrivalTops[i] - height * .98);
+          progress(arrivals[i], "--granted-arrive", (top - start) / (height * .38));
         }
       }
       let current = 0;
@@ -113,10 +121,10 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
     function schedule() { if (!raf) raf = requestAnimationFrame(draw); }
     function measure() {
       const origin = panel.scrollTop - panel.getBoundingClientRect().top;
-      demoStart = demo.current ? origin + demo.current.getBoundingClientRect().top : Infinity;
+      gate = panel.closest("[data-world-room]")?.querySelector<HTMLElement>('[data-edge="down"][data-destination="entrance"]') ?? null;
+      returnSpace = parseFloat(getComputedStyle(demoSection).paddingBottom);
       heroEnd = origin + hero.getBoundingClientRect().bottom;
       frameStart = origin + embedded.getBoundingClientRect().top;
-      panelHeight = panel.parentElement?.clientHeight ?? panel.clientHeight;
       arrivalTops = arrivals.map(element => origin + element.getBoundingClientRect().top);
       midpoints = steps.map(element => {
         const box = element.getBoundingClientRect();
@@ -131,6 +139,13 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
       if (message.type === "granted:viewport-request") {
         wasVisible = undefined;
         schedule();
+      } else if (message.type === "granted:aim" && wasVisible && !document.hidden && !embedded.closest("[inert]") &&
+          Number.isFinite(message.x) && Number.isFinite(message.y)) {
+        const bounds = embedded.getBoundingClientRect();
+        if (message.x < 0 || message.y < 0 || message.x >= bounds.width || message.y >= bounds.height) return;
+        const point = { bubbles: true, clientX: bounds.left + message.x, clientY: bounds.top + message.y };
+        embedded.dispatchEvent(new PointerEvent("pointermove", { ...point, pointerType: "mouse" }));
+        if (message.blink === true) embedded.dispatchEvent(new MouseEvent("click", point));
       } else if (message.type === "granted:resize" && Number.isFinite(message.height) && message.height > 0) {
         const height = Math.max(240, Math.min(100000, Math.ceil(message.height)));
         if (embedded.height !== String(height)) embedded.height = String(height);
@@ -162,7 +177,8 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
       embedded.removeEventListener("load", enter);
       window.removeEventListener("message", receive);
       cancelAnimationFrame(raf);
-      panel.removeAttribute("data-granted-demo-reading");
+      gate?.style.removeProperty("--granted-dock");
+      mount.style.removeProperty("--granted-window-bottom");
       if (wasVisible) embedded.contentWindow?.postMessage({ type: "granted:viewport", top: 0, height: 0, inset: 76, visible: false }, "*");
     };
   }, [active, scrollRoot]);

@@ -239,7 +239,7 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const tick = (now: number) => {
       const pending = hold.current;
       if (!pending) return;
-      if (worldRef.current.mode.kind !== "idle" || document.hidden || document.getSelection()?.toString()) { cancelHold(); return; }
+      if (worldRef.current.mode.kind !== "idle" || document.hidden || !pending.edge?.matches(":hover") || document.getSelection()?.toString()) { cancelHold(); return; }
       const progress = Math.min(1, (now - pending.started) / HOLD_MS);
       pending.progress = progress;
       // Only these two small subtrees consume hold progress; room content does not.
@@ -252,9 +252,18 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
         if (target) navigate(target);
       } else holdFrame.current = requestAnimationFrame(tick);
     };
+    const enterFrame = (event: PointerEvent) => {
+      const frame = event.target;
+      if (event.pointerType !== "mouse" || !fine.matches || !(frame instanceof HTMLIFrameElement) ||
+          !frame.hasAttribute("data-no-dwell") || frame.closest("[inert]")) return;
+      armed.current = true;
+      cancelHold();
+    };
     const move = (event: PointerEvent) => {
-      // Only native pointer motion can arm or cancel edge travel.
-      if (!event.isTrusted || event.pointerType !== "mouse" || !fine.matches) return;
+      // The validated frame relay can end a dwell when browser boundary events
+      // stay inside the iframe. Only physical movement over a gate can start one.
+      if (!event.isTrusted) { enterFrame(event); return; }
+      if (event.pointerType !== "mouse" || !fine.matches) return;
       const gate = (event.target as Element)?.closest<HTMLElement>("[data-edge]");
       const edge = gate?.dataset.edge as Direction | undefined;
       if (!edge) { armed.current = true; cancelHold(); return; }
@@ -279,13 +288,6 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
     const up = () => { pressed.current = false; };
     const blur = () => { armed.current = false; pressed.current = false; cancelHold(); };
     const leave = (event: PointerEvent) => { if (!event.relatedTarget) blur(); };
-    const enterFrame = (event: PointerEvent) => {
-      // The parent receives pointerover at the frame boundary; moves inside it belong to the child document.
-      if (!event.isTrusted || event.pointerType !== "mouse" || !fine.matches ||
-          !(event.target instanceof HTMLIFrameElement) || !event.target.hasAttribute("data-no-dwell")) return;
-      armed.current = true;
-      cancelHold();
-    };
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerdown", down, { passive: true });
     window.addEventListener("pointerup", up, { passive: true });

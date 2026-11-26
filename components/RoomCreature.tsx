@@ -259,8 +259,8 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
     }
     function refresh() { needsMeasure = true; if (enabled) schedule(); else if (visible && active && (continuous || (fine.matches && !reduced.matches)) && !document.hidden) measure(); }
     function blur() {
-      // A control in the MRI frame can take focus while this tab stays focused.
-      focused = room === "mri" && document.hasFocus();
+      // Embedded controls can take keyboard focus while the portfolio tab stays focused.
+      focused = (room === "mri" || room === "granted") && document.hasFocus();
       configure();
     }
     function focus() { focused = true; configure(); }

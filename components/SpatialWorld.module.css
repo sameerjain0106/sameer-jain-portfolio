@@ -60,22 +60,26 @@
 .right { top: 50%; right: 0; transform: translateY(-50%); }
 .right .gateSurface { transform-origin: 93% center; }
 .right .edgeContent { left: auto; right: 8px; }
-.up, .down { width: clamp(292px, 26vw, 342px); height: clamp(90px, 11svh, 104px); left: 50%; transform: translateX(-50%); }
+.up, .down { --gate-width: clamp(292px, 26vw, 342px); --gate-height: clamp(90px, 11svh, 104px); width: var(--gate-width); height: var(--gate-height); left: 50%; transform: translateX(-50%); }
 .up { top: 0; }
 .down { bottom: 0; }
-/* Keep the return gate available in its own strip while the embedded app is in use. */
-.scroller[data-granted-demo-reading] { bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
-.world[data-world-room="granted"]:has(.scroller[data-granted-demo-reading]) .down {
-  width: 190px;
-  height: 48px;
-  bottom: env(safe-area-inset-bottom, 0px);
+.world[data-world-room="granted"] .down {
+  --dock: var(--granted-dock, 0);
+  --label-offset: 16px;
+  --label-gap: 10px;
+  --arrow-size: 29px;
+  width: calc(var(--gate-width) + (min(190px, var(--gate-width)) - var(--gate-width)) * var(--dock));
+  height: calc(var(--gate-height) + (48px - var(--gate-height)) * var(--dock));
+  bottom: calc(env(safe-area-inset-bottom, 0px) * var(--dock));
 }
-.world[data-world-room="granted"]:has(.scroller[data-granted-demo-reading]) .down .edgeContent {
-  height: 28px;
-  bottom: 5px;
-  gap: 8px;
+.world[data-world-room="granted"] .down .edgeContent {
+  height: calc(36px - 8px * var(--dock));
+  bottom: calc(var(--label-offset) + (5px - var(--label-offset)) * var(--dock));
+  gap: calc(var(--label-gap) + (8px - var(--label-gap)) * var(--dock));
 }
-.world[data-world-room="granted"]:has(.scroller[data-granted-demo-reading]) .down .edgeArrow { font-size: 21px; }
+.world[data-world-room="granted"] .down .edgeArrow {
+  font-size: calc(var(--arrow-size) + (21px - var(--arrow-size)) * var(--dock));
+}
 .up .gateSurface { transform-origin: center 7%; }
 .down .gateSurface { transform-origin: center 93%; }
 .up .edgeContent, .down .edgeContent { left: 50%; top: 16px; width: auto; height: 36px; flex-direction: row; transform: translateX(-50%); gap: 10px; }
@@ -126,7 +130,8 @@
   .right .edgeContent { right: 4px; }
   .edgeName { font-size: 12px; }
   .edgeArrow { font-size: 22px; }
-  .up, .down { width: clamp(174px, 49vw, 216px); height: 65px; }
+  .up, .down { --gate-width: clamp(174px, 49vw, 216px); --gate-height: 65px; height: var(--gate-height); }
+  .world[data-world-room="granted"] .down { --label-offset: 5px; --label-gap: 5px; --arrow-size: 22px; }
   .up .edgeContent { top: 5px; gap: 5px; }
   .down .edgeContent { bottom: 5px; gap: 5px; }
   .up[data-destination="granted"] .edgeContent { width: 76%; }
