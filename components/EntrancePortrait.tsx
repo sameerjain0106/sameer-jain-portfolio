@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
-const VIDEO = "/images/entrance-animation-v6.mp4";
-const POSTER = "/images/entrance-animation-v6.webp";
+const VIDEO = "/images/entrance-alpine.mp4";
+const POSTER = "/images/entrance-alpine.webp";
 
 export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
   active: boolean; scrollRoot: HTMLElement | null; portraitRef: Ref<HTMLElement>;
@@ -80,11 +80,11 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
 
   return <figure ref={portraitRef} className={styles.portrait} data-entrance-portrait>
     <div className={styles.portraitFrame}>
-      {failed ? <Image src={POSTER} alt="Codex-faced figure beside Sameer in an edited portrait collage."
+      {failed ? <Image src={POSTER} alt="Sameer as Napoleon on a rearing horse with a gold Codex knot for its head."
         width={624} height={856} sizes="(max-width: 650px) calc(100vw - 88px), 540px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
         poster={POSTER}
         data-portrait-playing={playing}
-        aria-label="Looping portrait of a Codex-faced figure and Sameer, with moving arms, swaying hair, and blinking eyes."
+        aria-label="Looping painting of Sameer as Napoleon riding a Codex-headed horse, with the cape, mane, and tail moving in the wind."
         onPlaying={() => setPlaying(true)}
         onError={() => setFailed(true)} />}
     </div>

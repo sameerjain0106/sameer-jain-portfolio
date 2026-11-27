@@ -59,7 +59,7 @@
   box-shadow: 8px 9px 0 #2449dc;
   border-radius: 8px;
 }
-.portraitFrame { height: 100%; overflow: hidden; background: #9f6d4c url("/images/entrance-animation-v6.webp") center / contain no-repeat; border-radius: 3px; }
+.portraitFrame { height: 100%; overflow: hidden; background: #9f6d4c url("/images/entrance-alpine.webp") center / contain no-repeat; border-radius: 3px; }
 .portrait video, .portraitFrame img { display: block; width: 100%; height: 100%; object-fit: contain; background: #9f6d4c; }
 .portrait video[data-portrait-playing="false"] { opacity: 0; }
 
