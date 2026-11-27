@@ -110,6 +110,8 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
       return;
     }
     const enabled = window.matchMedia("(min-width: 900px) and (prefers-reduced-motion: no-preference)");
+    const evidenceStrip = scene?.querySelector<HTMLElement>("[data-mri-evidence-strip]");
+    const openingArt = evidenceStrip?.querySelector<HTMLElement>("figure");
     const orbit = scene?.querySelector<HTMLElement>('[data-mri-orbit="primary"]');
     const orbitSmall = scene?.querySelector<HTMLElement>('[data-mri-orbit="secondary"]');
     const progressBar = scene?.querySelector<HTMLElement>("[data-mri-progress-bar]");
@@ -174,9 +176,9 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
         const view = geometryDirty || !embedded ? measureGeometry() : viewport.current;
         const scroll = scrollRoot?.scrollTop ?? window.scrollY;
         if (!view.width || !view.height || sectionBottom <= scroll || sectionTop >= scroll + view.height) { previousTime = null; return; }
-        if (embedded) {
+        if (openingArt) {
           const arrive = clamp((scroll + view.height * .94 - sectionTop) / (view.height * .67));
-          setStyle(scene, "--study-opening-arrive", (arrive * arrive * (3 - 2 * arrive)).toFixed(4));
+          setStyle(openingArt, "--study-opening-arrive", (arrive * arrive * (3 - 2 * arrive)).toFixed(4));
         }
         const anchor = scroll + view.height * config.viewportAnchor;
         let progress = 0;
@@ -195,26 +197,27 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
           const ground = mix(story[base].ground, story[Math.min(base + 1, story.length - 1)].ground, blend);
           const ink = readableInk(ground, story[next].ink);
           const useEntryPalette = embedded && base === 0 && blend === 0;
-          setStyle(scene, "--world-ground", useEntryPalette ? "var(--mri-entry-ground, #f2ef9b)" : ground);
+          setStyle(scene, "background-color", useEntryPalette ? "var(--mri-entry-ground, #f2ef9b)" : ground);
           setStyle(root.current, "--world-ink", useEntryPalette ? "var(--mri-entry-ink, #173bd3)" : ink);
-          setStyle(root.current, "--world-accent", contrast(ground, "#ff8066") >= 3 ? "#ff8066" : ink);
+          if (!embedded) setStyle(root.current, "--world-accent", contrast(ground, "#ff8066") >= 3 ? "#ff8066" : ink);
           // These three transforms do not need to invalidate the evidence below them.
-          const orbitAngle = `${progress * 21}deg`;
-          setTransform("orbit", orbit, `rotate(${orbitAngle}) scaleY(.75)`);
-          setTransform("orbit-small", orbitSmall, `rotate(calc(${orbitAngle} * -1))`);
+          const orbitAngle = progress * 21;
+          setTransform("orbit", orbit, `rotate(${orbitAngle}deg) scaleY(.75)`);
+          setTransform("orbit-small", orbitSmall, `rotate(${-orbitAngle}deg)`);
           setTransform("progress", progressBar, `scaleX(${progress / (story.length - 1)})`);
           root.current.dataset.storyProgress = (progress / (story.length - 1)).toFixed(4);
-          story.forEach((_, i) => {
-            const distance = clamp((i - progress) / config.artWindow, -1, 1);
-            // The room's evidence travels vertically as a solid strip. Text stays
-            // in native document flow instead of fading between compositions.
-            setStyle(scene, `--scene-${i}-y`, embedded ? `${(i - base - blend) * 100}%` : `${distance * 85}px`);
-            if (!embedded) {
+          if (embedded) {
+            // Move the evidence strip without invalidating inherited styles for the whole stage.
+            setTransform("evidence", evidenceStrip, `translate3d(0, ${-(base + blend) * 100}%, 0)`);
+          } else {
+            story.forEach((_, i) => {
+              const distance = clamp((i - progress) / config.artWindow, -1, 1);
+              setStyle(scene, `--scene-${i}-y`, `${distance * 85}px`);
               setStyle(scene, `--scene-${i}-opacity`, `${1 - Math.abs(distance)}`);
               setStyle(scene, `--scene-${i}-rotate`, `${distance * (i === 2 || i === 3 || i === 4 ? 2.5 : 7)}deg`);
               setStyle(scene, `--scene-${i}-scale`, `${1 - Math.abs(distance) * .07}`);
-            }
-          });
+            });
+          }
         }
       }
       const p = pointer.current;
@@ -274,6 +277,16 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
 
   function resetPointer() { pointer.current.targetX = 0; pointer.current.targetY = 0; kick.current?.(); }
 
+  const scenes = story.map((beat, index) => {
+    const motion = embedded ? { top: `${index * 100}%` } : {
+      opacity: `var(--scene-${index}-opacity, ${index === 0 ? 1 : 0})`,
+      transform: `translateY(var(--scene-${index}-y, 0px)) rotate(var(--scene-${index}-rotate, 0deg)) scale(var(--scene-${index}-scale, 1))`,
+    };
+    return <div key={beat.id} data-mri-evidence={index} className={`${styles.scene} ${styles[`scene${firstScene + index}`]}`} aria-hidden={index !== active} style={motion}>
+      <SceneArt index={firstScene + index} studyOpening={embedded && index === 0} />
+    </div>;
+  });
+
   return <section id="work" className={`${styles.world} ${embedded ? styles.embedded : ""}`} data-embedded={embedded} data-active={isActive} ref={root} aria-label="Sameer Jain's featured MRI research" onPointerLeave={resetPointer} onPointerMove={(event) => {
     if (!isActive || event.pointerType !== "mouse") return;
     pointerMedia.current ??= window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
@@ -287,7 +300,7 @@ export default function PerceptionShowcase({ scrollRoot, isActive = true, embedd
     <noscript><style>{`.${styles.stage}{display:none!important}.${styles.beat}{background:var(--beat-ground)!important;color:var(--beat-ink)!important;display:block!important;min-height:0!important;padding-block:${embedded ? "92px 60px" : "50px"}!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}.${styles.copy},.${styles.inlineArt}{opacity:1!important;translate:none!important;scale:none!important;rotate:none!important}.${styles.track}{grid-area:auto!important}`}</style></noscript>
     <div className={styles.stage} ref={stage} data-room-surface data-surface-positioned role="group" aria-label="Recorded MRI research figures">
       <div className={styles.orbit} data-mri-orbit="primary" aria-hidden="true" /><div className={styles.orbitSmall} data-mri-orbit="secondary" aria-hidden="true" />
-      {story.map((beat, index) => <div key={beat.id} data-mri-evidence={index} className={`${styles.scene} ${styles[`scene${firstScene + index}`]}`} aria-hidden={index !== active} style={embedded ? { transform: `translateY(var(--scene-${index}-y, ${index * 100}%))` } : { opacity: `var(--scene-${index}-opacity, ${index === 0 ? 1 : 0})`, transform: `translateY(var(--scene-${index}-y, 0px)) rotate(var(--scene-${index}-rotate, 0deg)) scale(var(--scene-${index}-scale, 1))` }}><SceneArt index={firstScene + index} studyOpening={embedded && index === 0} /></div>)}
+      {embedded ? <div className={styles.evidenceStrip} data-mri-evidence-strip>{scenes}</div> : scenes}
       <div className={styles.worldMark} aria-hidden="true"><span>{story[active]?.word}</span><span className={styles.worldProgress}><span data-mri-progress-bar /></span><span>{String(active + 1).padStart(2, "0")} / {String(story.length).padStart(2, "0")}</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => {

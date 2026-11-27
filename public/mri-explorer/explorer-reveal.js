@@ -11,6 +11,7 @@ if (room && roomWindow) {
       ? { node, entryStart: .79, entryEnd: .55, minimumOpacity: .10 }
       : { node, entryStart: .98, entryEnd: .69, minimumOpacity: .22 });
   let frameRequest = 0;
+  let onscreen = false;
   let dirty = true;
   let viewportHeight = 0;
   let stageTop = 0;
@@ -34,10 +35,11 @@ if (room && roomWindow) {
 
   function render() {
     frameRequest = 0;
-    if (motion.matches || document.hidden || !room.clientHeight) return;
+    if (!onscreen || motion.matches || document.hidden) return;
 
     if (dirty) {
       viewportHeight = room.clientHeight;
+      if (!viewportHeight) return;
       const frameTop = layoutTop(frame, room);
       stageTop = frameTop + layoutTop(stage, null);
       stageHeight = stage.offsetHeight;
@@ -84,7 +86,9 @@ if (room && roomWindow) {
   }
 
   function schedule() {
-    if (!frameRequest && !motion.matches && !document.hidden) frameRequest = roomWindow.requestAnimationFrame(render);
+    if (onscreen && !frameRequest && !motion.matches && !document.hidden) {
+      frameRequest = roomWindow.requestAnimationFrame(render);
+    }
   }
 
   function refresh() {
@@ -98,13 +102,39 @@ if (room && roomWindow) {
   observer.observe(stage);
   observer.observe(document.querySelector(".map-layout"));
   for (const { node } of beats) observer.observe(node);
-  room.addEventListener("scroll", schedule, { passive: true });
+  function setOnscreen(visible) {
+    if (visible === onscreen) return;
+    onscreen = visible;
+    if (visible) {
+      room.addEventListener("scroll", schedule, { passive: true });
+      refresh();
+    } else {
+      room.removeEventListener("scroll", schedule);
+      roomWindow.cancelAnimationFrame(frameRequest);
+      frameRequest = 0;
+    }
+  }
+
+  const visibility = roomWindow.IntersectionObserver
+    ? new roomWindow.IntersectionObserver(([entry]) => setOnscreen(entry.isIntersecting), {
+        root: room,
+        rootMargin: "80px 0px",
+      })
+    : null;
+  if (visibility) visibility.observe(frame);
+  else setOnscreen(true);
+
   room.addEventListener("spatial:entered", refresh);
   motion.addEventListener("change", refresh);
   document.addEventListener("visibilitychange", refresh);
-  window.addEventListener("pagehide", () => {
+  window.addEventListener("pagehide", event => {
     roomWindow.cancelAnimationFrame(frameRequest);
     frameRequest = 0;
+    if (event.persisted) return;
+    setOnscreen(false);
+    visibility?.disconnect();
+    observer.disconnect();
+    room.removeEventListener("spatial:entered", refresh);
   });
   window.addEventListener("pageshow", refresh);
   refresh();

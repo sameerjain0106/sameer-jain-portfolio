@@ -26,27 +26,34 @@ export default function MriScrollJourney({ active, scrollRoot }: { active: boole
     let dirty = true;
     let headingTop = 0;
     let viewportHeight = 0;
+    let scrollTop = 0;
     let previousBlend = -1;
     let previousGround = "";
     let previousInk = "";
+    let documentRoot = explorer.contentDocument?.documentElement ?? null;
     let previousDocument: HTMLElement | null = null;
+
+    function paletteBlend() {
+      const raw = (scrollTop + viewportHeight * .66 - headingTop) / (viewportHeight * .27);
+      const progress = Math.min(1, Math.max(0, raw));
+      return reduced.matches ? Number(progress >= .5) : progress * progress * (3 - 2 * progress);
+    }
 
     function render() {
       frame = 0;
+      if (document.hidden) return;
       if (dirty) {
         viewportHeight = scrollRoot!.clientHeight;
+        scrollTop = scrollRoot!.scrollTop;
         headingTop = 0;
         for (let node: HTMLElement | null = heading; node && node !== scrollRoot; node = node.offsetParent as HTMLElement | null) {
           headingTop += node.offsetTop;
         }
         dirty = false;
       }
-      if (!viewportHeight || document.hidden) return;
+      if (!viewportHeight) return;
 
-      const raw = (scrollRoot!.scrollTop + viewportHeight * .66 - headingTop) / (viewportHeight * .27);
-      const progress = Math.min(1, Math.max(0, raw));
-      const blend = reduced.matches ? Number(progress >= .5) : progress * progress * (3 - 2 * progress);
-      const documentRoot = explorer!.contentDocument?.documentElement ?? null;
+      const blend = paletteBlend();
       if (blend === previousBlend && documentRoot === previousDocument) return;
       const ground = mix(rooms.mri.color, "#f2ef9b", blend);
       const ink = readableInk(ground, blend < .45 ? entryInk : "#173bd3");
@@ -65,23 +72,32 @@ export default function MriScrollJourney({ active, scrollRoot }: { active: boole
 
     function schedule() { if (!frame) frame = requestAnimationFrame(render); }
     function refresh() { dirty = true; schedule(); }
+    function onScroll() {
+      // Read before the study's animation frame writes to the sticky stage.
+      scrollTop = scrollRoot!.scrollTop;
+      if (dirty || (viewportHeight && paletteBlend() !== previousBlend)) schedule();
+    }
+    function onExplorerLoad() {
+      documentRoot = explorer!.contentDocument?.documentElement ?? null;
+      refresh();
+    }
 
     const resize = new ResizeObserver(refresh);
     resize.observe(room);
     resize.observe(scrollRoot);
     resize.observe(heading);
-    scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    scrollRoot.addEventListener("scroll", onScroll, { passive: true });
     scrollRoot.addEventListener("spatial:entered", refresh);
-    explorer.addEventListener("load", refresh);
+    explorer.addEventListener("load", onExplorerLoad);
     reduced.addEventListener("change", schedule);
     document.addEventListener("visibilitychange", refresh);
     schedule();
     return () => {
       cancelAnimationFrame(frame);
       resize.disconnect();
-      scrollRoot.removeEventListener("scroll", schedule);
+      scrollRoot.removeEventListener("scroll", onScroll);
       scrollRoot.removeEventListener("spatial:entered", refresh);
-      explorer.removeEventListener("load", refresh);
+      explorer.removeEventListener("load", onExplorerLoad);
       reduced.removeEventListener("change", schedule);
       document.removeEventListener("visibilitychange", refresh);
     };

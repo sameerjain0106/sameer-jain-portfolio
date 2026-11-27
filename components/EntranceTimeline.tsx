@@ -288,20 +288,22 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
     const arm = figure.querySelector<SVGPathElement>("[data-timeline-arm]")!;
     const plane = map.querySelector<SVGGElement>("[data-timeline-plane]")!;
     const shadow = map.querySelector<SVGEllipseElement>("[data-flight-shadow]")!;
-    const stations = Array.from(map.querySelectorAll<SVGGElement>("[data-timeline-landmark]"), (node, i) => ({
-      building: node.querySelector<SVGGElement>("[data-timeline-building]")!,
-      hasSign: node.hasAttribute("data-company-station"), x: stops[i].x, openness: -1,
-    }));
+    const stations = Array.from(map.querySelectorAll<SVGGElement>("[data-timeline-landmark]"), (node, i) => {
+      const building = node.querySelector<SVGGElement>("[data-timeline-building]")!;
+      return { building, hasSign: node.hasAttribute("data-company-station"), x: stops[i].x, openness: -1, inFrame: building.style.display !== "none" };
+    });
     const labels = Array.from(scene.querySelectorAll<HTMLElement>("[data-timeline-stop]"));
     const buttons = Array.from(scene.querySelectorAll<HTMLButtonElement>("[data-timeline-jump]"));
     // Short windows and reduced motion use the printed edition of the same illustrated stops.
     const animated = matchMedia("(min-height: 551px) and (prefers-reduced-motion: no-preference)");
     let visible = false;
+    let firstDraw = false;
     let dirty = true;
     let raf = 0;
     let lastPaint = -1;
     let lastFlight = -1;
     let selected = -1;
+    let lastOpacity = -1;
     let start = 0;
     let span = 1;
     let width = 900;
@@ -317,7 +319,8 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
 
     function draw() {
       raf = 0;
-      if (!visible || document.hidden || !animated.matches) return;
+      if ((!visible && !firstDraw) || document.hidden || !animated.matches) return;
+      firstDraw = false;
       if (dirty) measure();
       // The room already supplies wheel momentum. Actual distance scrolled drives the gait and camera.
       const x = stops[0].x + walkLength * clamp((root!.scrollTop - start) / span);
@@ -329,7 +332,16 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
         // Fold each facade about its bottom edge, leaving the platform on the ground.
         const foldedAt = Math.min(540, width * .56);
         const openAt = Math.min(100, foldedAt * .23);
+        // The margin covers the widest part of each facade, including its lean while folded.
+        const sceneLeft = camera - 240;
+        const sceneRight = camera + width + 240;
         for (const station of stations) {
+          const inFrame = station.x >= sceneLeft && station.x <= sceneRight;
+          if (inFrame !== station.inFrame) {
+            station.building.style.display = inFrame ? "" : "none";
+            station.inFrame = inFrame;
+          }
+          if (!inFrame) continue;
           const openness = ease(clamp((foldedAt - Math.abs(x - station.x)) / (foldedAt - openAt)));
           if (openness === station.openness) continue;
           const angle = (1 - openness) * Math.PI * .5;
@@ -373,6 +385,7 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
             buttons[selected].removeAttribute("aria-current");
           }
           selected = next;
+          lastOpacity = -1;
           labels[next].dataset.current = "true";
           labels[next].inert = false;
           buttons[next].setAttribute("aria-current", "step");
@@ -380,12 +393,15 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
         }
         // Fade the old sign away before the incoming chapter can show through.
         const opacity = ease(clamp((.5 - Math.abs(visual - next)) / .19));
-        labels[next].style.opacity = opacity.toFixed(3);
+        if (opacity !== lastOpacity) {
+          labels[next].style.opacity = opacity.toFixed(3);
+          lastOpacity = opacity;
+        }
         lastPaint = x;
       }
     }
     function schedule() {
-      if (visible && !raf && !document.hidden && animated.matches) raf = requestAnimationFrame(draw);
+      if ((visible || firstDraw) && !raf && !document.hidden && animated.matches) raf = requestAnimationFrame(draw);
     }
     function refresh() {
       dirty = true;
@@ -393,7 +409,10 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
     }
     function configure() {
       timeline!.toggleAttribute("data-animated", animated.matches);
+      // Prepare the starting pose even when the track is still below the viewport.
+      firstDraw = animated.matches;
       selected = animated.matches ? 0 : -1;
+      lastOpacity = -1;
       labels.forEach((label, index) => {
         label.inert = animated.matches && index !== 0;
         label.toggleAttribute("data-current", index === 0);
@@ -414,7 +433,7 @@ export default function EntranceTimeline({ active, scrollRoot }: { active: boole
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       if (visible) refresh();
-      else { cancelAnimationFrame(raf); raf = 0; }
+      else if (!firstDraw) { cancelAnimationFrame(raf); raf = 0; }
     }, { root, rootMargin: "96px 0px" });
     observer.observe(runway);
     const resize = new ResizeObserver(refresh);
