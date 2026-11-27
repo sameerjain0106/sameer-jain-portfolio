@@ -68,6 +68,9 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
     let returnSpace = 48;
     let heroEnd = 0;
     let frameStart = Infinity;
+    let panelHeight = 0;
+    let storyEnd = Infinity;
+    let previousStoryTop = NaN;
     let raf = 0;
     let previousTop = NaN;
     let previousHeight = 0;
@@ -94,14 +97,19 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
     function draw() {
       raf = 0;
       const top = panel.scrollTop;
-      const height = panel.clientHeight;
+      const height = panelHeight;
+      sendViewport(top, height);
+      // The ledger still tracks every scroll. Its introductory artwork has
+      // already reached its final pose once we scroll past the last anchor.
+      const storyTop = Math.min(top, storyEnd);
+      if (storyTop === previousStoryTop) return;
+      previousStoryTop = storyTop;
       const readingLine = top + height * .52;
       if (gate && height) {
         // Finish folding the gate as the first edge of the ledger comes into view.
         const t = Math.max(0, Math.min(1, 1 + (top + height - frameStart) / (height * .52)));
         progress(gate, "--granted-dock", t * t * (3 - 2 * t));
       }
-      sendViewport(top, height);
       if (height && !motion.matches) {
         progress(hero, "--granted-depart", top / (height * .78));
         // On a short phone the folder can begin below the fold.
@@ -119,7 +127,9 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
       if (root.dataset.step !== step) root.dataset.step = step;
     }
     function schedule() { if (!raf) raf = requestAnimationFrame(draw); }
+    function refresh() { previousStoryTop = NaN; schedule(); }
     function measure() {
+      panelHeight = panel.clientHeight;
       const origin = panel.scrollTop - panel.getBoundingClientRect().top;
       gate = panel.closest("[data-world-room]")?.querySelector<HTMLElement>('[data-edge="down"][data-destination="entrance"]') ?? null;
       returnSpace = parseFloat(getComputedStyle(demoSection).paddingBottom);
@@ -130,7 +140,8 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
         const box = element.getBoundingClientRect();
         return origin + box.top + box.height / 2;
       });
-      schedule();
+      storyEnd = Math.max(panelHeight, heroEnd, frameStart, ...arrivalTops, ...midpoints);
+      refresh();
     }
     function receive(event: MessageEvent) {
       // Without allow-same-origin the browser gives this exact frame an opaque origin.
@@ -164,7 +175,7 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
     resize.observe(panel);
     panel.addEventListener("scroll", schedule, { passive: true });
     panel.addEventListener("spatial:entered", enter);
-    motion.addEventListener("change", schedule);
+    motion.addEventListener("change", refresh);
     embedded.addEventListener("load", enter);
     window.addEventListener("message", receive);
     embedded.contentWindow?.postMessage({ type: "granted:measure" }, "*");
@@ -173,7 +184,7 @@ export default function GrantedRoom({ active, scrollRoot }: { active: boolean; s
       resize.disconnect();
       panel.removeEventListener("scroll", schedule);
       panel.removeEventListener("spatial:entered", enter);
-      motion.removeEventListener("change", schedule);
+      motion.removeEventListener("change", refresh);
       embedded.removeEventListener("load", enter);
       window.removeEventListener("message", receive);
       cancelAnimationFrame(raf);

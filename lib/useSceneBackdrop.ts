@@ -4,6 +4,7 @@ import { useLayoutEffect } from "react";
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const smooth = (t: number) => t * t * (3 - 2 * t);
+type Band = { start: number; end: number };
 
 // Track stable layout markers. Paint the panel behind every chapter, so a
 // chapter boundary never divides the viewport into two background colors.
@@ -23,14 +24,15 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
     const reveals = Array.from(root.querySelectorAll<HTMLElement>("[data-scene-reveal]"));
     const departing = Array.from(root.querySelectorAll<HTMLElement>("[data-scene-depart]"));
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-    let bands: { start: number; end: number }[] = [], revealTops: number[] = [];
-    let height = 1, scrollMax = 0, frame = 0, dirty = true, disposed = false;
+    let bands: Band[] = [], revealBands: Band[] = [], settledBands: Band[] = [];
+    let settled: Band | undefined;
+    let height = 1, frame = 0, dirty = true, disposed = false;
     let lastGround = "", lastInk: string | undefined;
 
     function measure() {
       const origin = root.scrollTop - root.getBoundingClientRect().top - root.clientTop;
       height = Math.max(1, root.clientHeight);
-      scrollMax = Math.max(0, root.scrollHeight - height);
+      const scrollMax = Math.max(0, root.scrollHeight - height);
       let previousEnd = 0;
       bands = chapters.slice(1).map((chapter, index) => {
         const top = origin + chapter.getBoundingClientRect().top;
@@ -42,10 +44,25 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
         return {start, end};
       });
       // Only the children move. Measure the stationary layout slot for each reveal.
-      revealTops = reveals.map(node => {
+      revealBands = reveals.map(node => {
         const anchor = node.closest<HTMLElement>("[data-reveal-anchor]");
-        return origin + (anchor ?? node.parentElement ?? node).getBoundingClientRect().top;
+        const top = origin + (anchor ?? node.parentElement ?? node).getBoundingClientRect().top;
+        const first = node.dataset.sceneReveal === "first";
+        const start = first ? 0 : Math.max(0, Math.min(top - height * .90, scrollMax - height * .30));
+        return { start, end: first ? height * .34 : Math.min(scrollMax, start + height * .34) };
       });
+      // A long timeline can scroll for thousands of pixels between two fades.
+      // Within any one gap, every background, reveal and departing cue is constant.
+      const changing = [...bands, ...revealBands];
+      if (departing.length) changing.push({ start: 0, end: height * .61 });
+      changing.sort((a, b) => a.start - b.start);
+      settledBands = [];
+      let previous = -Infinity;
+      for (const { start, end } of changing) {
+        if (start > previous) settledBands.push({ start: previous, end: start });
+        previous = Math.max(previous, start + 1, end);
+      }
+      settledBands.push({ start: previous, end: Infinity });
       dirty = false;
     }
     function render() {
@@ -53,6 +70,7 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
       if (disposed || document.hidden) return;
       if (dirty) measure();
       const y = root.scrollTop;
+      settled = settledBands.find(band => y > band.start && y < band.end);
       let from = chapters[0], to = from, amount = 0;
       for (let i = 1; i < chapters.length; i++) {
         const {start, end} = bands[i - 1];
@@ -92,8 +110,7 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
       }
       reveals.forEach((node, i) => {
         const first = node.dataset.sceneReveal === "first";
-        const start = first ? 0 : Math.max(0, Math.min(revealTops[i] - height * .90, scrollMax - height * .30));
-        const end = first ? height * .34 : Math.min(scrollMax, start + height * .34);
+        const { start, end } = revealBands[i];
         const t = clamp((y - start) / Math.max(1, end - start));
         const amount = reduced.matches ? 1 : first ? t * (2 - t) : smooth(t);
         const value = String(Number(amount.toFixed(3)));
@@ -105,11 +122,18 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
     function schedule() {
       if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(render);
     }
+    function onScroll() {
+      if (settled && !dirty) {
+        const y = root.scrollTop;
+        if (y > settled.start && y < settled.end) return;
+      }
+      schedule();
+    }
     function refresh() { dirty = true; schedule(); }
     const resize = new ResizeObserver(refresh);
     resize.observe(root);
     chapters.forEach(node => resize.observe(node));
-    root.addEventListener("scroll", schedule, { passive: true });
+    root.addEventListener("scroll", onScroll, { passive: true });
     root.addEventListener("spatial:entered", refresh);
     reduced.addEventListener("change", refresh);
     document.addEventListener("visibilitychange", refresh);
@@ -119,7 +143,7 @@ export function useSceneBackdrop(active: boolean, scroller: HTMLElement | null) 
       disposed = true;
       cancelAnimationFrame(frame);
       resize.disconnect();
-      root.removeEventListener("scroll", schedule);
+      root.removeEventListener("scroll", onScroll);
       root.removeEventListener("spatial:entered", refresh);
       reduced.removeEventListener("change", refresh);
       document.removeEventListener("visibilitychange", refresh);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, type CSSProperties } from "react";
+import { memo, useEffect, useId, useRef, type CSSProperties } from "react";
 import type { RoomId } from "@/data/spatialRooms";
 import styles from "./LivingCursor.module.css";
 
@@ -14,12 +14,13 @@ const clickable = "a[href]:not([aria-disabled='true']), button:not(:disabled):no
 const arrow = "M0 0 C2.3 1.1 4.5 2.5 6.6 4 L25.3 17.3 C27.8 19.1 27.2 21.7 24.3 22 L17.3 22.6 L21.9 31.5 C23 33.6 22.4 35.2 20.4 36.2 L19.8 36.5 C17.7 37.5 16.2 36.8 15.2 34.8 L10.7 26.3 L5.4 30.7 C3.1 32.6 .9 31.4 .8 28.5 Z";
 
 /** An inflated glass arrow whose tip stays exactly on the pointer, without a trail or frame loop. */
-export default function LivingCursor({ room, active, paused }: { room: RoomId; active: boolean; paused: boolean }) {
+export default memo(function LivingCursor({ room, active, paused }: { room: RoomId; active: boolean; paused: boolean }) {
   const cursor = useRef<HTMLDivElement>(null);
   const id = useId();
   const glassId = `${id}-glass`, rimMaskId = `${id}-rim`;
 
   useEffect(() => {
+    if (!active) return;
     const node = cursor.current;
     const world = node?.closest<HTMLElement>("[data-world-room]");
     if (!node || !world) return;
@@ -27,11 +28,11 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     const fine = matchMedia("(hover: hover) and (pointer: fine)");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let supported = false, frame = 0, visible = false, disposed = false;
-    let bounds = world.getBoundingClientRect();
+    let bounds: DOMRect;
     const point = { x: 0, y: 0, hover: false, pressed: false };
     let target: EventTarget | null = null;
     let needsHitTest = false;
-    let published = { x: Number.NaN, y: Number.NaN,
+    const published = { x: Number.NaN, y: Number.NaN,
       hover: node.dataset.cursorHover === "true", pressed: node.dataset.cursorPressed === "true" };
 
     function hide() {
@@ -60,7 +61,10 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
       }
       if (point.hover !== published.hover) node!.dataset.cursorHover = String(point.hover);
       if (point.pressed !== published.pressed) node!.dataset.cursorPressed = String(point.pressed);
-      published = { ...point };
+      published.x = point.x;
+      published.y = point.y;
+      published.hover = point.hover;
+      published.pressed = point.pressed;
       // Hide the platform pointer only after the replacement has its real position.
       if (!visible) {
         node!.dataset.cursorEnabled = "true";
@@ -93,7 +97,7 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
       if (!event.relatedTarget || (event.relatedTarget instanceof Node && !world!.contains(event.relatedTarget))) hide();
     }
     function configure() {
-      hide(); supported = active && fine.matches && !reduced.matches && !document.hidden;
+      hide(); supported = fine.matches && !reduced.matches && !document.hidden;
       bounds = world!.getBoundingClientRect();
     }
     function measure() {
@@ -167,4 +171,4 @@ export default function LivingCursor({ room, active, paused }: { room: RoomId; a
     </span></span>
     <span className={styles.point} data-cursor-point data-cursor-position />
   </div>;
-}
+});

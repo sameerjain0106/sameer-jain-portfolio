@@ -110,14 +110,19 @@ export async function prepareImage(file) {
     const side = MODEL_IMAGE_SIDE;
     const plane = side * side;
     const tensor = new Float32Array(3 * plane);
+    const [blueMean, greenMean, redMean] = BGR_CHANNEL_MEANS;
+    const columnOffsets = new Uint32Array(side);
+    for (let x = 0; x < side; x += 1) {
+      columnOffsets[x] = Math.floor((x + 0.5) * width / side) * 4;
+    }
     for (let y = 0; y < side; y += 1) {
-      const sourceRow = Math.floor((y + 0.5) * height / side) * width;
+      const sourceRow = Math.floor((y + 0.5) * height / side) * width * 4;
       for (let x = 0; x < side; x += 1) {
-        const source = (sourceRow + Math.floor((x + 0.5) * width / side)) * 4;
+        const source = sourceRow + columnOffsets[x];
         const target = y * side + x;
-        tensor[target] = pixels[source + 2] - BGR_CHANNEL_MEANS[0];
-        tensor[plane + target] = pixels[source + 1] - BGR_CHANNEL_MEANS[1];
-        tensor[2 * plane + target] = pixels[source] - BGR_CHANNEL_MEANS[2];
+        tensor[target] = pixels[source + 2] - blueMean;
+        tensor[plane + target] = pixels[source + 1] - greenMean;
+        tensor[2 * plane + target] = pixels[source] - redMean;
       }
     }
     return { url, tensor };

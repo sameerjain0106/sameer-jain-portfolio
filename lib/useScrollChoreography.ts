@@ -84,12 +84,15 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
         const figure = beat.kind === "figure";
         beat.node.style.setProperty("--scroll-opacity", eased.toFixed(4));
         beat.node.style.setProperty("--scroll-lift", `${(remaining * (figure ? 58 : beat.kind === "group" ? 28 : 38)).toFixed(3)}px`);
-        beat.node.style.setProperty("--scroll-scale", String(figure ? 1 - remaining * .045 : 1));
-        beat.node.style.setProperty("--scroll-turn", `${figure ? (remaining * beat.side * 1.4).toFixed(3) : 0}deg`);
+        if (figure) {
+          beat.node.style.setProperty("--scroll-scale", String(1 - remaining * .045));
+          beat.node.style.setProperty("--scroll-turn", `${(remaining * beat.side * 1.4).toFixed(3)}deg`);
+        }
         beat.node.dataset.scrollProgress = progress.toFixed(4);
       });
     }
     function schedule() { if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(render); }
+    function onScroll() { if (dirty || (!motion.matches && (beats.length || visibleSurfaces.size))) schedule(); }
     function refresh() { dirty = true; schedule(); }
     function tabVisibility() { if (document.hidden) { cancelAnimationFrame(frame); frame = 0; } else refresh(); }
     const resize = nodes.length ? new ResizeObserver(refresh) : null;
@@ -99,14 +102,14 @@ export function useScrollChoreography(active: boolean, scroller: HTMLElement | n
       nodes.forEach(node => resize.observe(node));
       void document.fonts.ready.then(() => { if (!disposed) refresh(); });
     }
-    scroller.addEventListener("scroll", schedule, { passive: true });
+    scroller.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("visibilitychange", tabVisibility);
     motion.addEventListener("change", refresh);
     hideFlowFields.addEventListener("change", schedule);
     schedule();
     return () => {
       disposed = true; cancelAnimationFrame(frame); resize?.disconnect(); visibility.disconnect();
-      scroller.removeEventListener("scroll", schedule);
+      scroller.removeEventListener("scroll", onScroll);
       document.removeEventListener("visibilitychange", tabVisibility);
       motion.removeEventListener("change", refresh);
       hideFlowFields.removeEventListener("change", schedule);

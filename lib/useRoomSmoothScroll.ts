@@ -10,6 +10,12 @@ const wheelLerp = .19;
 export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | null) {
   useEffect(() => {
     if (!scroller) return;
+    if (!active) {
+      scroller.dataset.scrollSmoothing = "native";
+      scroller.dataset.scrollSmoothingRunning = "false";
+      return;
+    }
+    const entrance = scroller.dataset.roomScroll === "entrance";
     const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let instance: Lenis | null = null;
@@ -25,7 +31,7 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     }
 
     function stopFrames() {
-      cancelAnimationFrame(frame);
+      if (frame) cancelAnimationFrame(frame);
       frame = 0;
       setRunning(false);
     }
@@ -33,10 +39,12 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     function cancelInertia() {
       stopFrames();
       lastWheelTime = wheelDirection = recentTravel = 0;
+      if (!instance || (!instance.isScrolling && !instance.isLocked && !instance.isStopped
+        && instance.animatedScroll === instance.targetScroll && instance.targetScroll === instance.actualScroll)) return;
       // stop/start rebases the target on the browser's current position without
       // writing scrollTop. Keys, scrollbar dragging and anchors then stay native.
-      instance?.stop();
-      instance?.start();
+      instance.stop();
+      instance.start();
     }
 
     function tick(time: number) {
@@ -73,7 +81,7 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
     function configure() {
       destroyInstance();
       const content = scroller!.firstElementChild;
-      if (!active || document.hidden || reduced.matches || !finePointer.matches || !(content instanceof HTMLElement)) return;
+      if (document.hidden || reduced.matches || !finePointer.matches || !(content instanceof HTMLElement)) return;
 
       instance = new Lenis({
         wrapper: scroller!,
@@ -112,7 +120,7 @@ export function useRoomSmoothScroll(active: boolean, scroller: HTMLElement | nul
           const elapsed = event.timeStamp - lastWheelTime;
           lastWheelTime = event.timeStamp;
           current.options.lerp = wheelLerp;
-          if (event.target instanceof Element && event.target.closest("#timeline[data-animated]") && event.deltaMode !== WheelEvent.DOM_DELTA_PAGE) {
+          if (entrance && event.deltaMode !== WheelEvent.DOM_DELTA_PAGE && event.target instanceof Element && event.target.closest("#timeline[data-animated]")) {
             // Extra travel comes from several quick wheel inputs. A lone notch
             // and the tiny trailing deltas from a trackpad stay precise.
             recentTravel = elapsed >= 0 && elapsed < 160 ? recentTravel * Math.exp(-elapsed / 150) : 0;

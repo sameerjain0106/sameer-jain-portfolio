@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { perceptionStory, perceptionMotion as config } from "@/data/perceptionStory";
@@ -45,7 +45,7 @@ function ScanCrop({ file, label, priority = false }: { file: string; label: stri
   return <div className={styles.scanCrop}><Image src={imageRoot + file} width={2250} height={480} alt={`Visual crop of one published ${label} MRI example`} sizes="(min-width: 1100px) 190vw, (min-width: 900px) 240vw, 500vw" priority={priority} /></div>;
 }
 
-function SceneArt({ index, mobile = false, studyOpening = false }: { index: number; mobile?: boolean; studyOpening?: boolean }) {
+const SceneArt = memo(function SceneArt({ index, mobile = false, studyOpening = false }: { index: number; mobile?: boolean; studyOpening?: boolean }) {
   const beat = perceptionStory[index];
   if (index === 0 || index === perceptionStory.length - 1) return <div className={styles.constellation}>
     <FrameArchitecture />
@@ -61,7 +61,7 @@ function SceneArt({ index, mobile = false, studyOpening = false }: { index: numb
     <Image src={imageRoot + beat.figure} width={index === 3 ? 547 : 960} height={index === 3 ? 432 : 720} alt={beat.caption} sizes="(min-width: 1100px) 54vw, (min-width: 900px) 60vw, 95vw" loading={mobile ? "lazy" : "eager"} />
     <figcaption>{index === 2 ? "Features → groups → evaluation" : index === 3 ? "Pixels → PCA → Random Forest" : "Train → hold out → evaluate"}</figcaption>
   </figure>;
-}
+});
 
 export function FrameArchitecture() {
   return <div className={styles.frameSculpture} aria-hidden="true">

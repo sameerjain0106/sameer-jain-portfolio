@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useId, useRef, type CSSProperties } from "react";
 import { etfResearch, phase7Summary } from "@/data/etfResearch";
 import { etfFeatureFamilies, etfStory as story } from "@/data/etfStory";
 import { perceptionMotion as scrollMotion } from "@/data/perceptionStory";
@@ -65,8 +65,8 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const beats = useRef<Array<HTMLElement | null>>([]);
-  const currentRef = useRef(0);
-  const [current, setCurrent] = useState(0);
+  const chapterWord = useRef<HTMLSpanElement>(null);
+  const chapterCount = useRef<HTMLSpanElement>(null);
   const uid = useId();
 
   useEffect(() => {
@@ -110,10 +110,10 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       if (disposed || document.hidden) return;
       const enhanced = String(enabled.matches);
       if (section!.dataset.storyEnhanced !== enhanced) section!.dataset.storyEnhanced = enhanced;
-      if (!enabled.matches || !scrollRoot!.clientHeight) return;
+      if (!enabled.matches) return;
       if (geometryDirty) measure();
       const scroll = scrollRoot!.scrollTop;
-      if (sectionBottom <= scroll || sectionTop >= scroll + height) return;
+      if (!height || sectionBottom <= scroll || sectionTop >= scroll + height) return;
       const anchor = scroll + height * scrollMotion.viewportAnchor;
       let progress = 0;
       for (let i = 0; i < centers.length - 1; i++) {
@@ -125,9 +125,12 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       const base = Math.floor(progress), next = Math.min(base + 1, story.length - 1);
       const blend = clamp((progress - base - scrollMotion.transitionStart) / (scrollMotion.transitionEnd - scrollMotion.transitionStart));
       const chapter = Math.round(progress);
-      if (chapter !== currentRef.current) { currentRef.current = chapter; setCurrent(chapter); }
       section!.dataset.journeyProgress = (progress / (story.length - 1)).toFixed(4);
-      if (section!.dataset.journeyScene !== String(chapter)) section!.dataset.journeyScene = String(chapter);
+      if (section!.dataset.journeyScene !== String(chapter)) {
+        section!.dataset.journeyScene = String(chapter);
+        if (chapterWord.current) chapterWord.current.textContent = story[chapter].word;
+        if (chapterCount.current) chapterCount.current.textContent = String(chapter + 1).padStart(2, "0") + " / 05";
+      }
       // Keep changes on the painted elements instead of inheriting each frame's
       // progress through every illustrated chapter in the sticky stage.
       setPaint("ground", visual, "background-color", mix(story[base].ground, story[next].ground, blend));
@@ -141,12 +144,17 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
       setPaint("--comparison-open", sheets[4], "--comparison-open", String(clamp((progress - 3.5) / .5)));
     }
     function schedule() { if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(paint); }
+    function onScroll() {
+      if (!enabled.matches || frame || document.hidden) return;
+      const top = scrollRoot!.scrollTop;
+      if (geometryDirty || (top < sectionBottom && top + height > sectionTop)) schedule();
+    }
     function refresh() { if (disposed) return; previous = Number.NaN; geometryDirty = true; schedule(); }
     function visibility() { if (document.hidden) { cancelAnimationFrame(frame); frame = 0; } else refresh(); }
     const observer = new ResizeObserver(refresh);
     observer.observe(section); observer.observe(scrollRoot);
     beats.current.forEach(beat => { if (beat) observer.observe(beat); });
-    scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    scrollRoot.addEventListener("scroll", onScroll, { passive: true });
     scrollRoot.addEventListener("spatial:entered", refresh);
     enabled.addEventListener("change", refresh);
     document.addEventListener("visibilitychange", visibility);
@@ -154,7 +162,7 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
     refresh();
     return () => {
       disposed = true; cancelAnimationFrame(frame); observer.disconnect();
-      scrollRoot.removeEventListener("scroll", schedule); enabled.removeEventListener("change", refresh);
+      scrollRoot.removeEventListener("scroll", onScroll); enabled.removeEventListener("change", refresh);
       scrollRoot.removeEventListener("spatial:entered", refresh);
       document.removeEventListener("visibilitychange", visibility);
     };
@@ -164,7 +172,7 @@ export default function EtfScrollJourney({ active, scrollRoot }: { active: boole
     <noscript><style>{`.${styles.journey}{display:block!important}.${styles.stage}{display:none!important}.${styles.track}{grid-area:auto!important}.${styles.beat}{display:block!important;min-height:0!important;background:var(--beat-ground)!important}.${styles.copy}{width:auto!important;margin-left:0!important;max-width:760px}.${styles.inlineArt}{display:block!important;max-width:800px}`}</style></noscript>
     <div ref={stage} className={styles.stage} data-etf-story-stage data-room-surface data-surface-positioned aria-hidden="true">
       {story.map((beat, index) => <div key={beat.id} className={`${styles.sheet} ${styles[`sheet${index}`]}`} data-etf-evidence={index} style={{ transform: `translateY(${index * 100}%)` }}><div className={styles.art} data-etf-art><ResearchArt index={index} /></div></div>)}
-      <div className={styles.progress}><span>{story[current].word}</span><i><b data-etf-progress-bar /></i><span>{String(current + 1).padStart(2, "0")} / 05</span></div>
+      <div className={styles.progress}><span ref={chapterWord}>{story[0].word}</span><i><b data-etf-progress-bar /></i><span ref={chapterCount}>01 / 05</span></div>
     </div>
     <div className={styles.track}>{story.map((beat, index) => <article key={beat.id} ref={el => { beats.current[index] = el; }} className={styles.beat} data-journey-scene={index} data-room-surface data-surface-flow aria-labelledby={`${uid}-${beat.id}`} style={{ "--beat-ground": beat.ground } as CSSProperties}>
       <div className={styles.copy} data-etf-copy>

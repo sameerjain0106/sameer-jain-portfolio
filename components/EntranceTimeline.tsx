@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import styles from "./EntranceTimeline.module.css";
 
 const stops = [
@@ -203,7 +203,7 @@ function Airliner() {
   </g>;
 }
 
-function EntranceMap() {
+const EntranceMap = memo(function EntranceMap() {
   return <svg className={styles.art} data-timeline-map viewBox={`${stops[0].x - 500} 112 1000 ${viewHeight}`} aria-hidden="true" focusable="false">
     <defs>
       <Airliner />
@@ -264,7 +264,7 @@ function EntranceMap() {
     </g>
     {stops.slice(1).map((stop,i) => <path key={stop.landmark} transform={`translate(${stop.x - 210} ${365 + i % 3 * 3})`} d="m0 0 4 17 6 2-4-20m6-1 3 15 5 2-3-17" fill="#887697" />)}
   </svg>;
-}
+});
 
 export default function EntranceTimeline({ active, scrollRoot }: { active: boolean; scrollRoot: HTMLElement | null }) {
   const section = useRef<HTMLElement>(null);

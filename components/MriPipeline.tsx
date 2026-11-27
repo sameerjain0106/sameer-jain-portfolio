@@ -139,7 +139,12 @@ export default function MriPipeline({ active, scrollRoot }: { active: boolean; s
             <rect x="35" y="36" width="166" height="196" rx="5" fill="#ff8066" transform="rotate(-9 118 134)" />
             <rect x="35" y="36" width="166" height="196" rx="5" fill="#f2ef9b" />
             <rect x="47" y="48" width="142" height="142" rx="3" fill="#080d17" />
-            <g clipPath={`url(#${id}-scan)`}><image href="/projects/brain-tumor-mri/images/cluster_2_samples.png" x="31.9" y="20.4" width="827.7" height="176.6" /></g>
+            <g clipPath={`url(#${id}-scan)`}>
+              {/* Keep the original contact sheet coordinates while loading only this scan. */}
+              <svg x="31.9" y="20.4" width="827.7" height="176.6" viewBox="0 0 2250 480">
+                <image href="/projects/brain-tumor-mri/images/pipeline-glioma.png" x="32" y="64" width="408" height="408" />
+              </svg>
+            </g>
             <text x="47" y="214" className={styles.cardText} fill="#111b39">Published MRI example</text>
           </g>
 

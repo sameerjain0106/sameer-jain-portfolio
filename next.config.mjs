@@ -35,7 +35,14 @@ const nextConfig = {
       // Font filenames contain content hashes, so cached bytes never change.
       source: "/fonts/:fontFile",
       headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
-    }, {
+    }, ...[
+      // Publish a new filename whenever either portrait asset is revised.
+      "/images/entrance-alpine-ripples.mp4",
+      "/images/entrance-alpine-armor.webp",
+    ].map(source => ({
+      source,
+      headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+    })), {
       source: "/demos/granted/index.html",
       headers: [
         { key: "X-Frame-Options", value: "SAMEORIGIN" },

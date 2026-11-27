@@ -100,7 +100,7 @@ async function loadSampleMatches(bytes) {
   ]));
 }
 
-function selectMapLabel(label) {
+function selectMapLabel(label, redraw = true) {
   mapLabel = label;
   for (const button of mapButtons) {
     button.setAttribute("aria-pressed", String(button.dataset.mapLabel === label));
@@ -111,7 +111,7 @@ function selectMapLabel(label) {
   element("map-summary").textContent = label === "all"
     ? groups + " groups from " + crops + " MRI crops."
     : groups + " groups from " + crops + " MRI crops labeled " + labels[label].name + ". Other types are faded.";
-  drawMap();
+  if (redraw) drawMap();
 }
 
 function configureMap() {
@@ -124,7 +124,8 @@ function configureMap() {
   };
   mapBounds = [bounds("x"), bounds("y")];
   for (const button of mapButtons) button.disabled = false;
-  selectMapLabel("all");
+  // The initial sample draws both the groups and its marker in the same task.
+  selectMapLabel("all", false);
 }
 
 const clusterColors = [labels.brain_menin.color, labels.brain_tumor.color, labels.brain_glioma.color,

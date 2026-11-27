@@ -14,12 +14,24 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
   const video = useRef<HTMLVideoElement>(null);
   const ambientEnabled = useAmbientMotionEnabled();
   const [failed, setFailed] = useState(false);
-  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const player = video.current;
+    if (!player || !active || failed) return;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const syncRate = () => {
+      const rate = reduced.matches || !ambientEnabled ? .55 : 1;
+      if (player.defaultPlaybackRate !== rate) player.defaultPlaybackRate = rate;
+      if (player.playbackRate !== rate) player.playbackRate = rate;
+    };
+    syncRate();
+    reduced.addEventListener("change", syncRate);
+    return () => reduced.removeEventListener("change", syncRate);
+  }, [active, ambientEnabled, failed]);
 
   useEffect(() => {
     const player = video.current;
     if (!player || !active || !scrollRoot || failed) return;
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const visibilityGate = player.closest<HTMLElement>("[data-kinetic-occluded]");
     let visible = false;
     let disposed = false;
@@ -27,6 +39,7 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
     const retryEvents = ["pointerdown", "keydown", "touchend", "wheel"] as const;
     const canPlay = () => visible && !document.hidden && visibilityGate?.dataset.kineticOccluded !== "true";
     const clearRetry = () => {
+      if (!retryAttached) return;
       retryEvents.forEach(event => window.removeEventListener(event, update));
       retryAttached = false;
     };
@@ -39,21 +52,18 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
       if (disposed) return;
       if (!canPlay()) {
         clearRetry();
-        player.pause();
+        if (!player.paused) player.pause();
         return;
       }
-      const rate = reduced.matches || !ambientEnabled ? .55 : 1;
-      player.defaultPlaybackRate = rate;
       if (!player.hasAttribute("src")) {
         player.src = VIDEO;
       }
-      player.playbackRate = rate;
-      player.muted = true;
+      if (!player.muted) player.muted = true;
       // Recover from restrictive autoplay policies on the next normal interaction.
       if (player.paused) void player.play().then(clearRetry).catch(retryOnGesture);
     };
     const observer = new IntersectionObserver(entries => {
-      visible = entries.some(entry => entry.isIntersecting);
+      visible = entries[entries.length - 1].isIntersecting;
       update();
     }, { root: scrollRoot, threshold: 0 });
     observer.observe(player);
@@ -65,7 +75,6 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
     };
     player.addEventListener("seeked", resumeLoop);
     document.addEventListener("visibilitychange", update);
-    reduced.addEventListener("change", update);
     return () => {
       disposed = true;
       clearRetry();
@@ -73,19 +82,21 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
       occlusion.disconnect();
       player.removeEventListener("seeked", resumeLoop);
       document.removeEventListener("visibilitychange", update);
-      reduced.removeEventListener("change", update);
-      player.pause();
+      if (!player.paused) player.pause();
     };
-  }, [active, scrollRoot, ambientEnabled, failed]);
+  }, [active, scrollRoot, failed]);
 
   return <figure ref={portraitRef} className={styles.portrait} data-entrance-portrait>
     <div className={styles.portraitFrame}>
-      {failed ? <Image src={POSTER} alt="Sameer as Napoleon, pointing over the Alps from a rearing horse wearing gold Codex face armor."
-        width={624} height={856} sizes="(max-width: 650px) calc(100vw - 88px), 540px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
+      {failed ? <Image unoptimized src={POSTER} alt="Sameer as Napoleon, pointing over the Alps from a rearing horse wearing gold Codex face armor."
+        width={624} height={856} /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
         poster={POSTER}
-        data-portrait-playing={playing}
+        data-portrait-playing="false"
         aria-label="Sameer as Napoleon on a rearing horse with glowing gold Codex armor. Wind ripples his cape from shoulder to hem and lifts individual locks of mane and tail."
-        onPlaying={() => setPlaying(true)}
+        onPlaying={event => {
+          const player = event.currentTarget;
+          if (player.dataset.portraitPlaying !== "true") player.dataset.portraitPlaying = "true";
+        }}
         onError={() => setFailed(true)} />}
     </div>
   </figure>;

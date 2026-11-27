@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type CSSProperties, type MutableRefObject } from "react";
+import { memo, useEffect, useId, useRef, useState, type CSSProperties, type MutableRefObject } from "react";
 import { createPortal } from "react-dom";
 import type { RoomId } from "@/data/spatialRooms";
 import styles from "./RoomCreature.module.css";
@@ -341,7 +341,7 @@ function BackgroundResident({ host, room, active, paused, input }: CreatureProps
 }
 
 /** Portal into isolated backgrounds instead of placing artwork over the portfolio. */
-export default function RoomCreature({ room, active, paused }: CreatureProps) {
+export default memo(function RoomCreature({ room, active, paused }: CreatureProps) {
   const anchor = useRef<HTMLSpanElement>(null);
   const input = useRef<CreatureInput>({ pointer: { x: 0, y: 0, known: false }, subscribers: new Set() });
   const [placement, setPlacement] = useState<{ room: RoomId; hosts: HTMLElement[] }>({ room, hosts: [] });
@@ -386,4 +386,4 @@ export default function RoomCreature({ room, active, paused }: CreatureProps) {
     };
   }, []);
   return <><span ref={anchor} className={styles.controller} aria-hidden="true" />{placement.room === room && placement.hosts.map((host, index) => createPortal(<BackgroundResident host={host} room={room} active={active} paused={paused} input={input} />, host, `${room}-${index}`))}</>;
-}
+});

@@ -258,10 +258,15 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
 
   useEffect(() => {
     const fine = window.matchMedia("(any-hover: hover) and (any-pointer: fine)");
+    const gates = root.current?.querySelector<HTMLElement>("#room-navigation");
+    const hasSelectedText = () => {
+      const selection = document.getSelection();
+      return !!selection && !selection.isCollapsed && selection.toString() !== "";
+    };
     const tick = (now: number) => {
       const pending = hold.current;
       if (!pending) return;
-      if (worldRef.current.mode.kind !== "idle" || document.hidden || !pending.edge?.matches(":hover") || document.getSelection()?.toString()) { cancelHold(); return; }
+      if (worldRef.current.mode.kind !== "idle" || document.hidden || !pending.edge?.matches(":hover") || hasSelectedText()) { cancelHold(); return; }
       // Only these two small subtrees consume hold progress; room content does not.
       pending.started = Math.max(pending.started, inhibitedUntil.current);
       const progress = Math.max(0, Math.min(1, (now - pending.started) / HOLD_MS));
@@ -289,12 +294,13 @@ export default function SpatialWorld({ initialRoom }: { initialRoom: RoomId }) {
       // stay inside the iframe. Only physical movement over a gate can start one.
       if (!event.isTrusted) { enterFrame(event); return; }
       if (event.pointerType !== "mouse" || !fine.matches) return;
-      const gate = (event.target as Element)?.closest<HTMLElement>("[data-edge]");
+      const gate = event.target instanceof Element && gates?.contains(event.target)
+        ? event.target.closest<HTMLElement>("[data-edge]") : null;
       const edge = (gate?.dataset.edge as Direction | undefined) ?? null;
       hoveredEdge.current = edge;
       if (edge !== blockedEdge.current) blockedEdge.current = null;
       const state = worldRef.current;
-      if (!edge || edge === blockedEdge.current || event.buttons || state.mode.kind !== "idle" || document.getSelection()?.toString() || (event.target as Element)?.closest("[data-no-dwell]")) { cancelHold(); return; }
+      if (!edge || edge === blockedEdge.current || event.buttons || state.mode.kind !== "idle" || hasSelectedText() || (event.target as Element)?.closest("[data-no-dwell]")) { cancelHold(); return; }
       const target = neighbor(state.room, edge);
       if (!target) { cancelHold(); return; }
       if (hold.current?.direction === edge) return;
