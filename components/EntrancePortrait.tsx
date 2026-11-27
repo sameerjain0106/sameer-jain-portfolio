@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
-const VIDEO = "/images/entrance-alpine-braid.mp4";
-const POSTER = "/images/entrance-alpine-braid.webp";
+const VIDEO = "/images/entrance-alpine-armor.mp4";
+const POSTER = "/images/entrance-alpine-armor.webp";
 
 export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
   active: boolean; scrollRoot: HTMLElement | null; portraitRef: Ref<HTMLElement>;
@@ -80,11 +80,11 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
 
   return <figure ref={portraitRef} className={styles.portrait} data-entrance-portrait>
     <div className={styles.portraitFrame}>
-      {failed ? <Image src={POSTER} alt="Sameer as Napoleon on a rearing horse with the Codex knot woven into its mane."
+      {failed ? <Image src={POSTER} alt="Sameer as Napoleon, pointing over the Alps from a rearing horse wearing gold Codex face armor."
         width={624} height={856} sizes="(max-width: 650px) calc(100vw - 88px), 540px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
         poster={POSTER}
         data-portrait-playing={playing}
-        aria-label="Looping painting of Sameer as Napoleon on a rearing horse with the Codex knot woven into its mane. The cape, mane, and tail move in the wind."
+        aria-label="Sameer as Napoleon on a rearing horse. Wind lifts his red cape and the horse’s mane, and light travels across its gold Codex face armor."
         onPlaying={() => setPlaying(true)}
         onError={() => setFailed(true)} />}
     </div>
