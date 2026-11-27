@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
-const VIDEO = "/images/entrance-alpine-armor.mp4";
+const VIDEO = "/images/entrance-alpine-gale.mp4";
 const POSTER = "/images/entrance-alpine-armor.webp";
 
 export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
@@ -84,7 +84,7 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
         width={624} height={856} sizes="(max-width: 650px) calc(100vw - 88px), 540px" /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
         poster={POSTER}
         data-portrait-playing={playing}
-        aria-label="Sameer as Napoleon on a rearing horse. Wind lifts his red cape and the horse’s mane, and light travels across its gold Codex face armor."
+        aria-label="The horse rears and settles beneath Sameer as Napoleon. His red cape, the mane, and the tail whip in the wind as the gold Codex armor glows."
         onPlaying={() => setPlaying(true)}
         onError={() => setFailed(true)} />}
     </div>
