@@ -39,6 +39,9 @@ const nextConfig = {
       // Publish a new filename whenever either portrait asset is revised.
       "/images/entrance-alpine-ripples.mp4",
       "/images/entrance-alpine-armor.webp",
+      "/images/entrance-alpine-detail.mp4",
+      "/images/entrance-alpine-compact.mp4",
+      "/images/entrance-alpine-detail.webp",
     ].map(source => ({
       source,
       headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],

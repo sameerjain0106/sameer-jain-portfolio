@@ -5,8 +5,18 @@ import Image from "next/image";
 import { useAmbientMotionEnabled } from "@/lib/useAmbientMotion";
 import styles from "./SpatialEntrance.module.css";
 
-const VIDEO = "/images/entrance-alpine-ripples.mp4";
-const POSTER = "/images/entrance-alpine-armor.webp";
+const DETAIL_VIDEO = "/images/entrance-alpine-detail.mp4";
+const COMPACT_VIDEO = "/images/entrance-alpine-compact.mp4";
+const POSTER = "/images/entrance-alpine-detail.webp";
+
+function chooseVideo(player: HTMLVideoElement) {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  const saveData = connection?.saveData || matchMedia("(prefers-reduced-data: reduce)").matches;
+  const slowConnection = ["slow-2g", "2g", "3g"].includes(connection?.effectiveType ?? "");
+  const displayWidth = player.clientWidth * window.devicePixelRatio;
+  // The compact frame still has 1.5 source pixels per displayed pixel at this size.
+  return saveData || slowConnection || (displayWidth > 0 && displayWidth <= 416) ? COMPACT_VIDEO : DETAIL_VIDEO;
+}
 
 export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
   active: boolean; scrollRoot: HTMLElement | null; portraitRef: Ref<HTMLElement>;
@@ -56,7 +66,7 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
         return;
       }
       if (!player.hasAttribute("src")) {
-        player.src = VIDEO;
+        player.src = chooseVideo(player);
       }
       if (!player.muted) player.muted = true;
       // Recover from restrictive autoplay policies on the next normal interaction.
@@ -89,7 +99,7 @@ export default function EntrancePortrait({ active, scrollRoot, portraitRef }: {
   return <figure ref={portraitRef} className={styles.portrait} data-entrance-portrait>
     <div className={styles.portraitFrame}>
       {failed ? <Image unoptimized src={POSTER} alt="Sameer as Napoleon, pointing over the Alps from a rearing horse wearing gold Codex face armor."
-        width={624} height={856} /> : <video ref={video} width={624} height={856} autoPlay muted loop playsInline preload="none"
+        width={1070} height={1470} /> : <video ref={video} width={1070} height={1470} autoPlay muted loop playsInline preload="none"
         poster={POSTER}
         data-portrait-playing="false"
         aria-label="Sameer as Napoleon on a rearing horse with glowing gold Codex armor. Wind ripples his cape from shoulder to hem and lifts individual locks of mane and tail."
